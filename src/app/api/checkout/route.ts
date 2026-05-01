@@ -355,7 +355,7 @@ export async function POST(req: NextRequest) {
         const accountValueUsd = parseFloat((Number(accountValueIngame) / goldPerUsd).toFixed(2));
         insertPayload.account_value = accountValueUsd;
         insertPayload.account_value_ingame = accountValueIngame;
-        // Vastgezet op moment van order: USD-waarde wordt opgeslagen en gelogd
+        // Fixed at order creation: the USD value is stored and logged.
         console.info("[checkout] account value fixed at order creation", {
           account_value_ingame: accountValueIngame,
           account_value_usd: accountValueUsd,

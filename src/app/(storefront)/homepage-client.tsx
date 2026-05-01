@@ -28,7 +28,7 @@ function HeroBackground({
           style={{ backgroundImage: `url(${imageUrl})` }}
         />
       ) : (
-        /* Fallback: donkere oranje gradient */
+        /* Fallback: dark orange gradient */
         <div
           className="absolute inset-0"
           style={{
@@ -38,7 +38,7 @@ function HeroBackground({
         />
       )}
 
-      {/* Donkere overlay — instelbaar via admin */}
+      {/* Dark overlay: configurable from admin. */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
@@ -49,7 +49,7 @@ function HeroBackground({
         }}
       />
 
-      {/* Subtiele oranje gloed voor branding */}
+      {/* Subtle orange glow for branding. */}
       <div
         className="absolute bottom-0 left-0 right-0 w-full h-1/2 pointer-events-none opacity-[0.07]"
         style={{

@@ -518,7 +518,7 @@ export default function CheckoutPage() {
             </div>
           </div>
 
-          {/* Value on account (in-game) — USD wordt bij orderaanmaak vastgezet */}
+          {/* Value on account (in-game): USD value is fixed when the order is created. */}
           <div className="p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)]">
             <label htmlFor="account-value" className="block text-sm font-medium text-[var(--text-primary)] mb-1.5">
               Value on my account {primaryGoldCfg ? `(${primaryGoldCfg.gold_currency_label})` : "(in-game)"}

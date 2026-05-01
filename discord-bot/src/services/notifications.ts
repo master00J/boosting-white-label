@@ -87,9 +87,9 @@ export async function sendDmToUser(
     const user = await client.users.fetch(discordId).catch(() => null);
     if (!user) return;
     await user.send({ content, embeds: [embed] }).catch(() => {
-      logger.debug(`Kan geen DM sturen naar ${discordId} (DMs uitgeschakeld?)`);
+      logger.debug(`Cannot send DM to ${discordId} (DMs disabled?)`);
     });
   } catch (err) {
-    logger.error(`Fout bij sturen DM naar ${discordId}`, err);
+    logger.error(`Error sending DM to ${discordId}`, err);
   }
 }

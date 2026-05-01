@@ -7,14 +7,14 @@ export async function onInteractionCreate(client: Client, interaction: Interacti
   if (interaction.isChatInputCommand()) {
     const command = commands.get(interaction.commandName);
     if (!command) {
-      logger.warn(`Onbekend commando: ${interaction.commandName}`);
+      logger.warn(`Unknown command: ${interaction.commandName}`);
       return;
     }
 
     try {
       await command.execute(interaction);
     } catch (err) {
-      logger.error(`Fout bij uitvoeren commando ${interaction.commandName}`, err);
+      logger.error(`Error executing command ${interaction.commandName}`, err);
       const reply = { content: "❌ An error occurred while executing this command.", ephemeral: true };
       if (interaction.replied || interaction.deferred) {
         await interaction.followUp(reply).catch(() => {});

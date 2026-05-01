@@ -3,6 +3,12 @@ import { supabase } from "../services/supabase.js";
 
 type AnyInteraction = ChatInputCommandInteraction | ButtonInteraction;
 
+function getSiteUrl(path = ""): string {
+  const base = (process.env.SITE_URL ?? "").replace(/\/$/, "");
+  if (!base) return path || "the website";
+  return `${base}${path}`;
+}
+
 export async function getWorkerByDiscordId(discordId: string) {
   const { data: profile } = await supabase
     .from("profiles")
@@ -27,7 +33,19 @@ export async function requireWorker(
   const result = await getWorkerByDiscordId(interaction.user.id);
 
   if (!result?.worker) {
-    const msg = "❌ You do not have a booster account linked to this Discord account. Link your account on the website.";
+    const loginUrl = getSiteUrl("/login?redirectTo=/apply");
+    const applyUrl = getSiteUrl("/apply");
+    const msg = [
+      "❌ You do not have a booster account linked to this Discord account.",
+      "",
+      "**How to link it:**",
+      `1. Open ${loginUrl}`,
+      "2. Sign in with **Discord** using this Discord account.",
+      "3. Make sure your booster application is approved.",
+      `4. If you are not a booster yet, apply here: ${applyUrl}`,
+      "",
+      "After linking/approval, run this command again.",
+    ].join("\n");
     if (interaction.deferred || interaction.replied) {
       await interaction.editReply({ content: msg }).catch(() => {});
     } else {
