@@ -8,12 +8,13 @@ import { logger } from "../lib/logger.js";
 type ConfigKeys =
   | "discord_bot_token"
   | "discord_client_id"
-  | "discord_guild_id";
+  | "discord_guild_id"
+  | "site_url";
 
 const cache = new Map<string, string>();
 
 export async function loadConfigFromDatabase(): Promise<void> {
-  const keys: ConfigKeys[] = ["discord_bot_token", "discord_client_id", "discord_guild_id"];
+  const keys: ConfigKeys[] = ["discord_bot_token", "discord_client_id", "discord_guild_id", "site_url"];
 
   const { data, error } = await supabase
     .from("site_settings")
@@ -42,6 +43,7 @@ export function getConfig(key: ConfigKeys): string | undefined {
     discord_bot_token: "DISCORD_BOT_TOKEN",
     discord_client_id: "DISCORD_CLIENT_ID",
     discord_guild_id: "DISCORD_GUILD_ID",
+    site_url: "SITE_URL",
   };
 
   return process.env[envMap[key]] ?? cache.get(key);
