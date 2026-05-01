@@ -19,6 +19,7 @@ const AUTH_ROUTES = ["/login", "/register", "/forgot-password", "/reset-password
 
 const WORKER_ROUTES = ["/worker", "/booster"];
 const ADMIN_ROUTES = ["/admin"];
+const PUBLIC_FILE = /\.(?:avif|css|gif|ico|jpg|jpeg|js|json|map|png|svg|txt|webmanifest|webp|xml)$/i;
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
@@ -36,6 +37,7 @@ export async function middleware(request: NextRequest) {
 
   // API routes handle their own auth — skip updateSession to avoid blocking on Supabase auth call
   if (pathname.startsWith("/api/")) return NextResponse.next();
+  if (PUBLIC_FILE.test(pathname)) return NextResponse.next();
 
   const { supabaseResponse, user, supabase } = await updateSession(request);
 
@@ -47,6 +49,8 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/_next") ||
     pathname.startsWith("/fonts") ||
     pathname.startsWith("/images") ||
+    pathname.startsWith("/icons") ||
+    pathname === "/manifest.json" ||
     pathname === "/robots.txt" ||
     pathname === "/sitemap.xml";
 
@@ -107,6 +111,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:avif|css|gif|ico|jpg|jpeg|js|json|map|png|svg|txt|webmanifest|webp|xml)$).*)",
   ],
 };

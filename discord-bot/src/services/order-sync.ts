@@ -54,6 +54,8 @@ const workerNotifiedOrderIds = new Set<string>();
 
 const POLL_INTERVAL_MS = 45_000;
 const POLL_LOOKBACK_MINUTES = 5;
+const QUEUED_POLL_LOOKBACK_HOURS = 24;
+const WORKER_CLAIM_POST_ACTION = "discord_worker_claim_posted";
 
 export function startOrderSync(client: Client): void {
   logger.info("Order sync started — listening to Supabase realtime + polling fallback...");
@@ -68,21 +70,41 @@ const FIRST_POLL_DELAY_MS = 3_000;
 function startOrderPolling(client: Client): void {
   const run = async () => {
     try {
-      const since = new Date(Date.now() - POLL_LOOKBACK_MINUTES * 60 * 1000).toISOString();
-      const { data: orders, error } = await supabase
+      const recentSince = new Date(Date.now() - POLL_LOOKBACK_MINUTES * 60 * 1000).toISOString();
+      const queuedSince = new Date(Date.now() - QUEUED_POLL_LOOKBACK_HOURS * 60 * 60 * 1000).toISOString();
+      const { data: recentOrders, error: recentError } = await supabase
         .from("orders")
         .select("id, order_number, status, created_at")
         .in("status", ["pending_payment", "paid", "queued"])
-        .gte("created_at", since)
+        .gte("created_at", recentSince)
         .order("created_at", { ascending: false });
 
-      if (error) {
-        logger.error("Order polling Supabase error", error);
+      if (recentError) {
+        logger.error("Order polling Supabase error", recentError);
         return;
       }
+
+      const { data: queuedOrders, error: queuedError } = await supabase
+        .from("orders")
+        .select("id, order_number, status, created_at")
+        .eq("status", "queued")
+        .is("worker_id", null)
+        .gte("updated_at", queuedSince)
+        .order("updated_at", { ascending: false });
+
+      if (queuedError) {
+        logger.error("Queued order polling Supabase error", queuedError);
+      }
+
+      const orders = Array.from(
+        new Map([...(recentOrders ?? []), ...(queuedOrders ?? [])].map((order) => [order.id, order])).values()
+      );
+
+      await hydrateWorkerNotifiedOrderIds(orders.filter((o) => o.status === "queued").map((o) => o.id));
+
       const count = orders?.length ?? 0;
       const toNotify = orders?.filter((o) => !notifiedOrderIds.has(o.id) || (o.status === "queued" && !workerNotifiedOrderIds.has(o.id))).length ?? 0;
-      logger.info(`[Poll] Orders in last ${POLL_LOOKBACK_MINUTES} min: ${count} (${toNotify} not yet notified).`);
+      logger.info(`[Poll] Recent/queued orders: ${count} (${toNotify} not yet notified).`);
 
       if (!orders?.length) return;
 
@@ -391,9 +413,40 @@ async function postToWorkersChannel(client: Client, order: FullOrder): Promise<v
       components: [row as any],
     });
     workerNotifiedOrderIds.add(order.id);
+    await supabase.from("activity_log").insert({
+      actor_id: null,
+      action: WORKER_CLAIM_POST_ACTION,
+      target_type: "order",
+      target_id: order.id,
+      metadata: {
+        order_number: order.order_number,
+        channel_id: workerChannelId,
+      },
+    });
     logger.info(`Worker claim message posted for order #${order.order_number}`);
   } catch (err) {
     logger.error("Error posting to workers channel", err);
+  }
+}
+
+async function hydrateWorkerNotifiedOrderIds(orderIds: string[]): Promise<void> {
+  const missingIds = orderIds.filter((id) => !workerNotifiedOrderIds.has(id));
+  if (missingIds.length === 0) return;
+
+  const { data, error } = await supabase
+    .from("activity_log")
+    .select("target_id")
+    .eq("action", WORKER_CLAIM_POST_ACTION)
+    .eq("target_type", "order")
+    .in("target_id", missingIds);
+
+  if (error) {
+    logger.warn(`Could not hydrate worker notification markers: ${error.message}`);
+    return;
+  }
+
+  for (const row of data ?? []) {
+    if (row.target_id) workerNotifiedOrderIds.add(row.target_id);
   }
 }
 

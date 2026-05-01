@@ -10,7 +10,7 @@ export function JsonLdOrganization() {
     "@type": "Organization",
     name: "BoostPlatform",
     url: appUrl,
-    logo: `${appUrl}/icons/icon-512.png`,
+    logo: `${appUrl}/icons/icon.svg`,
     description:
       "Professional OSRS game boosting and powerleveling services. Fast, safe, and by verified boosters.",
     sameAs: [
