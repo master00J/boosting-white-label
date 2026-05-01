@@ -18,6 +18,7 @@ type OrderData = {
   worker_payout?: number | null;
   progress?: number;
   created_at: string;
+  discord_ticket_channel_id?: string | null;
   service?: { name: string } | null;
   game?: { name: string } | null;
   worker?: { display_name: string | null } | null;
@@ -67,7 +68,20 @@ export async function createOrderTicket(client: Client, order: OrderData): Promi
     return null;
   }
 
+  const channelName = `order-${order.order_number.toLowerCase().replace(/[^a-z0-9-]/g, "-")}`;
+
   try {
+    // ── Already linked and channel still exists (avoids duplicates after bot restart) ──
+    if (order.discord_ticket_channel_id) {
+      const linked = await client.channels.fetch(order.discord_ticket_channel_id).catch(() => null);
+      if (linked?.isTextBased()) {
+        logger.debug(`Order #${order.order_number}: ticket ${linked.id} already exists, skipping create`);
+        return linked.id;
+      }
+      await supabase.from("orders").update({ discord_ticket_channel_id: null } as never).eq("id", order.id);
+      logger.debug(`Order #${order.order_number}: stale discord_ticket_channel_id cleared`);
+    }
+
     const guild = await client.guilds.fetch(guildId).catch(() => null);
     if (!guild) {
       logger.warn(`Guild ${guildId} not found`);
@@ -84,8 +98,39 @@ export async function createOrderTicket(client: Client, order: OrderData): Promi
       return null;
     }
 
-    // Channel name: order-bp-12345
-    const channelName = `order-${order.order_number.toLowerCase().replace(/[^a-z0-9-]/g, "-")}`;
+    // ── Repair: DB lost ID but channel still exists (same name + topic references order) ──
+    const ticketCategoryId = categoryId ?? undefined;
+    const candidates = guild.channels.cache.filter(
+      (ch) =>
+        ch.type === ChannelType.GuildText &&
+        ch.name === channelName &&
+        (!ticketCategoryId || ch.parentId === ticketCategoryId),
+    );
+    if (candidates.size > 0) {
+      let repair = [...candidates.values()].find((ch) => {
+        const topic = "topic" in ch ? (ch.topic ?? "") : "";
+        return topic.includes(order.order_number) || topic.includes(order.id);
+      });
+      if (!repair && candidates.size === 1) repair = [...candidates.values()][0];
+      if (repair?.isTextBased()) {
+        const { error: repairErr } = await supabase
+          .from("orders")
+          .update({ discord_ticket_channel_id: repair.id } as never)
+          .eq("id", order.id);
+        if (repairErr) {
+          logger.warn(`Order #${order.order_number}: could not save repaired ticket id: ${repairErr.message}`);
+        } else {
+          logger.info(`Order #${order.order_number}: linked existing Discord channel ${repair.id} (repair)`);
+        }
+        return repair.id;
+      }
+      if (candidates.size > 1) {
+        logger.warn(
+          `Order #${order.order_number}: multiple channels named "${channelName}" — cannot pick one safely; create skipped until resolved`,
+        );
+        return null;
+      }
+    }
 
     // Permission overwrites: private by default, visible to customer + admins
     const permissionOverwrites = [
@@ -140,10 +185,14 @@ export async function createOrderTicket(client: Client, order: OrderData): Promi
     await channel.send({ content: `${member.toString()} Your order ticket has been created!`, embeds: [embed] });
 
     // Store the channel ID in the order for future updates
-    await supabase
+    const { error: saveErr } = await supabase
       .from("orders")
       .update({ discord_ticket_channel_id: channel.id } as never)
       .eq("id", order.id);
+
+    if (saveErr) {
+      logger.error(`Order #${order.order_number}: ticket created but failed to save channel id — duplicates may occur on restart: ${saveErr.message}`);
+    }
 
     logger.info(`Ticket channel created for order #${order.order_number}: ${channel.id}`);
     return channel.id;

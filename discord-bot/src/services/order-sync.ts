@@ -56,6 +56,8 @@ const POLL_INTERVAL_MS = 45_000;
 const POLL_LOOKBACK_MINUTES = 5;
 const QUEUED_POLL_LOOKBACK_HOURS = 24;
 const WORKER_CLAIM_POST_ACTION = "discord_worker_claim_posted";
+/** Persisted so polling does not re-post admin + recreate tickets after bot restart. */
+const ADMIN_NEW_ORDER_ACTION = "discord_new_order_posted";
 
 export function startOrderSync(client: Client): void {
   logger.info("Order sync started — listening to Supabase realtime + polling fallback...");
@@ -101,6 +103,7 @@ function startOrderPolling(client: Client): void {
       );
 
       await hydrateWorkerNotifiedOrderIds(orders.filter((o) => o.status === "queued").map((o) => o.id));
+      await hydrateNewOrderNotifiedIds(orders.map((o) => o.id));
 
       const count = orders?.length ?? 0;
       const toNotify = orders?.filter((o) => !notifiedOrderIds.has(o.id) || (o.status === "queued" && !workerNotifiedOrderIds.has(o.id))).length ?? 0;
@@ -123,9 +126,10 @@ function startOrderPolling(client: Client): void {
           }
 
           if (needsAdminPost) {
-            notifiedOrderIds.add(order.id);
             const adminEmbed = buildNewOrderEmbed(fullOrder);
             await sendToChannel(client, "new_orders", adminEmbed);
+            await logNewOrderNotified(order.id, order.order_number);
+            notifiedOrderIds.add(order.id);
             await createOrderTicket(client, fullOrder);
           }
 
@@ -167,7 +171,6 @@ function subscribeOrders(client: Client, attempt = 0): void {
         if (!["pending_payment", "paid", "queued"].includes(order.status)) return;
 
         logger.info(`New order: #${order.order_number} (status: ${order.status})`);
-        notifiedOrderIds.add(order.id);
 
         try {
           const fullOrder = await fetchOrderWithDetails(order.id);
@@ -176,6 +179,8 @@ function subscribeOrders(client: Client, attempt = 0): void {
           // Always notify admin for new orders (awaiting payment, paid, or queued)
           const adminEmbed = buildNewOrderEmbed(fullOrder);
           await sendToChannel(client, "new_orders", adminEmbed);
+          await logNewOrderNotified(order.id, order.order_number);
+          notifiedOrderIds.add(order.id);
 
           if (order.status === "queued") {
             // Also post to workers channel with claim button
@@ -186,6 +191,7 @@ function subscribeOrders(client: Client, attempt = 0): void {
           await createOrderTicket(client, fullOrder);
         } catch (err) {
           logger.error("Error processing new order", err);
+          notifiedOrderIds.delete(order.id);
         }
       }
     )
@@ -426,6 +432,40 @@ async function postToWorkersChannel(client: Client, order: FullOrder): Promise<v
     logger.info(`Worker claim message posted for order #${order.order_number}`);
   } catch (err) {
     logger.error("Error posting to workers channel", err);
+  }
+}
+
+async function logNewOrderNotified(orderId: string, orderNumber: string): Promise<void> {
+  const { error } = await supabase.from("activity_log").insert({
+    actor_id: null,
+    action: ADMIN_NEW_ORDER_ACTION,
+    target_type: "order",
+    target_id: orderId,
+    metadata: { order_number: orderNumber },
+  });
+  if (error) {
+    logger.warn(`Could not persist new-order notification marker for ${orderNumber}: ${error.message}`);
+  }
+}
+
+async function hydrateNewOrderNotifiedIds(orderIds: string[]): Promise<void> {
+  const missingIds = orderIds.filter((id) => !notifiedOrderIds.has(id));
+  if (missingIds.length === 0) return;
+
+  const { data, error } = await supabase
+    .from("activity_log")
+    .select("target_id")
+    .eq("action", ADMIN_NEW_ORDER_ACTION)
+    .eq("target_type", "order")
+    .in("target_id", missingIds);
+
+  if (error) {
+    logger.warn(`Could not hydrate new-order markers: ${error.message}`);
+    return;
+  }
+
+  for (const row of data ?? []) {
+    if (row.target_id) notifiedOrderIds.add(row.target_id);
   }
 }
 
