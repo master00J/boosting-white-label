@@ -282,12 +282,27 @@ function MethodRow({ method, onChange, onRemove }: {
   const useOwnPrice = method.price_per_xp != null;
 
   return (
-    <div className="grid grid-cols-[1fr_90px_90px_20px] gap-2 items-center px-3 py-2 rounded-lg border border-border bg-background">
-      <div className="min-w-0">
-        <p className="text-xs font-medium truncate">{method.name}</p>
-        {method.description && (
-          <p className="text-[10px] text-muted-foreground truncate">{method.description}</p>
-        )}
+    <div className="grid grid-cols-[1fr_90px_90px_20px] gap-2 items-start px-3 py-2 rounded-lg border border-border bg-background">
+      <div className="min-w-0 space-y-1">
+        <Input
+          value={method.name}
+          onChange={(e) => onChange({ ...method, name: e.target.value })}
+          placeholder="Method name"
+          className="h-6 text-xs font-medium"
+          aria-label="Training method name"
+        />
+        <Input
+          value={method.description ?? ""}
+          onChange={(e) =>
+            onChange({
+              ...method,
+              description: e.target.value.trim() ? e.target.value : null,
+            })
+          }
+          placeholder="Description (optional)"
+          className="h-6 text-[10px] text-muted-foreground"
+          aria-label="Training method description"
+        />
       </div>
 
       {/* Toggle ×mult vs $/XP */}
