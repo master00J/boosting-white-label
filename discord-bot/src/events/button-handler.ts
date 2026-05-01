@@ -5,20 +5,49 @@ import { buildOrderEmbed, buildErrorEmbed, buildSuccessEmbed } from "../lib/embe
 import { buildProgressRow } from "../lib/buttons.js";
 import { logger } from "../lib/logger.js";
 
+/** Discord custom_id uses underscores; order_number values like BST-GME-SVC-MON40JD2 must not be split on "_". */
+const ORDER_UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function normalizeOrderNumberKey(key: string): string {
+  return key.trim().toUpperCase().replace(/\s+/g, "");
+}
+
+/** Button payload is either orders.id (UUID) or orders.order_number. */
+async function resolveOrderUuidFromButtonKey(orderKey: string): Promise<string | null> {
+  const raw = orderKey.trim();
+  if (!raw) return null;
+
+  if (ORDER_UUID_RE.test(raw)) {
+    const { data } = await supabase.from("orders").select("id").eq("id", raw).maybeSingle();
+    if (data?.id) return data.id;
+  }
+
+  const { data } = await supabase
+    .from("orders")
+    .select("id")
+    .eq("order_number", normalizeOrderNumberKey(raw))
+    .maybeSingle();
+
+  return data?.id ?? null;
+}
+
 export async function handleButtonInteraction(client: Client, interaction: ButtonInteraction): Promise<void> {
-  const [action, ...parts] = interaction.customId.split("_");
+  const customId = interaction.customId;
 
   try {
-    if (action === "claim") {
-      const orderId = parts[0];
-      await handleClaim(interaction, orderId);
-    } else if (action === "status") {
-      const orderId = parts[0];
-      await handleStatusCheck(interaction, orderId);
-    } else if (action === "progress") {
-      const percentage = parseInt(parts[0]);
-      const orderId = parts[1];
-      await handleProgressUpdate(interaction, orderId, percentage);
+    if (customId.startsWith("claim_")) {
+      await handleClaim(interaction, customId.slice("claim_".length));
+      return;
+    }
+    if (customId.startsWith("status_")) {
+      await handleStatusCheck(interaction, customId.slice("status_".length));
+      return;
+    }
+    const progressMatch = customId.match(/^progress_(\d+)_(.+)$/);
+    if (progressMatch) {
+      const pct = parseInt(progressMatch[1], 10);
+      await handleProgressUpdate(interaction, progressMatch[2], pct);
+      return;
     }
   } catch (err) {
     logger.error(`Error handling button interaction ${interaction.customId}`, err);
@@ -30,17 +59,23 @@ export async function handleButtonInteraction(client: Client, interaction: Butto
   }
 }
 
-async function handleClaim(interaction: ButtonInteraction, orderId: string): Promise<void> {
+async function handleClaim(interaction: ButtonInteraction, orderKey: string): Promise<void> {
   await interaction.deferReply({ ephemeral: true });
 
   const worker = await requireWorker(interaction);
   if (!worker) return;
 
+  const resolvedId = await resolveOrderUuidFromButtonKey(orderKey);
+  if (!resolvedId) {
+    await interaction.editReply({ embeds: [buildErrorEmbed("Order not found.")] });
+    return;
+  }
+
   const { data: order } = await supabase
     .from("orders")
     .select("id, order_number, status, worker_id, total, service_id, items, account_value")
-    .eq("id", orderId)
-    .single() as { data: {
+    .eq("id", resolvedId)
+    .maybeSingle() as { data: {
       id: string;
       order_number: string;
       status: string;
@@ -151,7 +186,7 @@ async function handleClaim(interaction: ButtonInteraction, orderId: string): Pro
       worker_payout: personalPayout,
       worker_commission_rate: commissionRate,
     })
-    .eq("id", orderId)
+    .eq("id", resolvedId)
     .eq("status", "queued")
     .is("worker_id", null)
     .select("id");
@@ -168,7 +203,7 @@ async function handleClaim(interaction: ButtonInteraction, orderId: string): Pro
     .eq("id", worker.workerId);
 
   await supabase.from("order_messages").insert({
-    order_id: orderId,
+    order_id: resolvedId,
     content: `Booster ${worker.displayName} has claimed your order via Discord.`,
     is_system: true,
   });
@@ -177,7 +212,7 @@ async function handleClaim(interaction: ButtonInteraction, orderId: string): Pro
     actor_id: worker.profileId,
     action: "worker_claimed_order",
     target_type: "order",
-    target_id: orderId,
+    target_id: resolvedId,
     metadata: {
       worker_id: worker.workerId,
       payout: personalPayout,
@@ -190,18 +225,24 @@ async function handleClaim(interaction: ButtonInteraction, orderId: string): Pro
     `Order #${order.order_number} claimed!`,
     `**Your payout:** $${personalPayout.toFixed(2)} (${commissionPct}% of $${order.total.toFixed(2)})\n\nUse \`/progress\` to update the progress.`,
   );
-  const row = buildProgressRow(orderId);
+  const row = buildProgressRow(resolvedId);
   await interaction.editReply({ embeds: [embed], components: [row] });
 }
 
-async function handleStatusCheck(interaction: ButtonInteraction, orderId: string): Promise<void> {
+async function handleStatusCheck(interaction: ButtonInteraction, orderKey: string): Promise<void> {
   await interaction.deferReply({ ephemeral: true });
+
+  const resolvedId = await resolveOrderUuidFromButtonKey(orderKey);
+  if (!resolvedId) {
+    await interaction.editReply({ embeds: [buildErrorEmbed("Order not found.")] });
+    return;
+  }
 
   const { data: order } = await supabase
     .from("orders")
     .select("id, order_number, status, total, worker_payout, progress, progress_notes, created_at, service:services(name), game:games(name)")
-    .eq("id", orderId)
-    .single();
+    .eq("id", resolvedId)
+    .maybeSingle();
 
   if (!order) {
     await interaction.editReply({ embeds: [buildErrorEmbed("Order not found.")] });
@@ -212,17 +253,23 @@ async function handleStatusCheck(interaction: ButtonInteraction, orderId: string
   await interaction.editReply({ embeds: [buildOrderEmbed(order as any)] });
 }
 
-async function handleProgressUpdate(interaction: ButtonInteraction, orderId: string, percentage: number): Promise<void> {
+async function handleProgressUpdate(interaction: ButtonInteraction, orderKey: string, percentage: number): Promise<void> {
   await interaction.deferReply({ ephemeral: true });
 
   const worker = await requireWorker(interaction);
   if (!worker) return;
 
+  const resolvedId = await resolveOrderUuidFromButtonKey(orderKey);
+  if (!resolvedId) {
+    await interaction.editReply({ embeds: [buildErrorEmbed("Order not found.")] });
+    return;
+  }
+
   const { data: order } = await supabase
     .from("orders")
     .select("id, order_number, worker_id, status, worker_payout, customer_id, track_token")
-    .eq("id", orderId)
-    .single();
+    .eq("id", resolvedId)
+    .maybeSingle();
 
   // worker_id references workers.id (not profiles.id)
   if (!order || order.worker_id !== worker.workerId) {
@@ -236,7 +283,7 @@ async function handleProgressUpdate(interaction: ButtonInteraction, orderId: str
     updateData.completed_at = new Date().toISOString();
   }
 
-  await supabase.from("orders").update(updateData).eq("id", orderId);
+  await supabase.from("orders").update(updateData).eq("id", resolvedId);
 
   if (percentage === 100 && order.status !== "completed") {
     const { data: workerData } = await supabase
@@ -256,7 +303,7 @@ async function handleProgressUpdate(interaction: ButtonInteraction, orderId: str
     }
 
     await supabase.from("order_messages").insert({
-      order_id: orderId,
+      order_id: resolvedId,
       content: "Your order has been completed! Thank you for choosing BoostPlatform.",
       is_system: true,
     });
@@ -275,7 +322,7 @@ async function handleProgressUpdate(interaction: ButtonInteraction, orderId: str
       actor_id: worker.profileId,
       action: "worker_completed_order",
       target_type: "order",
-      target_id: orderId,
+      target_id: resolvedId,
       metadata: {
         worker_id: worker.workerId,
         payout: order.worker_payout ?? 0,
