@@ -73,11 +73,14 @@ export default function PaymentSettingsClient({ initialSettings }: { initialSett
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ settings }),
       });
-      if (!res.ok) throw new Error("Failed to save");
+      if (!res.ok) {
+        const json = await res.json().catch(() => null) as { error?: string } | null;
+        throw new Error(json?.error ?? "Failed to save");
+      }
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
-    } catch {
-      setError("Failed to save settings. Please try again.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save settings. Please try again.");
     } finally {
       setSaving(false);
     }

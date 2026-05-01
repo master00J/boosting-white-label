@@ -7,15 +7,24 @@ export const dynamic = "force-dynamic";
 const PatchSchema = z.object({
   name: z.string().min(1).max(200).optional(),
   slug: z.string().min(1).max(100).optional(),
+  order_code: z.string().max(20).nullable().optional(),
   description: z.string().max(2000).nullable().optional(),
+  short_description: z.string().max(500).nullable().optional(),
   is_active: z.boolean().optional(),
-  image_url: z.string().max(500).nullable().optional(),
+  is_featured: z.boolean().optional(),
+  logo_url: z.string().max(500).nullable().optional(),
   banner_url: z.string().max(500).nullable().optional(),
   icon_url: z.string().max(500).nullable().optional(),
   sort_order: z.number().int().optional(),
-  color: z.string().max(50).nullable().optional(),
-  category: z.string().max(100).nullable().optional(),
+  meta_title: z.string().max(200).nullable().optional(),
+  meta_description: z.string().max(500).nullable().optional(),
+  config: z.record(z.string(), z.unknown()).optional(),
 });
+
+function isMissingOrderCodeColumn(error: { message?: string; details?: string } | null) {
+  const text = `${error?.message ?? ""} ${error?.details ?? ""}`.toLowerCase();
+  return text.includes("order_code") && (text.includes("column") || text.includes("schema cache"));
+}
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const ctx = await assertAdmin();
@@ -28,7 +37,17 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     return NextResponse.json({ error: "Invalid input", details: parsed.error.flatten() }, { status: 400 });
   }
 
-  const { data, error } = await ctx.admin.from("games").update(parsed.data).eq("id", id).select().single();
+  let payload = parsed.data;
+  let { data, error } = await ctx.admin.from("games").update(payload as never).eq("id", id).select().single();
+
+  if (error && isMissingOrderCodeColumn(error)) {
+    const { order_code: _orderCode, ...legacyPayload } = payload;
+    payload = legacyPayload;
+    const retry = await ctx.admin.from("games").update(payload as never).eq("id", id).select().single();
+    data = retry.data;
+    error = retry.error;
+  }
+
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json(data);
 }
