@@ -51,7 +51,8 @@ export async function POST(request: Request) {
   let { data, error } = await admin.from("games").insert(payload as never).select().single();
 
   if (error && isMissingOrderCodeColumn(error)) {
-    const { order_code: _orderCode, ...legacyPayload } = payload;
+    const legacyPayload = { ...payload };
+    delete legacyPayload.order_code;
     payload = legacyPayload;
     const retry = await admin.from("games").insert(payload as never).select().single();
     data = retry.data;

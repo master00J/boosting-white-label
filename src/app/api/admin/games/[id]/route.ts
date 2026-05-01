@@ -41,7 +41,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   let { data, error } = await ctx.admin.from("games").update(payload as never).eq("id", id).select().single();
 
   if (error && isMissingOrderCodeColumn(error)) {
-    const { order_code: _orderCode, ...legacyPayload } = payload;
+    const legacyPayload = { ...payload };
+    delete legacyPayload.order_code;
     payload = legacyPayload;
     const retry = await ctx.admin.from("games").update(payload as never).eq("id", id).select().single();
     data = retry.data;
