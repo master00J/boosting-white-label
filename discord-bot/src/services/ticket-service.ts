@@ -6,6 +6,7 @@ import {
   CategoryChannel,
 } from "discord.js";
 import { supabase } from "./supabase.js";
+import { getConfig } from "./config.js";
 import { logger } from "../lib/logger.js";
 import { buildOrderEmbed } from "../lib/embeds.js";
 
@@ -60,9 +61,9 @@ export async function createOrderTicket(client: Client, order: OrderData): Promi
     return null;
   }
 
-  const guildId = process.env.DISCORD_GUILD_ID;
+  const guildId = getConfig("discord_guild_id");
   if (!guildId) {
-    logger.warn("DISCORD_GUILD_ID not set, cannot create ticket");
+    logger.warn("DISCORD_GUILD_ID not configured, cannot create ticket");
     return null;
   }
 
