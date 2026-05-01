@@ -43,12 +43,18 @@ const ALLOWED_SETTINGS_KEYS = new Set([
   "integrations",
 ]);
 
+const JSON_SETTINGS_KEYS = new Set([
+  "currency_rates",
+  "integrations",
+  "order_id",
+]);
+
 export async function POST(req: NextRequest) {
   const ctx = await assertAdmin();
   if (!ctx.ok) return ctx.response;
   const { admin } = ctx;
 
-  const body = await req.json() as { settings: Record<string, string> };
+  const body = await req.json() as { settings: Record<string, unknown> };
   const { settings } = body;
 
   if (!settings || typeof settings !== "object") {
@@ -63,7 +69,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: `Invalid settings keys: ${rejectedKeys.join(", ")}` }, { status: 400 });
   }
 
-  const upserts = Object.entries(rest).map(([key, value]) => ({ key, value: String(value) })) as { key: string; value: string }[];
+  const upserts = Object.entries(rest).map(([key, value]) => ({
+    key,
+    value: JSON_SETTINGS_KEYS.has(key) ? value : String(value),
+  })) as { key: string; value: unknown }[];
   if (orderIdBrand !== undefined) {
     upserts.push({
       key: "order_id",

@@ -58,6 +58,28 @@ async function creditAffiliate(
   }
 }
 
+function parseCurrencyRates(value: unknown): CurrencyRates | null {
+  if (!value) return null;
+
+  if (typeof value === "string") {
+    try {
+      return parseCurrencyRates(JSON.parse(value) as unknown);
+    } catch {
+      return null;
+    }
+  }
+
+  if (typeof value === "object" && value !== null) {
+    const candidate = value as Partial<CurrencyRates>;
+    return {
+      usd_eur_rate: typeof candidate.usd_eur_rate === "number" ? candidate.usd_eur_rate : 0.92,
+      games: candidate.games && typeof candidate.games === "object" ? candidate.games : {},
+    };
+  }
+
+  return null;
+}
+
 export async function POST(req: NextRequest) {
   const rl = await checkRateLimit(getRateLimitIdentifier(req), RATE_LIMITS.checkout);
   if (rl) return rl;
@@ -212,8 +234,8 @@ export async function POST(req: NextRequest) {
         .from("site_settings")
         .select("value")
         .eq("key", "currency_rates")
-        .single() as unknown as { data: { value: CurrencyRates } | null };
-      currencyRates = ratesRow?.value ?? null;
+        .single() as unknown as { data: { value: unknown } | null };
+      currencyRates = parseCurrencyRates(ratesRow?.value);
     }
 
     // Balance check
