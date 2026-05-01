@@ -112,24 +112,33 @@ function startOrderPolling(client: Client): void {
       if (!orders?.length) return;
 
       for (const order of orders) {
-        const needsAdminPost = !notifiedOrderIds.has(order.id);
+        const wantsAdminPost = !notifiedOrderIds.has(order.id);
         const needsWorkerPost = order.status === "queued" && !workerNotifiedOrderIds.has(order.id);
-        if (!needsAdminPost && !needsWorkerPost) continue;
-        logger.info(`[Poll] Syncing order: #${order.order_number} (status: ${order.status}, admin=${needsAdminPost}, workers=${needsWorkerPost})`);
+        if (!wantsAdminPost && !needsWorkerPost) continue;
+
+        // Claim admin notify synchronously before any await — avoids duplicate staff embeds when realtime + poll race.
+        let claimedAdminPost = false;
+        if (wantsAdminPost) {
+          notifiedOrderIds.add(order.id);
+          claimedAdminPost = true;
+        }
+
+        logger.info(
+          `[Poll] Syncing order: #${order.order_number} (status: ${order.status}, admin=${wantsAdminPost}, workers=${needsWorkerPost})`,
+        );
 
         try {
           const fullOrder = await fetchOrderWithDetails(order.id);
           if (!fullOrder) {
             logger.warn(`[Poll] Could not load order #${order.order_number} (id: ${order.id}), skipping.`);
-            notifiedOrderIds.delete(order.id);
+            if (claimedAdminPost) notifiedOrderIds.delete(order.id);
             continue;
           }
 
-          if (needsAdminPost) {
+          if (claimedAdminPost) {
             const adminEmbed = buildNewOrderEmbed(fullOrder);
             await sendToChannel(client, "new_orders", adminEmbed);
             await logNewOrderNotified(order.id, order.order_number);
-            notifiedOrderIds.add(order.id);
             await createOrderTicket(client, fullOrder);
           }
 
@@ -138,7 +147,7 @@ function startOrderPolling(client: Client): void {
           }
         } catch (err) {
           logger.error("Error processing polled order", err);
-          if (needsAdminPost) notifiedOrderIds.delete(order.id);
+          if (claimedAdminPost) notifiedOrderIds.delete(order.id);
           if (needsWorkerPost) workerNotifiedOrderIds.delete(order.id);
         }
       }
@@ -170,17 +179,25 @@ function subscribeOrders(client: Client, attempt = 0): void {
         // Admin channel: pending_payment, paid, queued. Workers + ticket: paid/queued (workers only queued)
         if (!["pending_payment", "paid", "queued"].includes(order.status)) return;
 
+        if (notifiedOrderIds.has(order.id)) {
+          logger.debug(`Realtime INSERT skipped (admin notify already claimed): #${order.order_number}`);
+          return;
+        }
+        notifiedOrderIds.add(order.id);
+
         logger.info(`New order: #${order.order_number} (status: ${order.status})`);
 
         try {
           const fullOrder = await fetchOrderWithDetails(order.id);
-          if (!fullOrder) return;
+          if (!fullOrder) {
+            notifiedOrderIds.delete(order.id);
+            return;
+          }
 
           // Always notify admin for new orders (awaiting payment, paid, or queued)
           const adminEmbed = buildNewOrderEmbed(fullOrder);
           await sendToChannel(client, "new_orders", adminEmbed);
           await logNewOrderNotified(order.id, order.order_number);
-          notifiedOrderIds.add(order.id);
 
           if (order.status === "queued") {
             // Also post to workers channel with claim button
