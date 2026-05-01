@@ -9,6 +9,7 @@ export const metadata: Metadata = { title: "Discord Integration" };
 type SettingRow = { key: string; value: string };
 
 const DISCORD_KEYS = [
+  "discord_invite_url",
   "discord_bot_token",
   "discord_client_id",
   "discord_guild_id",

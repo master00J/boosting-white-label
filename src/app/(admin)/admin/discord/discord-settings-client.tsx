@@ -89,6 +89,26 @@ export default function DiscordSettingsClient({ initialSettings }: { initialSett
         </button>
       </div>
 
+      {/* Public invite — storefront /contact + header */}
+      <div className="p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] space-y-3">
+        <div className="flex items-center gap-2">
+          <ExternalLink className="h-4 w-4 text-[#5865F2]" />
+          <h2 className="font-heading font-semibold text-sm">Public Discord invite URL</h2>
+        </div>
+        <p className="text-xs text-[var(--text-muted)]">
+          Permanent invite link (<code className="bg-[var(--bg-elevated)] px-1 rounded">https://discord.gg/…</code>) shown on the{" "}
+          <strong className="text-[var(--text-secondary)]">Contact</strong> page and wherever the storefront links to your community server.
+          This is separate from <strong className="text-[var(--text-secondary)]">Guild ID</strong>, which is only for the bot.
+        </p>
+        <input
+          type="url"
+          value={settings["discord_invite_url"] ?? ""}
+          onChange={(e) => update("discord_invite_url", e.target.value)}
+          placeholder="https://discord.gg/your-invite"
+          className="w-full px-4 py-2.5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-default)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-primary/50 transition-colors"
+        />
+      </div>
+
       {/* Setup guide */}
       <div className="p-4 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-default)]">
         <h2 className="text-sm font-semibold mb-2">Setup instructions</h2>

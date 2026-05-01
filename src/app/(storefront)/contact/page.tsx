@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://boosting-self.vercel.app";
 
@@ -15,6 +16,8 @@ export const metadata: Metadata = {
   },
   alternates: { canonical: `${appUrl}/contact` },
 };
+
+export const dynamic = "force-dynamic";
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 
@@ -34,15 +37,52 @@ function EnvelopeIcon({ className }: { className?: string }) {
   );
 }
 
+async function loadContactSettings(): Promise<{ discordInviteUrl: string; supportEmail: string }> {
+  let discordInviteUrl =
+    (typeof process.env.NEXT_PUBLIC_DISCORD_INVITE_URL === "string"
+      ? process.env.NEXT_PUBLIC_DISCORD_INVITE_URL
+      : "") || "";
+  let supportEmail = "support@example.com";
+
+  try {
+    const admin = createAdminClient();
+    const { data: rows } = await admin
+      .from("site_settings")
+      .select("key, value")
+      .in("key", ["discord_invite_url", "general"]);
+
+    const inviteRow = rows?.find((r) => r.key === "discord_invite_url");
+    const fromDb =
+      typeof inviteRow?.value === "string" ? inviteRow.value.trim() : "";
+    if (fromDb) discordInviteUrl = fromDb;
+
+    const generalRow = rows?.find((r) => r.key === "general");
+    const gv = generalRow?.value;
+    if (gv && typeof gv === "object" && gv !== null && "support_email" in gv) {
+      const em = String((gv as { support_email?: string }).support_email ?? "").trim();
+      if (em) supportEmail = em;
+    }
+  } catch {
+    /* env fallback */
+  }
+
+  discordInviteUrl = discordInviteUrl.trim();
+  const validDiscord =
+    discordInviteUrl && /^https?:\/\//i.test(discordInviteUrl) ? discordInviteUrl : "";
+
+  return { discordInviteUrl: validDiscord, supportEmail };
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const { discordInviteUrl, supportEmail } = await loadContactSettings();
+
   return (
     <div className="min-h-screen bg-[var(--bg-base)]">
 
       {/* ── Hero ── */}
       <div className="relative border-b border-[#E8720C]/15 overflow-hidden">
-        {/* Gold radial glow */}
         <div
           className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[260px] opacity-[0.07] pointer-events-none"
           style={{ background: "radial-gradient(ellipse, #E8720C 0%, transparent 70%)" }}
@@ -71,7 +111,6 @@ export default function ContactPage() {
             you need service details, a custom request, or just want to talk directly.
           </p>
 
-          {/* Live badge */}
           <div className="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#E8720C]/25 bg-[#E8720C]/[0.06] text-sm text-[#FF9438]">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF9438] opacity-75" />
@@ -101,10 +140,32 @@ export default function ContactPage() {
             <p className="text-sm text-[var(--text-secondary)] leading-relaxed flex-1">
               Join our server for live support, real-time order updates, and direct communication with our team.
             </p>
-            <div className="inline-flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-[#5865F2]/70 text-white text-sm font-semibold">
-              <DiscordIcon className="w-4 h-4" />
-              Configure Discord invite in admin settings
-            </div>
+            {discordInviteUrl ? (
+              <a
+                href={discordInviteUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-[#5865F2] hover:bg-[#4752C4] text-white text-sm font-semibold transition-colors"
+              >
+                <DiscordIcon className="w-4 h-4" />
+                Join Discord server
+              </a>
+            ) : (
+              <div className="rounded-xl border border-[#5865F2]/20 bg-[#5865F2]/[0.08] px-3 py-3 text-center space-y-2">
+                <p className="text-xs text-[var(--text-secondary)]">
+                  No invite link yet. Add your public server URL under{" "}
+                  <strong className="text-[var(--text-primary)]">Admin → Discord → Public invite URL</strong>,
+                  or set <code className="text-[10px] px-1 rounded bg-black/30 font-mono">NEXT_PUBLIC_DISCORD_INVITE_URL</code>{" "}
+                  on Vercel.
+                </p>
+                <Link
+                  href="/admin/discord"
+                  className="inline-flex items-center justify-center gap-2 w-full py-2 rounded-lg bg-[#5865F2]/80 hover:bg-[#5865F2] text-white text-xs font-semibold transition-colors"
+                >
+                  Open Discord settings
+                </Link>
+              </div>
+            )}
           </div>
 
           {/* Email */}
@@ -122,11 +183,11 @@ export default function ContactPage() {
               For general inquiries or payment confirmations. We&apos;ll get back to you as soon as possible.
             </p>
             <a
-              href="mailto:support@example.com"
+              href={`mailto:${supportEmail}`}
               className="inline-flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-[#E8720C]/30 text-sm font-semibold text-[#FF9438] hover:bg-[#E8720C]/[0.08] hover:border-[#E8720C]/50 transition-colors"
             >
               <EnvelopeIcon className="w-4 h-4" />
-              support@example.com
+              {supportEmail}
             </a>
           </div>
         </div>
@@ -169,13 +230,11 @@ export default function ContactPage() {
           </div>
         </div>
 
-        {/* Tagline */}
         <p className="text-center text-sm text-[var(--text-muted)] pt-4">
           Play smarter. Boost safer.{" "}
           <span className="text-[var(--text-secondary)]">Contact BoostPlatform today.</span>
         </p>
 
-        {/* Footer note */}
         <div className="pt-6 border-t border-[#E8720C]/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[var(--text-muted)]">
           <p>BoostPlatform is not affiliated with Jagex Ltd., RuneScape® or Old School RuneScape®.</p>
           <div className="flex items-center gap-4">
