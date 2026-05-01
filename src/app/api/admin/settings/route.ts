@@ -3,7 +3,9 @@ import { revalidatePath } from "next/cache";
 import { assertAdmin } from "@/lib/auth/assert-admin";
 
 const ALLOWED_SETTINGS_KEYS = new Set([
-  "site_name", "site_description", "site_logo", "site_favicon",
+  "site_name", "site_tagline", "site_url", "custom_domain",
+  "registration_enabled", "worker_applications_open",
+  "site_description", "site_logo", "site_favicon",
   "hero_title", "hero_subtitle", "hero_background", "hero_cta_text",
   "tawkto_enabled", "tawkto_property_id", "tawkto_widget_id",
   "custom_chat_enabled", "custom_chat_script",

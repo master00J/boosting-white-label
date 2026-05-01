@@ -1,25 +1,11 @@
 import type { ChatInputCommandInteraction, ButtonInteraction } from "discord.js";
 import { supabase } from "../services/supabase.js";
-import { getConfig } from "../services/config.js";
+import { getResolvedSiteOrigin, refreshSiteOriginKeysFromDatabase } from "../services/config.js";
 
 type AnyInteraction = ChatInputCommandInteraction | ButtonInteraction;
 
-function normalizeOrigin(raw: string): string {
-  return raw.trim().replace(/\/$/, "");
-}
-
-/** Public shop URL: env first, then site_settings.site_url (Admin → General). */
-function getPublicSiteBaseUrl(): string {
-  const fromEnv =
-    process.env.SITE_URL?.trim() ||
-    process.env.NEXT_PUBLIC_SITE_URL?.trim() ||
-    "";
-  if (fromEnv) return normalizeOrigin(fromEnv);
-  return normalizeOrigin(getConfig("site_url")?.trim() ?? "");
-}
-
 function absoluteShopUrl(path: string): string | null {
-  const base = getPublicSiteBaseUrl();
+  const base = getResolvedSiteOrigin();
   if (!base) return null;
   const suffix = path.startsWith("/") ? path : `/${path}`;
   return `${base}${suffix}`;
@@ -49,8 +35,13 @@ export async function requireWorker(
   const result = await getWorkerByDiscordId(interaction.user.id);
 
   if (!result?.worker) {
-    const loginUrl = absoluteShopUrl("/login?redirectTo=/apply");
-    const applyUrl = absoluteShopUrl("/apply");
+    let loginUrl = absoluteShopUrl("/login?redirectTo=/apply");
+    let applyUrl = absoluteShopUrl("/apply");
+    if (!loginUrl || !applyUrl) {
+      await refreshSiteOriginKeysFromDatabase();
+      loginUrl = absoluteShopUrl("/login?redirectTo=/apply");
+      applyUrl = absoluteShopUrl("/apply");
+    }
     const steps =
       loginUrl && applyUrl
         ? [
