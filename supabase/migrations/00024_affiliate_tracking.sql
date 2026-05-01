@@ -1,0 +1,2 @@
+-- Placeholder: affiliate_clicks table is created in 00025_affiliates_table.sql
+-- This migration is intentionally left empty to preserve numbering.

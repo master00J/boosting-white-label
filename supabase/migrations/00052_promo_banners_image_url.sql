@@ -1,0 +1,1 @@
+ALTER TABLE promo_banners ADD COLUMN IF NOT EXISTS image_url TEXT;

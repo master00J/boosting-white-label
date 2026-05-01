@@ -1,0 +1,25 @@
+{
+  "name": "boost-platform-discord-bot",
+  "version": "1.0.0",
+  "description": "Discord bot voor BoostPlatform — order management, notifications, role sync",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "deploy-commands": "ts-node src/deploy-commands.ts"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.1",
+    "discord.js": "^14.17.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.5",
+    "dotenv": "^16.4.7",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.7.3"
+  },
+  "overrides": {
+    "undici": "^6.24.0"
+  }
+}

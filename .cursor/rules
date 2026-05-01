@@ -1,0 +1,156 @@
+# Project: BoostPlatform — Game Boosting Service
+
+## Stack
+- Next.js 15 (App Router) + TypeScript strict mode
+- Tailwind CSS 3.4 + shadcn/ui (customized dark theme)
+- Supabase (auth, DB, RLS, Realtime, Storage)
+- Stripe + PayPal (unified payment interface)
+- Zustand (client state) + TanStack Query v5 (server state)
+- React Hook Form + Zod (forms + validation)
+- Framer Motion (animations + page transitions)
+- TanStack Table v8 (data tables with sorting, filtering, pagination)
+- Tiptap (rich text editor for admin CMS)
+- Recharts (charts and graphs)
+- cmdk (command palette)
+- Resend + React Email (transactional emails)
+
+## Architecture
+- Next.js 15 features: next.config.ts supported, async cookies(), turbopack dev
+- /app/(storefront)/ → Public webshop (SSR for SEO)
+- /app/(customer)/ → Customer dashboard (protected)
+- /app/(worker)/ → Worker/booster dashboard (protected, role: worker)
+- /app/(admin)/ → Admin panel (protected, role: admin/super_admin)
+- /app/api/ → API routes (webhooks, checkout, CRUD, external API)
+- /discord-bot/ → Separate Discord bot service (Node.js on VPS)
+- /supabase/migrations/ → Database migrations (version controlled)
+
+## GitHub & Deployment
+- GitHub repo: https://github.com/master00J/Boosting
+- Hosting: Vercel (auto-deploys on every push to main)
+- **After every meaningful set of changes: commit and push to GitHub**
+- The git repo lives inside `boost-platform/` — always run git commands from that directory
+- Push command (PowerShell — use semicolons, NOT &&):
+  `cd "C:\Users\j.ploegaerts\Desktop\coding stuff\new project\boost-platform"; git add .; git commit --trailer "Made-with: Cursor" -m "message"; git push origin main 2>&1`
+- NEVER use HEREDOC (cat <<'EOF') — this is PowerShell, not bash. Use a simple -m "message" string.
+- When using `git add` with specific files that contain parentheses in the path (e.g. `(admin)`), always quote the path: `git add "src/app/(admin)/..."`
+- For multiple files with parentheses in paths, use `git add .` instead of listing files individually.
+- The app is tested live on Vercel — always push so changes can be verified
+- Root directory for Vercel: `boost-platform/`
+- Never commit `.env.local` or any file with real secrets
+
+## Progress Tracking
+- Always read `PROGRESS.md` at the workspace root before starting work
+- Update `PROGRESS.md` checkboxes as features are completed
+- The full build plan is in `boost-platform-plan-v2.updated.md`
+
+## Supabase Types
+- Real generated types are in `src/types/database.ts` (1931 lines, generated from live DB)
+- Supabase project ID: `vnlclwwhtuxwwnkvmiqn`
+- To regenerate types after schema changes, run (PowerShell):
+  ```
+  $env:SUPABASE_ACCESS_TOKEN = (Get-Content .env.local | Select-String "SUPABASE_ACCESS_TOKEN").ToString().Split("=")[1]
+  npx supabase gen types typescript --project-id vnlclwwhtuxwwnkvmiqn > src/types/database.ts
+  ```
+- The access token is stored in `.env.local` as `SUPABASE_ACCESS_TOKEN` (never commit this)
+
+## Language Rules
+- **ALL user-facing text MUST be in English** — no Dutch, no mixed languages
+- This applies to: UI labels, buttons, navigation, error messages, empty states, tooltips, placeholders, notifications, email templates, and any text visible to users
+- Code comments and variable names may remain in English (they already are)
+- The only exception: data stored in the database by the user themselves (e.g. game names, order notes)
+
+## Design Rules
+1. Dark mode default. Deep dark backgrounds (#09090b), indigo primary, amber CTAs
+2. NEVER use generic AI aesthetics (no Inter font, no purple gradients on white)
+3. Use 'Cal Sans' for headings, 'Satoshi' for body text, 'JetBrains Mono' for data
+4. Subtle glassmorphism on elevated cards (backdrop-blur-xl + bg-white/5)
+5. Glow effects on interactive elements (box-shadow with primary at 15% opacity)
+6. Skeleton loaders for ALL loading states — NEVER use spinners
+7. Framer Motion for page transitions (fade + slide, 200ms)
+8. All empty states must have a custom illustration + clear CTA
+9. Mobile-first responsive. Min 44px tap targets
+10. Make it look like a senior designer built it, not AI
+
+## Code Rules
+1. TypeScript strict mode — no `any` types, no type assertions unless necessary
+2. Server Components by default, Client Components only when needed ('use client')
+3. ALL database queries via server components or API routes, never client-side direct
+4. Supabase RLS on ALL tables — always verify auth in API routes too
+5. Zod schemas for ALL form validation AND API input validation
+6. Error boundaries on every route group (error.tsx)
+7. Loading states on every route group (loading.tsx)
+8. TanStack Query for client-side data fetching (staleTime: 30s default)
+9. ALL price calculations server-side (never trust client calculations)
+10. Sensitive data (tokens, credentials, API keys) always encrypted at rest
+11. Activity logging for ALL admin actions
+12. Optimistic updates for real-time features (order progress, chat)
+
+## File Naming
+- Components: PascalCase (GameCard.tsx, ServiceConfigurator.tsx)
+- Utilities: camelCase (formatCurrency.ts, slugify.ts)
+- Types: PascalCase (OrderStatus, WorkerTier)
+- Validators: camelCase matching entity (order.ts, game.ts)
+- Database columns: snake_case (order_status, tier_id)
+- API routes: kebab-case paths (/api/orders/[id]/claim)
+- CSS variables: kebab-case (--color-primary, --bg-card)
+
+## Component Patterns
+- Use composition over prop drilling
+- Shared UI components in /components/ui/
+- Domain components in /components/{domain}/
+- Each component file exports ONE default component
+- Co-locate component-specific types in the same file
+- Use forwardRef for interactive components that may need refs
+
+## Data Fetching Patterns
+- Server Components: direct Supabase queries (createServerClient)
+- Client Components: TanStack Query hooks calling API routes
+- Mutations: TanStack Query useMutation with optimistic updates
+- Real-time: Supabase Realtime subscriptions via custom hooks
+- Pagination: cursor-based for infinite scroll, offset for data tables
+
+## Security Architecture Rules (CRITICAL — never violate)
+1. **NEVER use `createAdminClient()` or `createServiceClient()` in customer/worker pages or layouts.**
+   - Customer and worker routes MUST use `createClient()` (user-scoped, cookie-based) so RLS enforces access.
+   - `createServiceClient()` / `createAdminClient()` is ONLY allowed in:
+     - `/app/api/admin/` routes (after verifying `is_admin()`)
+     - `/app/api/worker/` routes for system-level writes (after verifying role)
+     - Server-side admin page components in `/app/(admin)/`
+2. **NEVER use the service role key in `middleware.ts`.**
+   - Middleware runs on Edge runtime — use the anon key with user session cookies.
+   - Role checks in middleware must use the user-scoped client (RLS applies).
+3. **NEVER expose debug endpoints in production.**
+   - Any route that returns cookies, user IDs, env var previews, or internal state must be gated: `if (process.env.NODE_ENV === "production") return 404`.
+   - Prefer deleting debug routes entirely after use.
+4. **ALL admin PATCH/POST/DELETE API routes MUST validate input with a Zod schema.**
+   - No direct `body` pass-through to `.update(body)` — always use an explicit allowlist of fields.
+   - Enum fields (status, role, type) must use `z.enum([...])` with the exact allowed values.
+5. **Order/resource ownership must be enforced in the query, not after.**
+   - Bad: fetch with admin client, then check `if (order.customer_id !== user.id)`.
+   - Good: `.eq("customer_id", user.id)` in the query itself with user-scoped client.
+6. **TypeScript: no `as unknown as` casts to silence Supabase type errors.**
+   - Use generated Database types (`@/types/database`) and typed clients.
+   - If a type mismatch exists, fix the type — don't cast around it.
+
+## Supabase Client Usage Guide
+| Context | Client to use | Why |
+|---|---|---|
+| Customer/worker server pages | `createClient()` from `@/lib/supabase/server` | User-scoped, RLS enforced |
+| Admin server pages | `createServiceClient()` from `@/lib/supabase/server` | Needs full access, server-only |
+| Admin API routes | `createServiceClient()` after admin check | Bypass RLS only after auth verify |
+| Middleware | `createServerClient()` with anon key + cookies | Edge runtime, no service key |
+| Client components | `createBrowserClient()` from `@/lib/supabase/client` | Browser, anon key only |
+
+## Security Checklist (verify for every feature)
+- [ ] RLS policy exists for the table
+- [ ] API route checks auth (getUser())
+- [ ] API route validates input with Zod schema (explicit field allowlist)
+- [ ] Customer/worker pages use user-scoped client (NOT admin/service client)
+- [ ] Ownership enforced in query (`.eq("customer_id", user.id)`), not after fetch
+- [ ] No debug endpoints left in production
+- [ ] Sensitive data is encrypted
+- [ ] Admin actions are logged to activity_log
+- [ ] Rate limiting on public endpoints
+- [ ] CSRF protection via Supabase auth tokens
+- [ ] No secrets in client-side code
+- [ ] No `as unknown as` type casts — use proper Database types

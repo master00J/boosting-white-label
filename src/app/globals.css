@@ -1,0 +1,356 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .safe-area-top {
+    padding-top: max(env(safe-area-inset-top), 0.75rem);
+  }
+  .safe-area-bottom {
+    padding-bottom: max(env(safe-area-inset-bottom), 0.75rem);
+  }
+  /* adds safe-area ON TOP of existing padding — use with py-* classes */
+  .pt-safe {
+    padding-top: calc(0.75rem + env(safe-area-inset-top));
+  }
+  .pb-safe {
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+  }
+}
+
+/* ─── Fonts worden geladen via next/font/local in layout.tsx ─── */
+
+/* ─── CSS Variables ─── */
+@layer base {
+  :root {
+    /* shadcn/ui tokens — premium dark orange theme */
+    --background: 20 30% 5%;
+    --foreground: 30 35% 92%;
+    --card: 20 28% 8%;
+    --card-foreground: 30 35% 92%;
+    --popover: 20 28% 8%;
+    --popover-foreground: 30 35% 92%;
+    --primary: 26 92% 48%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 20 22% 14%;
+    --secondary-foreground: 30 35% 92%;
+    --muted: 20 22% 14%;
+    --muted-foreground: 25 18% 54%;
+    --accent: 28 100% 62%;
+    --accent-foreground: 0 0% 0%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 20 22% 16%;
+    --input: 20 22% 16%;
+    --ring: 26 92% 48%;
+    --radius: 0.5rem;
+
+    /* Dynamic theme tokens (overridden by admin settings) */
+    --color-primary: #E8720C;
+    --color-secondary: #C95E08;
+    --color-accent: #FF9438;
+    --color-success: #22c55e;
+    --color-warning: #eab308;
+    --color-error: #ef4444;
+    --accent-primary: #E8720C;
+
+    --bg-primary: #0C0906;
+    --bg-secondary: #130D07;
+    --bg-card: #180E08;
+    --bg-elevated: #201408;
+
+    --text-primary: #F5EDE0;
+    --text-secondary: #B8A78A;
+    --text-muted: #8A7A62;
+
+    --border-subtle: rgba(232, 114, 12, 0.08);
+    --border-default: rgba(232, 114, 12, 0.18);
+
+    --font-heading: var(--font-cal-sans), "Space Grotesk", system-ui, sans-serif;
+    --font-body: var(--font-satoshi), "Inter", system-ui, sans-serif;
+    --font-mono: var(--font-jetbrains), "JetBrains Mono", monospace;
+    --border-radius: 0.5rem;
+  }
+}
+
+/* ─── Base Styles ─── */
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    background-color: #0E0B07 !important;
+    color: #F5EDE0;
+    @apply antialiased;
+    font-family: var(--font-body);
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+  }
+
+  code, pre, kbd, samp {
+    font-family: var(--font-mono);
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #110A05;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #3D1E08;
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #5A2E0C;
+  }
+}
+
+/* ─── Utility Classes ─── */
+@layer utilities {
+  .glass {
+    @apply backdrop-blur-xl bg-white/[0.03] border border-[rgba(232,114,12,0.14)];
+  }
+
+  .glass-card {
+    @apply backdrop-blur-xl bg-white/[0.02] border border-[rgba(232,114,12,0.12)] rounded-xl;
+  }
+
+  /* Orange glow effects */
+  .glow-primary {
+    box-shadow: 0 0 0 1px rgba(232, 114, 12, 0.20);
+  }
+
+  .glow-primary-hover:hover {
+    box-shadow: 0 0 0 1px rgba(232, 114, 12, 0.38), 0 0 28px rgba(232, 114, 12, 0.10);
+  }
+
+  .glow-accent {
+    box-shadow: 0 0 24px rgba(255, 148, 56, 0.14);
+  }
+
+  .text-gradient {
+    @apply text-[var(--text-primary)];
+  }
+
+  .text-gradient-accent {
+    @apply text-[var(--color-accent)];
+  }
+
+  .surface {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-default);
+  }
+
+  /* Skeleton shimmer */
+  .skeleton {
+    @apply relative overflow-hidden bg-white/5 rounded-md;
+  }
+
+  .skeleton::after {
+    content: "";
+    @apply absolute inset-0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.04) 50%,
+      transparent 100%
+    );
+    animation: shimmer 2s infinite;
+    transform: translateX(-100%);
+  }
+
+  /* Card hover effect */
+  .card-hover {
+    @apply transition-all duration-200;
+  }
+
+  .card-hover:hover {
+    @apply -translate-y-0.5;
+    border-color: rgba(232, 114, 12, 0.30);
+  }
+
+  /* Noise texture overlay */
+  .noise-overlay::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1;
+  }
+}
+
+/* ─── Animations ─── */
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes gold-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out forwards;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out forwards;
+}
+
+/* ─── Lootbox animations ─── */
+@keyframes box-float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-8px); }
+}
+@keyframes lootbox-shake {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  20%      { transform: translateX(-5px) rotate(-3deg); }
+  40%      { transform: translateX(5px) rotate(3deg); }
+  60%      { transform: translateX(-4px) rotate(-2deg); }
+  80%      { transform: translateX(4px) rotate(2deg); }
+}
+/* Pure opacity helpers — no transform, no re-render */
+@keyframes fade-out-only {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+@keyframes fade-in-only {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+/* Glow swells in */
+@keyframes glow-appear {
+  0%   { opacity: 0; transform: scale(0.7); }
+  100% { opacity: 0.9; transform: scale(1); }
+}
+/* Lid appears briefly then flies up and out — single combined animation */
+@keyframes lid-appear-fly {
+  0%   { opacity: 0; transform: translateY(0) rotate(0deg) scale(1); }
+  10%  { opacity: 1; transform: translateY(0) rotate(0deg) scale(1); }
+  75%  { opacity: 0.6; transform: translateY(-80px) rotate(-18deg) scale(1.05); }
+  100% { opacity: 0; transform: translateY(-140px) rotate(-28deg) scale(0.8); }
+}
+@keyframes particles-burst {
+  0%   { transform: scale(0.5); opacity: 0; }
+  15%  { opacity: 1; }
+  65%  { transform: scale(1.5); opacity: 0.7; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+@keyframes beam-rise {
+  0%   { transform: translateX(-50%) scaleY(0); opacity: 0; }
+  35%  { transform: translateX(-50%) scaleY(0.5); opacity: 1; }
+  100% { transform: translateX(-50%) scaleY(1); opacity: 0.85; }
+}
+@keyframes fade-scale-in {
+  0%   { opacity: 0; transform: scale(0.85); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes lootbox-glow-pulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50%      { opacity: 1;   transform: scale(1.18); }
+}
+@keyframes lootbox-prize-reveal {
+  0%   { opacity: 0; transform: scale(0.5) translateY(30px); }
+  60%  { transform: scale(1.05) translateY(-5px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes lootbox-shudder {
+  0%   { transform: translate3d(0, 0, 0) rotate(0deg); }
+  20%  { transform: translate3d(-3px, 0, 0) rotate(-1deg); }
+  40%  { transform: translate3d(3px, 0, 0) rotate(1deg); }
+  60%  { transform: translate3d(-2px, 0, 0) rotate(-0.6deg); }
+  80%  { transform: translate3d(2px, 0, 0) rotate(0.6deg); }
+  100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+}
+@keyframes lootbox-base-settle {
+  0%   { transform: translate3d(0, 10px, 0) scale(0.96); }
+  45%  { transform: translate3d(0, -2px, 0) scale(1.02); }
+  100% { transform: translate3d(0, 0, 0) scale(1.02); }
+}
+@keyframes lootbox-particles {
+  0%   { opacity: 0; transform: translate3d(0, 12px, 0) scale(0.7); }
+  20%  { opacity: 1; transform: translate3d(0, 2px, 0) scale(0.95); }
+  100% { opacity: 0; transform: translate3d(0, -22px, 0) scale(1.15); }
+}
+@keyframes lootbox-glow-breathe {
+  0%, 100% { opacity: 0.78; transform: translate3d(0,0,0) scale(1.02); }
+  50%       { opacity: 1;    transform: translate3d(0,0,0) scale(1.07); }
+}
+@keyframes box-hover-shake {
+  0%,100% { transform: rotate(0deg) scale(1.05); }
+  20%     { transform: rotate(-4deg) scale(1.05); }
+  40%     { transform: rotate(4deg) scale(1.07); }
+  60%     { transform: rotate(-2deg) scale(1.06); }
+  80%     { transform: rotate(2deg) scale(1.06); }
+}
+@keyframes marquee-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+@keyframes batch-prize-in {
+  from { opacity: 0; transform: translateY(16px) scale(0.92); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes item-float-up {
+  0%   { opacity: 0; transform: translateY(20px) scale(0.7); }
+  60%  { opacity: 1; transform: translateY(-8px) scale(1.1); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes lootbox-item-emerge {
+  0%   { opacity: 0; transform: translate3d(-50%, 26px, 0) scale(0.45); }
+  55%  { opacity: 1; transform: translate3d(-50%, -32px, 0) scale(1.08); }
+  100% { opacity: 1; transform: translate3d(-50%, -22px, 0) scale(1); }
+}
+@keyframes lootbox-confetti-pop {
+  0%   { opacity: 0; transform: translate3d(0, 16px, 0) scale(0.4) rotate(0deg); }
+  18%  { opacity: 1; }
+  100% { opacity: 0; transform: translate3d(0, -72px, 0) scale(1.2) rotate(220deg); }
+}

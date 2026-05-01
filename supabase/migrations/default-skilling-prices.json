@@ -1,0 +1,1650 @@
+[{
+  "_id": {
+    "$oid": "67a4a3e937b6864d791def97"
+  },
+  "skill_name": "Agility",
+  "skill_name_synonyms": [
+    "agil",
+    "agi"
+  ],
+  "allowed_orders": [
+    [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  ],
+  "methods": [
+    {
+      "id": 1,
+      "level_min": 1,
+      "level_max": 10,
+      "method_name": "Gnome Stronghold",
+      "gp_per_xp": 1080
+    },
+    {
+      "id": 2,
+      "level_min": 10,
+      "level_max": 20,
+      "method_name": "Draynor Village Rooftop",
+      "gp_per_xp": 953
+    },
+    {
+      "id": 3,
+      "level_min": 20,
+      "level_max": 30,
+      "method_name": "Al Kharid Rooftop",
+      "gp_per_xp": 771
+    },
+    {
+      "id": 4,
+      "level_min": 30,
+      "level_max": 40,
+      "method_name": "Varrock Rooftop",
+      "gp_per_xp": 623
+    },
+    {
+      "id": 5,
+      "level_min": 40,
+      "level_max": 50,
+      "method_name": "Canifis Rooftop",
+      "gp_per_xp": 477
+    },
+    {
+      "id": 6,
+      "level_min": 50,
+      "level_max": 60,
+      "method_name": "Falador Rooftop",
+      "gp_per_xp": 477
+    },
+    {
+      "id": 7,
+      "level_min": 60,
+      "level_max": 70,
+      "method_name": "Seers Rooftops (Without Tele)",
+      "gp_per_xp": 180
+    },
+    {
+      "id": 8,
+      "level_min": 70,
+      "level_max": 80,
+      "method_name": "Pollnivneach Rooftop",
+      "gp_per_xp": 169
+    },
+    {
+      "id": 9,
+      "level_min": 80,
+      "level_max": 90,
+      "method_name": "Rellekka Rooftop",
+      "gp_per_xp": 159
+    },
+    {
+      "id": 10,
+      "level_min": 90,
+      "level_max": 99,
+      "method_name": "Ardougne Rooftops",
+      "gp_per_xp": 148
+    },
+    {
+      "id": 11,
+      "level_min": 52,
+      "level_max": 62,
+      "method_name": "Sepulchre Training",
+      "gp_per_xp": 482
+    },
+    {
+      "id": 12,
+      "level_min": 62,
+      "level_max": 72,
+      "method_name": "Sepulchre Training",
+      "gp_per_xp": 432
+    },
+    {
+      "id": 13,
+      "level_min": 72,
+      "level_max": 82,
+      "method_name": "Sepulchre Training",
+      "gp_per_xp": 315
+    },
+    {
+      "id": 14,
+      "level_min": 82,
+      "level_max": 92,
+      "method_name": "Sepulchre Training",
+      "gp_per_xp": 297
+    },
+    {
+      "id": 15,
+      "level_min": 92,
+      "level_max": 99,
+      "method_name": "Sepulchre Training",
+      "gp_per_xp": 202
+    }
+  ],
+  "emoji": "<:Skill_Agility:1384708760559157299>"
+},
+{
+  "_id": {
+    "$oid": "67a4a3e937b6864d791def98"
+  },
+  "skill_name": "Attack",
+  "skill_name_synonyms": [
+    "att",
+    "atk"
+  ],
+  "allowed_orders": [
+    [
+      1,
+      2
+    ],
+    [
+      3,
+      4,
+      5
+    ]
+  ],
+  "methods": [
+    {
+      "id": 1,
+      "level_min": 1,
+      "level_max": 70,
+      "method_name": "Sand Crabs",
+      "gp_per_xp": 130
+    },
+    {
+      "id": 2,
+      "level_min": 70,
+      "level_max": 99,
+      "method_name": "Sand Crabs",
+      "gp_per_xp": 72
+    },
+    {
+      "id": 3,
+      "level_min": 1,
+      "level_max": 60,
+      "method_name": "Nightmare Zone",
+      "gp_per_xp": 130
+    },
+    {
+      "id": 4,
+      "level_min": 60,
+      "level_max": 75,
+      "method_name": "Nightmare Zone",
+      "gp_per_xp": 58
+    },
+    {
+      "id": 5,
+      "level_min": 75,
+      "level_max": 99,
+      "method_name": "Nightmare Zone",
+      "gp_per_xp": 43
+    }
+  ],
+  "emoji": "<:Skill_Attack:1384708483953201175>"
+},
+{
+  "_id": {
+    "$oid": "67a4a3e937b6864d791def99"
+  },
+  "skill_name": "Construction",
+  "skill_name_synonyms": [
+    "con",
+    "cons"
+  ],
+  "allowed_orders": [
+    [
+      1,
+      2
+    ],
+    [
+      1,
+      3
+    ]
+  ],
+  "methods": [
+    {
+      "id": 1,
+      "level_min": 1,
+      "level_max": 52,
+      "method_name": "Fastest Methods",
+      "gp_per_xp": 259
+    },
+    {
+      "id": 2,
+      "level_min": 52,
+      "level_max": 99,
+      "method_name": "Mahogany Tables",
+      "gp_per_xp": 22
+    },
+    {
+      "id": 3,
+      "level_min": 47,
+      "level_max": 99,
+      "method_name": "Myth Capes",
+      "gp_per_xp": 65
+    }
+  ],
+  "emoji": "<:Skill_Construction:1384709198490767523>"
+},
+{
+  "_id": {
+    "$oid": "67a4a3e937b6864d791def9a"
+  },
+  "skill_name": "Cooking",
+  "skill_name_synonyms": [
+    "cook"
+  ],
+  "allowed_orders": [
+    [
+      1,
+      2
+    ],
+    [
+      1,
+      3,
+      4
+    ]
+  ],
+  "methods": [
+    {
+      "id": 1,
+      "level_min": 1,
+      "level_max": 35,
+      "method_name": "Best Fish Available",
+      "gp_per_xp": 43
+    },
+    {
+      "id": 2,
+      "level_min": 35,
+      "level_max": 99,
+      "method_name": "Wines",
+      "gp_per_xp": 13
+    },
+    {
+      "id": 3,
+      "level_min": 20,
+      "level_max": 65,
+      "method_name": "Mess Hall",
+      "gp_per_xp": 792
+    },
+    {
+      "id": 4,
+      "level_min": 65,
+      "level_max": 99,
+      "method_name": "Mess Hall",
+      "gp_per_xp": 288
+    }
+  ],
+  "emoji": "<:Cooking:1214969486797578280>"
+},
+{
+  "_id": {
+    "$oid": "67a4a3e937b6864d791def9b"
+  },
+  "skill_name": "Crafting",
+  "skill_name_synonyms": [
+    "craft"
+  ],
+  "allowed_orders": [
+    [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    [
+      1,
+      2,
+      3,
+      11,
+      12
+    ]
+  ],
+  "methods": [
+    {
+      "id": 1,
+      "level_min": 1,
+      "level_max": 20,
+      "method_name": "Opal",
+      "gp_per_xp": 216
+    },
+    {
+      "id": 2,
+      "level_min": 20,
+      "level_max": 27,
+      "method_name": "Sapphires",
+      "gp_per_xp": 39
+    },
+    {
+      "id": 3,
+      "level_min": 27,
+      "level_max": 54,
+      "method_name": "Emeralds",
+      "gp_per_xp": 32
+    },
+    {
+      "id": 4,
+      "level_min": 54,
+      "level_max": 58,
+      "method_name": "Water Battlestaffs",
+      "gp_per_xp": 25
+    },
+    {
+      "id": 5,
+      "level_min": 58,
+      "level_max": 63,
+      "method_name": "Earth Battlestaffs",
+      "gp_per_xp": 22
+    },
+    {
+      "id": 6,
+      "level_min": 63,
+      "level_max": 66,
+      "method_name": "Green d'hide bodies",
+      "gp_per_xp": 19
+    },
+    {
+      "id": 7,
+      "level_min": 66,
+      "level_max": 71,
+      "method_name": "Air Battlestaffs",
+      "gp_per_xp": 17
+    },
+    {
+      "id": 8,
+      "level_min": 71,
+      "level_max": 77,
+      "method_name": "Blue d'hide bodies",
+      "gp_per_xp": 15
+    },
+    {
+      "id": 9,
+      "level_min": 77,
+      "level_max": 84,
+      "method_name": "Red d'hide bodies",
+      "gp_per_xp": 14
+    },
+    {
+      "id": 10,
+      "level_min": 84,
+      "level_max": 99,
+      "method_name": "Black d'hide bodies",
+      "gp_per_xp": 13
+    },
+    {
+      "id": 11,
+      "level_min": 46,
+      "level_max": 87,
+      "method_name": "Molten Glass",
+      "gp_per_xp": 71
+    },
+    {
+      "id": 12,
+      "level_min": 87,
+      "level_max": 99,
+      "method_name": "Molten Glass",
+      "gp_per_xp": 53
+    }
+  ],
+  "emoji": "<:Skill_Crafting:1384709018051678238>"
+},
+{
+  "_id": {
+    "$oid": "67a4a3e937b6864d791def9c"
+  },
+  "skill_name": "Defence",
+  "skill_name_synonyms": [
+    "def"
+  ],
+  "allowed_orders": [
+    [
+      1,
+      2
+    ],
+    [
+      3,
+      4,
+      5
+    ]
+  ],
+  "methods": [
+    {
+      "id": 1,
+      "level_min": 1,
+      "level_max": 70,
+      "method_name": "Sand Crabs",
+      "gp_per_xp": 130
+    },
+    {
+      "id": 2,
+      "level_min": 70,
+      "level_max": 99,
+      "method_name": "Sand Crabs",
+      "gp_per_xp": 72
+    },
+    {
+      "id": 3,
+      "level_min": 1,
+      "level_max": 60,
+      "method_name": "Nightmare Zone",
+      "gp_per_xp": 130
+    },
+    {
+      "id": 4,
+      "level_min": 60,
+      "level_max": 75,
+      "method_name": "Nightmare Zone",
+      "gp_per_xp": 58
+    },
+    {
+      "id": 5,
+      "level_min": 75,
+      "level_max": 99,
+      "method_name": "Nightmare Zone",
+      "gp_per_xp": 43
+    }
+  ],
+  "emoji": "<:Defence:1384711477667041290>"
+},
+{
+  "_id": {
+    "$oid": "67a4a3e937b6864d791def9d"
+  },
+  "skill_name": "Farming",
+  "skill_name_synonyms": [
+    "farm"
+  ],
+  "allowed_orders": [
+    [
+      1,
+      2,
+      3
+    ],
+    [
+      1,
+      4,
+      5,
+      6
+    ]
+  ],
+  "methods": [
+    {
+      "id": 1,
+      "level_min": 1,
+      "level_max": 60,
+      "method_name": "Tree Runs (Best Trees)",
+      "gp_per_xp": 151
+    },
+    {
+      "id": 2,
+      "level_min": 60,
+      "level_max": 75,
+      "method_name": "Yew Trees",
+      "gp_per_xp": 27
+    },
+    {
+      "id": 3,
+      "level_min": 75,
+      "level_max": 99,
+      "method_name": "Magic Trees",
+      "gp_per_xp": 13
+    },
+    {
+      "id": 4,
+      "level_min": 34,
+      "level_max": 54,
+      "method_name": "Tithe Farm",
+      "gp_per_xp": 648
+    },
+    {
+      "id": 5,
+      "level_min": 54,
+      "level_max": 74,
+      "method_name": "Tithe Farm",
+      "gp_per_xp": 270
+    },
+    {
+      "id": 6,
+      "level_min": 74,
+      "level_max": 99,
+      "method_name": "Tithe Farm",
+      "gp_per_xp": 162
+    }
+  ],
+  "emoji": "<:Farming:1214969392895365140>"
+},
+{
+  "_id": {
+    "$oid": "67a4a3e937b6864d791def9e"
+  },
+  "skill_name": "Firemaking",
+  "skill_name_synonyms": [
+    "fm"
+  ],
+  "allowed_orders": [
+    [
+      1,
+      2,
+      3,
+      4
+    ]
+  ],
+  "methods": [
+    {
+      "id": 1,
+      "level_min": 1,
+      "level_max": 50,
+      "method_name": "Best Logs Available",
+      "gp_per_xp": 135
+    },
+    {
+      "id": 2,
+      "level_min": 50,
+      "level_max": 80,
+      "method_name": "Wintertodt",
+      "gp_per_xp": 37
+    },
+    {
+      "id": 3,
+      "level_min": 80,
+      "level_max": 90,
+      "method_name": "Wintertodt",
+      "gp_per_xp": 37
+    },
+    {
+      "id": 4,
+      "level_min": 90,
+      "level_max": 99,
+      "method_name": "Wintertodt",
+      "gp_per_xp": 33
+    }
+  ],
+  "emoji": "<:Skill_Firemaking:1384709036112347156>"
+},
+{
+  "_id": {
+    "$oid": "67a4a3e937b6864d791def9f"
+  },
+  "skill_name": "Fishing",
+  "skill_name_synonyms": [
+    "fish"
+  ],
+  "allowed_orders": [
+    [
+      1,
+      2,
+      3,
+      4
+    ]
+  ],
+  "methods": [
+    {
+      "id": 1,
+      "level_min": 1,
+      "level_max": 58,
+      "method_name": "Power Fishing",
+      "gp_per_xp": 189
+    },
+    {
+      "id": 2,
+      "level_min": 58,
+      "level_max": 72,
+      "method_name": "Barbarian Fishing",
+      "gp_per_xp": 157
+    },
+    {
+      "id": 3,
+      "level_min": 72,
+      "level_max": 90,
+      "method_name": "Barbarian Fishing",
+      "gp_per_xp": 108
+    },
+    {
+      "id": 4,
+      "level_min": 90,
+      "level_max": 99,
+      "method_name": "Barbarian Fishing",
+      "gp_per_xp": 98
+    }
+  ],
+  "emoji": "<:Fishing:1214970009835675760>"
+},
+{
+  "_id": {
+    "$oid": "67a4a3e937b6864d791defa0"
+  },
+  "skill_name": "Fletching",
+  "skill_name_synonyms": [
+    "fletch"
+  ],
+  "allowed_orders": [
+    [
+      1
+    ],
+    [
+      1,
+      2
+    ]
+  ],
+  "methods": [
+    {
+      "id": 1,
+      "level_min": 1,
+      "level_max": 99,
+      "method_name": "Darts",
+      "gp_per_xp": 8
+    },
+    {
+      "id": 2,
+      "level_min": 52,
+      "level_max": 99,
+      "method_name": "Broad Arrows",
+      "gp_per_xp": 19
+    }
+  ],
+  "emoji": "<:Fletching:1384709280279826536>"
+},
+{
+  "_id": {
+    "$oid": "67a4a3e937b6864d791defa1"
+  },
+  "skill_name": "Herblore",
+  "skill_name_synonyms": [
+    "herb"
+  ],
+  "allowed_orders": [
+    [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  ],
+  "methods": [
+    {
+      "id": 1,
+      "level_min": 1,
+      "level_max": 12,
+      "method_name": "Attack Potions",
+      "gp_per_xp": 108
+    },
+    {
+      "id": 2,
+      "level_min": 12,
+      "level_max": 26,
+      "method_name": "Strength Potions",
+      "gp_per_xp": 54
+    },
+    {
+      "id": 3,
+      "level_min": 26,
+      "level_max": 38,
+      "method_name": "Energy Potions",
+      "gp_per_xp": 43
+    },
+    {
+      "id": 4,
+      "level_min": 38,
+      "level_max": 52,
+      "method_name": "Prayer Potions",
+      "gp_per_xp": 32
+    },
+    {
+      "id": 5,
+      "level_min": 52,
+      "level_max": 63,
+      "method_name": "Super Energy Potions",
+      "gp_per_xp": 24
+    },
+    {
+      "id": 6,
+      "level_min": 63,
+      "level_max": 81,
+      "method_name": "Super Restore Potions",
+      "gp_per_xp": 19
+    },
+    {
+      "id": 7,
+      "level_min": 81,
+      "level_max": 99,
+      "method_name": "Saradomin Brews",
+      "gp_per_xp": 15
+    }
+  ],
+  "emoji": "<:Skill_Herblore:1384708858437435504>"
+},
+{
+  "_id": {
+    "$oid": "67a4a3e937b6864d791defa2"
+  },
+  "skill_name": "Hunter",
+  "skill_name_synonyms": [
+    "hunt"
+  ],
+  "allowed_orders": [
+    [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      9,
+      10
+    ]
+  ],
+  "methods": [
+    {
+      "id": 1,
+      "level_min": 1,
+      "level_max": 15,
+      "method_name": "Copper Longtails",
+      "gp_per_xp": 1080
+    },
+    {
+      "id": 2,
+      "level_min": 15,
+      "level_max": 29,
+      "method_name": "Copper Longtails + Ruby",
+      "gp_per_xp": 481
+    },
+    {
+      "id": 3,
+      "level_min": 29,
+      "level_max": 40,
+      "method_name": "Swamp Lizards",
+      "gp_per_xp": 324
+    },
+    {
+      "id": 4,
+      "level_min": 40,
+      "level_max": 47,
+      "method_name": "Swamp Lizards",
+      "gp_per_xp": 227
+    },
+    {
+      "id": 5,
+      "level_min": 47,
+      "level_max": 59,
+      "method_name": "Orange Salamanders",
+      "gp_per_xp": 162
+    },
+    {
+      "id": 6,
+      "level_min": 59,
+      "level_max": 67,
+      "method_name": "Red Salamanders",
+      "gp_per_xp": 114
+    },
+    {
+      "id": 7,
+      "level_min": 67,
+      "level_max": 80,
+      "method_name": "Black Salamanders",
+      "gp_per_xp": 86
+    },
+    {
+      "id": 8,
+      "level_min": 80,
+      "level_max": 99,
+      "method_name": "Black Salamanders",
+      "gp_per_xp": 75
+    },
+    {
+      "id": 9,
+      "level_min": 63,
+      "level_max": 80,
+      "method_name": "Red Chins (Private Spot/Priff, upcharge if not unlocked)",
+      "gp_per_xp": 184
+    },
+    {
+      "id": 10,
+      "level_min": 80,
+      "level_max": 99,
+      "method_name": "Red Chins (Private Spot/Priff, upcharge if not unlocked)",
+      "gp_per_xp": 121
+    }
+  ],
+  "emoji": "<:Skill_Hunter:1384709220674568355>"
+},
+{
+  "_id": {
+    "$oid": "67a4a3e937b6864d791defa3"
+  },
+  "skill_name": "Magic",
+  "skill_name_synonyms": [
+    "mage"
+  ],
+  "allowed_orders": [
+    [
+      1,
+      2,
+      3
+    ],
+    [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    [
+      1,
+      2,
+      3,
+      6,
+      7
+    ]
+  ],
+  "methods": [
+    {
+      "id": 1,
+      "level_min": 1,
+      "level_max": 13,
+      "method_name": "Sand Crabs",
+      "gp_per_xp": 324
+    },
+    {
+      "id": 2,
+      "level_min": 13,
+      "level_max": 35,
+      "method_name": "Sand Crabs",
+      "gp_per_xp": 162
+    },
+    {
+      "id": 3,
+      "level_min": 35,
+      "level_max": 99,
+      "method_name": "Sand Crabs",
+      "gp_per_xp": 108
+    },
+    {
+      "id": 4,
+      "level_min": 70,
+      "level_max": 94,
+      "method_name": "MM1 Caves",
+      "gp_per_xp": 32
+    },
+    {
+      "id": 5,
+      "level_min": 94,
+      "level_max": 99,
+      "method_name": "MM1 Caves",
+      "gp_per_xp": 32
+    },
+    {
+      "id": 6,
+      "level_min": 70,
+      "level_max": 94,
+      "method_name": "MM2 Caves",
+      "gp_per_xp": 22
+    },
+    {
+      "id": 7,
+      "level_min": 94,
+      "level_max": 99,
+      "method_name": "MM2 Caves",
+      "gp_per_xp": 16
+    }
+  ],
+  "emoji": "<:Skill_magic:1384709054542385182>"
+},
+{
+  "_id": {
+    "$oid": "67a4a3e937b6864d791defa5"
+  },
+  "skill_name": "Prayer",
+  "skill_name_synonyms": [
+    "pray"
+  ],
+  "allowed_orders": [
+    [
+      1
+    ],
+    [
+      1,
+      2
+    ]
+  ],
+  "methods": [
+    {
+      "id": 1,
+      "level_min": 1,
+      "level_max": 99,
+      "method_name": "Dragon Bones",
+      "gp_per_xp": 32
+    },
+    {
+      "id": 2,
+      "level_min": 70,
+      "level_max": 99,
+      "method_name": "Superior Bones",
+      "gp_per_xp": 16
+    }
+  ],
+  "emoji": "<:Prayer:1214969980320354354>"
+},
+{
+  "_id": {
+    "$oid": "67a4a3e937b6864d791defa6"
+  },
+  "skill_name": "Ranged",
+  "skill_name_synonyms": [
+    "rang"
+  ],
+  "allowed_orders": [
+    [
+      1,
+      2
+    ],
+    [
+      1,
+      2,
+      3
+    ],
+    [
+      1,
+      2,
+      3,
+      4
+    ],
+    [
+      1,
+      2,
+      5
+    ],
+    [
+      1,
+      2,
+      6
+    ]
+  ],
+  "methods": [
+    {
+      "id": 1,
+      "level_min": 1,
+      "level_max": 50,
+      "method_name": "Sand Crabs",
+      "gp_per_xp": 110
+    },
+    {
+      "id": 2,
+      "level_min": 50,
+      "level_max": 99,
+      "method_name": "Sand Crabs",
+      "gp_per_xp": 67
+    },
+    {
+      "id": 3,
+      "level_min": 55,
+      "level_max": 99,
+      "method_name": "Red Chins MM1",
+      "gp_per_xp": 48
+    },
+    {
+      "id": 4,
+      "level_min": 65,
+      "level_max": 99,
+      "method_name": "Black Chins MM1",
+      "gp_per_xp": 38
+    },
+    {
+      "id": 5,
+      "level_min": 55,
+      "level_max": 99,
+      "method_name": "Red Chins MM2",
+      "gp_per_xp": 24
+    },
+    {
+      "id": 6,
+      "level_min": 65,
+      "level_max": 99,
+      "method_name": "Black Chins MM2",
+      "gp_per_xp": 14
+    }
+  ],
+  "emoji": "<:Skill_Ranged:1384708922073681983>"
+},
+{
+  "_id": {
+    "$oid": "67a4a3e937b6864d791defa7"
+  },
+  "skill_name": "Runecrafting",
+  "skill_name_synonyms": [
+    "rc",
+    "rcing"
+  ],
+  "allowed_orders": [
+    [
+      1,
+      2,
+      3,
+      4
+    ],
+    [
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    [
+      12,
+      13,
+      14
+    ],
+    [
+      5,
+      6,
+      7,
+      8,
+      10,
+      11
+    ]
+  ],
+  "methods": [
+    {
+      "id": 1,
+      "level_min": 1,
+      "level_max": 27,
+      "method_name": "Lava Runes",
+      "gp_per_xp": 533
+    },
+    {
+      "id": 2,
+      "level_min": 27,
+      "level_max": 50,
+      "method_name": "Lava Runes",
+      "gp_per_xp": 270
+    },
+    {
+      "id": 3,
+      "level_min": 50,
+      "level_max": 75,
+      "method_name": "Lava Runes",
+      "gp_per_xp": 216
+    },
+    {
+      "id": 4,
+      "level_min": 75,
+      "level_max": 99,
+      "method_name": "Lava Runes",
+      "gp_per_xp": 178
+    },
+    {
+      "id": 5,
+      "level_min": 1,
+      "level_max": 27,
+      "method_name": "GOTR",
+      "gp_per_xp": 533
+    },
+    {
+      "id": 6,
+      "level_min": 27,
+      "level_max": 50,
+      "method_name": "GOTR",
+      "gp_per_xp": 378
+    },
+    {
+      "id": 7,
+      "level_min": 50,
+      "level_max": 65,
+      "method_name": "GOTR",
+      "gp_per_xp": 248
+    },
+    {
+      "id": 8,
+      "level_min": 65,
+      "level_max": 77,
+      "method_name": "GOTR",
+      "gp_per_xp": 189
+    },
+    {
+      "id": 9,
+      "level_min": 77,
+      "level_max": 99,
+      "method_name": "GOTR",
+      "gp_per_xp": 124
+    },
+    {
+      "id": 10,
+      "level_min": 77,
+      "level_max": 90,
+      "method_name": "Bloods / Souls",
+      "gp_per_xp": 140
+    },
+    {
+      "id": 11,
+      "level_min": 90,
+      "level_max": 99,
+      "method_name": "Bloods / Souls",
+      "gp_per_xp": 108
+    },
+    {
+      "id": 12,
+      "level_min": 1,
+      "level_max": 50,
+      "method_name": "ZMI",
+      "gp_per_xp": 432
+    },
+    {
+      "id": 13,
+      "level_min": 50,
+      "level_max": 75,
+      "method_name": "ZMI",
+      "gp_per_xp": 286
+    },
+    {
+      "id": 14,
+      "level_min": 75,
+      "level_max": 99,
+      "method_name": "ZMI",
+      "gp_per_xp": 216
+    }
+  ],
+  "emoji": "<:Skill_Runecrafting:1384709120740823121>"
+},
+{
+  "_id": {
+    "$oid": "67a4a3e937b6864d791defa8"
+  },
+  "skill_name": "Slayer",
+  "skill_name_synonyms": [
+    "slay"
+  ],
+  "allowed_orders": [
+    [
+      1,
+      2,
+      3,
+      4
+    ],
+    [
+      5,
+      6,
+      7,
+      8
+    ]
+  ],
+  "methods": [
+    {
+      "id": 1,
+      "level_min": 1,
+      "level_max": 66,
+      "method_name": "Max Gear + Cannon",
+      "gp_per_xp": 432
+    },
+    {
+      "id": 2,
+      "level_min": 66,
+      "level_max": 80,
+      "method_name": "Max Gear + Cannon",
+      "gp_per_xp": 211
+    },
+    {
+      "id": 3,
+      "level_min": 80,
+      "level_max": 93,
+      "method_name": "Max Gear + Cannon",
+      "gp_per_xp": 162
+    },
+    {
+      "id": 4,
+      "level_min": 93,
+      "level_max": 99,
+      "method_name": "Max Gear + Cannon",
+      "gp_per_xp": 151
+    },
+    {
+      "id": 5,
+      "level_min": 1,
+      "level_max": 66,
+      "method_name": "Ironman (Gear Dependent)",
+      "gp_per_xp": 845
+    },
+    {
+      "id": 6,
+      "level_min": 66,
+      "level_max": 80,
+      "method_name": "Ironman (Gear Dependent)",
+      "gp_per_xp": 432
+    },
+    {
+      "id": 7,
+      "level_min": 80,
+      "level_max": 93,
+      "method_name": "Ironman (Gear Dependent)",
+      "gp_per_xp": 331
+    },
+    {
+      "id": 8,
+      "level_min": 93,
+      "level_max": 99,
+      "method_name": "Ironman (Gear Dependent)",
+      "gp_per_xp": 264
+    }
+  ],
+  "emoji": "<:Skill_Slayer:1384709139921506347>"
+},
+{
+  "_id": {
+    "$oid": "67a4a3e937b6864d791defa9"
+  },
+  "skill_name": "Smithing",
+  "skill_name_synonyms": [
+    "smith"
+  ],
+  "allowed_orders": [
+    [
+      1,
+      2,
+      3
+    ]
+  ],
+  "methods": [
+    {
+      "id": 1,
+      "level_min": 1,
+      "level_max": 40,
+      "method_name": "Fastest Methods",
+      "gp_per_xp": 108
+    },
+    {
+      "id": 2,
+      "level_min": 40,
+      "level_max": 60,
+      "method_name": "Gold Bars at Blast Furnace",
+      "gp_per_xp": 33
+    },
+    {
+      "id": 3,
+      "level_min": 60,
+      "level_max": 99,
+      "method_name": "Gold Bars at Blast Furnace",
+      "gp_per_xp": 30
+    }
+  ],
+  "emoji": "<:Skill_Smithing:1384708791240622211>"
+},
+{
+  "_id": {
+    "$oid": "67a4a3e937b6864d791defaa"
+  },
+  "skill_name": "Strength",
+  "skill_name_synonyms": [
+    "str"
+  ],
+  "allowed_orders": [
+    [
+      1,
+      2
+    ],
+    [
+      3,
+      4,
+      5
+    ]
+  ],
+  "methods": [
+    {
+      "id": 1,
+      "level_min": 1,
+      "level_max": 70,
+      "method_name": "Sand Crabs",
+      "gp_per_xp": 130
+    },
+    {
+      "id": 2,
+      "level_min": 70,
+      "level_max": 99,
+      "method_name": "Sand Crabs",
+      "gp_per_xp": 72
+    },
+    {
+      "id": 3,
+      "level_min": 1,
+      "level_max": 60,
+      "method_name": "Nightmare Zone",
+      "gp_per_xp": 130
+    },
+    {
+      "id": 4,
+      "level_min": 60,
+      "level_max": 75,
+      "method_name": "Nightmare Zone",
+      "gp_per_xp": 58
+    },
+    {
+      "id": 5,
+      "level_min": 75,
+      "level_max": 99,
+      "method_name": "Nightmare Zone",
+      "gp_per_xp": 43
+    }
+  ],
+  "emoji": "<:Skill_Strength:1384708732985937938>"
+},
+{
+  "_id": {
+    "$oid": "67a4a3e937b6864d791defac"
+  },
+  "skill_name": "Woodcutting",
+  "skill_name_synonyms": [
+    "wc",
+    "wcing"
+  ],
+  "allowed_orders": [
+    [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ]
+  ],
+  "methods": [
+    {
+      "id": 1,
+      "level_min": 1,
+      "level_max": 15,
+      "method_name": "Regular Trees",
+      "gp_per_xp": 324
+    },
+    {
+      "id": 2,
+      "level_min": 15,
+      "level_max": 30,
+      "method_name": "Oak Trees",
+      "gp_per_xp": 216
+    },
+    {
+      "id": 3,
+      "level_min": 30,
+      "level_max": 35,
+      "method_name": "Willow Trees",
+      "gp_per_xp": 108
+    },
+    {
+      "id": 4,
+      "level_min": 35,
+      "level_max": 61,
+      "method_name": "Teak Trees",
+      "gp_per_xp": 92
+    },
+    {
+      "id": 5,
+      "level_min": 61,
+      "level_max": 90,
+      "method_name": "Teak Trees",
+      "gp_per_xp": 65
+    },
+    {
+      "id": 6,
+      "level_min": 90,
+      "level_max": 99,
+      "method_name": "Redwoods",
+      "gp_per_xp": 49
+    }
+  ],
+  "emoji": "<:Skill_Woodcutting:1384709099203067914>"
+},
+{
+  "_id": {
+    "$oid": "691e2aa9c5717ea323225ad6"
+  },
+  "skill_name": "Sailing",
+  "skill_name_synonyms": [
+    "sail",
+    "sailin",
+    "sailing"
+  ],
+  "allowed_orders": [
+    [
+      1,
+      2,
+      3,
+      4
+    ]
+  ],
+  "methods": [
+    {
+      "id": 1,
+      "level_min": 1,
+      "level_max": 33,
+      "method_name": "Sailing Training",
+      "gp_per_xp": 4285
+    },
+    {
+      "id": 2,
+      "level_min": 33,
+      "level_max": 52,
+      "method_name": "Sailing Training",
+      "gp_per_xp": 1143
+    },
+    {
+      "id": 3,
+      "level_min": 52,
+      "level_max": 72,
+      "method_name": "Sailing Training",
+      "gp_per_xp": 343
+    },
+    {
+      "id": 4,
+      "level_min": 72,
+      "level_max": 99,
+      "method_name": "Sailing Training",
+      "gp_per_xp": 172
+    }
+  ],
+  "emoji": "<:sailingcape:1437359998672834681>"
+},
+{
+  "_id": {
+    "$oid": "67a4a3e937b6864d791defab"
+  },
+  "skill_name": "Thieving",
+  "skill_name_synonyms": [
+    "thieve",
+    "thief",
+    "thiev",
+    "thiefing"
+  ],
+  "allowed_orders": [
+    [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    [
+      1,
+      2,
+      3,
+      4,
+      5,
+      9,
+      10,
+      11
+    ]
+  ],
+  "methods": [
+    {
+      "id": 1,
+      "level_min": 1,
+      "level_max": 5,
+      "method_name": "Pickpocket Men",
+      "gp_per_xp": 1296
+    },
+    {
+      "id": 2,
+      "level_min": 5,
+      "level_max": 20,
+      "method_name": "Cake Stalls",
+      "gp_per_xp": 540
+    },
+    {
+      "id": 3,
+      "level_min": 20,
+      "level_max": 25,
+      "method_name": "Silk Stalls",
+      "gp_per_xp": 351
+    },
+    {
+      "id": 4,
+      "level_min": 25,
+      "level_max": 45,
+      "method_name": "Fruit Stalls",
+      "gp_per_xp": 270
+    },
+    {
+      "id": 5,
+      "level_min": 45,
+      "level_max": 55,
+      "method_name": "Best method",
+      "gp_per_xp": 205
+    },
+    {
+      "id": 9,
+      "level_min": 55,
+      "level_max": 65,
+      "method_name": "Ardougne Knights",
+      "gp_per_xp": 144
+    },
+    {
+      "id": 10,
+      "level_min": 65,
+      "level_max": 95,
+      "method_name": "Ardougne Knights",
+      "gp_per_xp": 110
+    },
+    {
+      "id": 11,
+      "level_min": 95,
+      "level_max": 99,
+      "method_name": "Ardougne Knights",
+      "gp_per_xp": 110
+    }
+  ],
+  "emoji": "<:Skill_Thieving:1384708942969569311>"
+},
+{
+  "_id": {
+    "$oid": "69272fbb4d02895834ea9fba"
+  },
+  "skill_name": "Mining",
+  "skill_name_synonyms": [
+    "mine"
+  ],
+  "allowed_orders": [
+    [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    [
+      1,
+      2,
+      6,
+      7
+    ],
+    [
+      1,
+      2,
+      3,
+      4,
+      8,
+      9
+    ]
+  ],
+  "methods": [
+    {
+      "id": 1,
+      "level_min": 1,
+      "level_max": 15,
+      "method_name": "Copper/Tin",
+      "gp_per_xp": 2160
+    },
+    {
+      "id": 2,
+      "level_min": 15,
+      "level_max": 30,
+      "method_name": "Iron",
+      "gp_per_xp": 540
+    },
+    {
+      "id": 3,
+      "level_min": 30,
+      "level_max": 60,
+      "method_name": "Iron",
+      "gp_per_xp": 270
+    },
+    {
+      "id": 4,
+      "level_min": 60,
+      "level_max": 75,
+      "method_name": "Iron",
+      "gp_per_xp": 184
+    },
+    {
+      "id": 6,
+      "level_min": 30,
+      "level_max": 72,
+      "method_name": "MLM Lower (Motherlode Mine)",
+      "gp_per_xp": 360
+    },
+    {
+      "id": 7,
+      "level_min": 72,
+      "level_max": 99,
+      "method_name": "MLM Upper (Motherlode Mine)",
+      "gp_per_xp": 157
+    }
+  ],
+  "emoji": "<:Skill_mining:1384708672156078140>"
+}]

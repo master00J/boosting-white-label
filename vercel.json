@@ -1,0 +1,22 @@
+{
+  "framework": "nextjs",
+  "cleanUrls": true,
+  "crons": [
+    {
+      "path": "/api/cron/payouts",
+      "schedule": "0 8 * * 1"
+    },
+    {
+      "path": "/api/cron/cleanup",
+      "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/loyalty",
+      "schedule": "0 4 1 * *"
+    },
+    {
+      "path": "/api/cron/worker-tiers",
+      "schedule": "0 6 * * 0"
+    }
+  ]
+}
