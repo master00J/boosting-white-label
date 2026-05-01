@@ -76,6 +76,29 @@ export async function POST(req: NextRequest) {
     const { method, items, couponCode, couponDiscount = 0, customerNotes, accountValueIngame, accountValueGameId } = parsed.data;
     const admin = createAdminClient();
 
+    const defaultPaymentEnabled: Record<typeof method, boolean> = {
+      stripe: true,
+      paypal: true,
+      balance: true,
+      gold: false,
+      whop: false,
+      nowpayments: false,
+    };
+
+    const { data: enabledRow } = await admin
+      .from("site_settings")
+      .select("value")
+      .eq("key", `${method}_enabled`)
+      .maybeSingle() as unknown as { data: { value: string } | null };
+
+    const methodEnabled = enabledRow?.value === undefined
+      ? defaultPaymentEnabled[method]
+      : String(enabledRow.value) === "true";
+
+    if (!methodEnabled) {
+      return NextResponse.json({ error: "This payment method is currently disabled." }, { status: 400 });
+    }
+
     // Load payment fees
     const { data: feeRows } = await admin
       .from("site_settings")
@@ -242,6 +265,12 @@ export async function POST(req: NextRequest) {
       if (gameCfg?.gold_enabled && gameCfg.gold_per_usd > 0) {
         goldAmount = Math.ceil(total * gameCfg.gold_per_usd);
       }
+    }
+
+    if (method === "gold" && goldAmount === null) {
+      return NextResponse.json({
+        error: "In-game currency is enabled, but this cart is missing a valid Currency & Gold rate.",
+      }, { status: 400 });
     }
 
     // Build description

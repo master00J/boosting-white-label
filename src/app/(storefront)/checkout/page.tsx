@@ -36,6 +36,8 @@ type PaymentFees = {
   nowpayments:  { pct: number; fixed: number };
 };
 
+type PaymentConfig = Partial<Record<`${PaymentMethod}_enabled`, string>>;
+
 export default function CheckoutPage() {
   const router = useRouter();
   const { user, profile } = useAuth();
@@ -54,6 +56,7 @@ export default function CheckoutPage() {
     whop:         { pct: 0, fixed: 0 },
     nowpayments:  { pct: 0, fixed: 0 },
   });
+  const [goldEnabled, setGoldEnabled] = useState(false);
   const [whopEnabled, setWhopEnabled] = useState(false);
   const [nowpaymentsEnabled, setNowpaymentsEnabled] = useState(false);
   const [accountValue, setAccountValue] = useState<string>("");
@@ -93,11 +96,12 @@ export default function CheckoutPage() {
     setConfigLoading(true);
     Promise.all([
       fetch("/api/payment-fees").then((r) => r.json()).catch(() => null) as Promise<PaymentFees | null>,
-      fetch("/api/payment-config").then((r) => r.json()).catch(() => null) as Promise<{ whop_enabled?: string; nowpayments_enabled?: string } | null>,
+      fetch("/api/payment-config").then((r) => r.json()).catch(() => null) as Promise<PaymentConfig | null>,
       fetch("/api/currency-rates").then((r) => r.json()).catch(() => null) as Promise<CurrencyRates | null>,
     ]).then(([feesData, configData, ratesData]) => {
       if (feesData) setFees(feesData);
       if (configData) {
+        setGoldEnabled(configData.gold_enabled === "true");
         setWhopEnabled(configData.whop_enabled === "true");
         setNowpaymentsEnabled(configData.nowpayments_enabled === "true");
       }
@@ -230,7 +234,16 @@ export default function CheckoutPage() {
     return `+$${f.fixed.toFixed(2)} fee`;
   };
 
-  const paymentMethods: { id: PaymentMethod; label: string; icon: React.ReactNode; description: string; fee?: string | null; hidden?: boolean }[] = [
+  const paymentMethods: {
+    id: PaymentMethod;
+    label: string;
+    icon: React.ReactNode;
+    description: string;
+    fee?: string | null;
+    hidden?: boolean;
+    disabled?: boolean;
+    disabledReason?: string;
+  }[] = [
     {
       id: "stripe",
       label: "Credit / Debit card",
@@ -264,7 +277,9 @@ export default function CheckoutPage() {
         ? `${formatGold(goldAmountForTotal, primaryGoldCfg?.gold_currency_label ?? "GP")} — trade in-game after ordering`
         : "Trade in-game gold after ordering",
       fee: feeLabel("gold"),
-      hidden: !goldAvailableForCart,
+      hidden: !goldEnabled,
+      disabled: !goldAvailableForCart,
+      disabledReason: "Configure Currency & Gold for every game in your cart before accepting in-game currency.",
     },
     {
       id: "whop" as PaymentMethod,
@@ -294,6 +309,8 @@ export default function CheckoutPage() {
 
   const visibleMethods = paymentMethods.filter((pm) => !pm.hidden);
   const balanceInsufficient = method === "balance" && (profile?.balance ?? 0) < total;
+  const selectedMethod = paymentMethods.find((pm) => pm.id === method);
+  const selectedMethodUnavailable = selectedMethod?.disabled ?? false;
 
   const PROVIDER_MINIMUMS: Partial<Record<PaymentMethod, number>> = {
     whop: 1.00,
@@ -350,9 +367,13 @@ export default function CheckoutPage() {
                 <button
                   key={pm.id}
                   type="button"
-                  onClick={() => setMethod(pm.id)}
+                  onClick={() => {
+                    if (!pm.disabled) setMethod(pm.id);
+                  }}
+                  disabled={pm.disabled}
                   className={cn(
                     "w-full flex items-center gap-4 p-4 rounded-xl border transition-all text-left",
+                    pm.disabled && "opacity-60 cursor-not-allowed",
                     method === pm.id
                       ? "border-primary bg-primary/5"
                       : "border-[var(--border-default)] hover:border-primary/40"
@@ -376,6 +397,9 @@ export default function CheckoutPage() {
                       )}
                     </div>
                     <p className="text-xs text-[var(--text-muted)] mt-0.5">{pm.description}</p>
+                    {pm.disabledReason && (
+                      <p className="text-xs text-amber-400 mt-1">{pm.disabledReason}</p>
+                    )}
                   </div>
                   <div className={cn(
                     "w-4 h-4 rounded-full border-2 flex-shrink-0",
@@ -535,7 +559,7 @@ export default function CheckoutPage() {
           <button
             type="button"
             onClick={handleCheckout}
-            disabled={loading || balanceInsufficient || belowProviderMin}
+            disabled={loading || balanceInsufficient || belowProviderMin || selectedMethodUnavailable}
             className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-primary text-white font-semibold hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:shadow-lg hover:shadow-primary/25"
             aria-label={method === "gold" ? `Place order for ${formatGold(goldAmountForTotal, primaryGoldCfg?.gold_currency_label ?? "GP")}` : `Pay ${formatUSD(total)}`}
           >
