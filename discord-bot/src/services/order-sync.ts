@@ -1,6 +1,6 @@
 import type { Client } from "discord.js";
 import { supabase } from "./supabase.js";
-import { sendToChannel, sendDmToUser } from "./notifications.js";
+import { getChannelId, sendToChannel, sendDmToUser } from "./notifications.js";
 import {
   buildNewOrderEmbed,
   buildQueuedOrderEmbed,
@@ -47,8 +47,10 @@ type FullOrder = {
   customer: { display_name: string | null; discord_id: string | null; discord_username: string | null } | null;
 };
 
-/** Order IDs we've already posted to Discord (new order notification) — avoids duplicates when using polling. */
+/** Order IDs we've already posted to Discord (admin new-order notification) — avoids duplicates when using polling. */
 const notifiedOrderIds = new Set<string>();
+/** Order IDs already posted to the public worker claim channel. */
+const workerNotifiedOrderIds = new Set<string>();
 
 const POLL_INTERVAL_MS = 45_000;
 const POLL_LOOKBACK_MINUTES = 5;
@@ -79,15 +81,16 @@ function startOrderPolling(client: Client): void {
         return;
       }
       const count = orders?.length ?? 0;
-      const toNotify = orders?.filter((o) => !notifiedOrderIds.has(o.id)).length ?? 0;
+      const toNotify = orders?.filter((o) => !notifiedOrderIds.has(o.id) || (o.status === "queued" && !workerNotifiedOrderIds.has(o.id))).length ?? 0;
       logger.info(`[Poll] Orders in last ${POLL_LOOKBACK_MINUTES} min: ${count} (${toNotify} not yet notified).`);
 
       if (!orders?.length) return;
 
       for (const order of orders) {
-        if (notifiedOrderIds.has(order.id)) continue;
-        notifiedOrderIds.add(order.id);
-        logger.info(`[Poll] New order: #${order.order_number} (status: ${order.status})`);
+        const needsAdminPost = !notifiedOrderIds.has(order.id);
+        const needsWorkerPost = order.status === "queued" && !workerNotifiedOrderIds.has(order.id);
+        if (!needsAdminPost && !needsWorkerPost) continue;
+        logger.info(`[Poll] Syncing order: #${order.order_number} (status: ${order.status}, admin=${needsAdminPost}, workers=${needsWorkerPost})`);
 
         try {
           const fullOrder = await fetchOrderWithDetails(order.id);
@@ -97,16 +100,20 @@ function startOrderPolling(client: Client): void {
             continue;
           }
 
-          const adminEmbed = buildNewOrderEmbed(fullOrder);
-          await sendToChannel(client, "new_orders", adminEmbed);
+          if (needsAdminPost) {
+            notifiedOrderIds.add(order.id);
+            const adminEmbed = buildNewOrderEmbed(fullOrder);
+            await sendToChannel(client, "new_orders", adminEmbed);
+            await createOrderTicket(client, fullOrder);
+          }
 
-          if (order.status === "queued") {
+          if (needsWorkerPost) {
             await postToWorkersChannel(client, fullOrder);
           }
-          await createOrderTicket(client, fullOrder);
         } catch (err) {
           logger.error("Error processing polled order", err);
-          notifiedOrderIds.delete(order.id);
+          if (needsAdminPost) notifiedOrderIds.delete(order.id);
+          if (needsWorkerPost) workerNotifiedOrderIds.delete(order.id);
         }
       }
     } catch (err) {
@@ -366,7 +373,9 @@ function subscribeOrders(client: Client, attempt = 0): void {
 }
 
 async function postToWorkersChannel(client: Client, order: FullOrder): Promise<void> {
-  const workerChannelId = process.env.DISCORD_CHANNEL_WORKER_NOTIFICATIONS;
+  if (workerNotifiedOrderIds.has(order.id)) return;
+
+  const workerChannelId = await getChannelId("worker_notifications");
   if (!workerChannelId) return;
 
   try {
@@ -381,6 +390,8 @@ async function postToWorkersChannel(client: Client, order: FullOrder): Promise<v
       embeds: [embed],
       components: [row as any],
     });
+    workerNotifiedOrderIds.add(order.id);
+    logger.info(`Worker claim message posted for order #${order.order_number}`);
   } catch (err) {
     logger.error("Error posting to workers channel", err);
   }

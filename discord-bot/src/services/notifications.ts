@@ -20,7 +20,7 @@ const CHANNEL_SETTING_KEYS: Record<ChannelKey, string> = {
   tickets_category: "discord_category_tickets",
 };
 
-async function getChannelId(key: ChannelKey): Promise<string | null> {
+export async function getChannelId(key: ChannelKey): Promise<string | null> {
   const envMap: Record<ChannelKey, string> = {
     new_orders: "DISCORD_CHANNEL_NEW_ORDERS",
     completed_orders: "DISCORD_CHANNEL_COMPLETED_ORDERS",
@@ -54,7 +54,7 @@ export async function sendToChannel(
   try {
     const channelId = await getChannelId(channelKey);
     if (!channelId) {
-      logger.warn(`No channel configured for "${channelKey}". Set it in Admin → Discord or env DISCORD_CHANNEL_NEW_ORDERS.`);
+      logger.warn(`No channel configured for "${channelKey}". Set it in Admin → Discord or the matching DISCORD_CHANNEL_* env var.`);
       return;
     }
 

@@ -1,5 +1,6 @@
 # dependencies
 /node_modules
+/discord-bot/node_modules
 /.pnp
 .pnp.js
 .yarn/install-state.gz
@@ -13,6 +14,7 @@
 
 # production
 /build
+/discord-bot/dist
 
 # misc
 .DS_Store
