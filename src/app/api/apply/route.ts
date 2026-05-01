@@ -45,20 +45,28 @@ export async function POST(req: NextRequest) {
       .update({ discord_username: discord_username.trim() })
       .eq("id", user.id);
 
-    // Create worker record (pending review)
-    const { error } = await admin.from("workers").insert({
-      profile_id: user.id,
-      is_active: false,
-      is_verified: false,
-      application_text: motivation.trim(),
-      games: games,
-      applied_at: new Date().toISOString(),
-      notes: rsn ? `RSN: ${rsn.trim()}` : null,
-    });
+    // Create worker record (pending review). workers.is_active defaults to TRUE in DB — force inactive until approved.
+    const { data: inserted, error } = await admin
+      .from("workers")
+      .insert({
+        profile_id: user.id,
+        is_active: false,
+        is_verified: false,
+        application_text: motivation.trim(),
+        games: games,
+        applied_at: new Date().toISOString(),
+        notes: rsn ? `RSN: ${rsn.trim()}` : null,
+      })
+      .select("id, is_active")
+      .single();
 
     if (error) {
       console.error("Worker insert error:", error);
       return NextResponse.json({ error: "Failed to submit application." }, { status: 500 });
+    }
+
+    if (inserted?.id && inserted.is_active !== false) {
+      await admin.from("workers").update({ is_active: false }).eq("id", inserted.id);
     }
 
     return NextResponse.json({ success: true });
