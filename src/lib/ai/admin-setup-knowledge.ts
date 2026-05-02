@@ -6,10 +6,11 @@ export const ADMIN_SETUP_KNOWLEDGE = `
 # BoostPlatform — Admin & setup reference (instance)
 
 ## Core URLs (relative to your shop domain)
+- Always give links as **paths** like \`/admin/games\` — customers open them on **their own shop hostname**. Do not make up \`https://...\` URLs.
 - **Admin panel:** /admin/dashboard (overview KPIs)
 - **Static admin guide (human-readable):** /admin/guide — long-form documentation; use it together with this assistant.
 - **Staff orders:** /admin/orders — filter, split (multi-item), release to queue, confirm gold, assign workers, refunds.
-- **Catalog root:** /admin/games — games list; each game has setup (skills, methods), categories, services.
+- **Catalog root:** /admin/games — games list; each game has **Setup** (skills + OSRS catalog tools), **Categories**, **Services**.
 - **Workers:** /admin/workers, /admin/workers/applications, /admin/workers/tiers
 - **Customers:** /admin/customers, /admin/customers/new-signups
 - **Finance:** /admin/finance, /admin/finance/transactions, /admin/finance/payouts
@@ -20,7 +21,7 @@ export const ADMIN_SETUP_KNOWLEDGE = `
 - **Discord:** /admin/discord — channel IDs for bot notifications (new orders, worker channel, admin alerts, reviews), ticket category, roles (customer/worker/admin). Bot runs as separate Node service with SUPABASE_SERVICE_ROLE_KEY.
 - **Activity:** /admin/activity — audit-style log
 - **Settings:** /admin/settings (general), …/payments, …/currency, …/api-keys (**OpenAI + Anthropic keys + ai_provider + ai_model** for platform AI features), …/notifications, …/security, …/email, …/integrations, …/chat-agents
-- **Import:** /admin/import
+- **Import:** /admin/import — **bulk order CSV only** (past orders into the system). **Not** for importing games, quests, or catalog data.
 - **Live chat:** /admin/chat
 - **Ranks:** /admin/ranks (super_admin only) — granular admin permissions
 
@@ -29,7 +30,7 @@ export const ADMIN_SETUP_KNOWLEDGE = `
 2. **Payments** — enable Stripe/PayPal/balance/gold/Whop as needed; paste keys and webhooks (/admin/settings/payments). Without this, checkout fails.
 3. **Currency & gold** — if using gold payments, configure rates (/admin/settings/currency).
 4. **Discord** — set guild ID, bot token, channel IDs for notifications and ticket category (/admin/discord). Customers need Discord OAuth configured in Supabase Auth + Discord Developer app (external to this panel).
-5. **Catalog** — create **Game** → game setup (skills/methods if OSRS-style) → **Categories** → **Services** under categories → pricing (fixed, matrix, per-unit, quests, bosses, etc.).
+5. **Catalog** — create **Game** → for **OSRS**, use **Setup → Load OSRS catalog** first (see **OSRS — quests & catalog** below) → **Categories** → **Services** → pricing models.
 6. **Workers** — tiers (commission, limits), approve applications, assign tiers.
 7. **Storefront** — hero banners, theme colours/fonts (/admin/storefront).
 8. **Orders workflow** — paid orders may need admin **split** then **release to queue**; workers claim via web or Discord bot; deposits / min tier / account_value may block claims.
@@ -51,7 +52,17 @@ export const ADMIN_SETUP_KNOWLEDGE = `
 - **Per unit:** kill/run/hour/point with price per unit, min/max/presets.
 - **Boss tiered:** KC tiers with decreasing $/kill; optional combat-based discounts.
 - **Stat based:** Inferno-style — stats and gear affect multiplier from base price.
-- **Quest + stats:** quest list with base prices + stat multipliers.
+- **Quest + stats:** uses quests already stored for the game (**game_quests**). You set per-quest base prices and stat multipliers on the **service** — you do **not** manually type every quest name to “create” the catalog if you used OSRS preload.
+
+## OSRS — quests & catalog (important)
+- **Wrong path:** Saying users must manually create a “Quests” category and type every quest first. **Right path:** bulk quest rows come from the built-in **OSRS catalog seed**, then you price them via a **Quest + stats** service.
+- **Game slug:** Must match OSRS for full tooling: canonical slugs \`oldschool-runescape\` or \`osrs\`, or any slug containing \`oldschool\` or \`osrs\` (e.g. \`runescape-osrs\`). If the slug is wrong, edit the game under **Catalog → Games**.
+- **Where:** **Admin → Games** → open your OSRS game → **Setup** (page title “Setup — [game name]”; URL pattern \`/admin/games/<gameId>/setup\` — users navigate via UI; do not guess IDs).
+- **Load OSRS catalog:** Button **Load OSRS catalog** (top right, next to Add skill). Calls **POST /api/admin/games/[id]/preload-osrs-catalog**. **Idempotent** — safe to run again.
+  - Imports: OSRS **skills**, **standard training methods**, **full quest list** into **game_quests**, **shared boss profiles** (global), **default service categories** when empty (**Skilling**, **Quests**, **Bossing**, **Minigames**), **starter placeholder services** (slug prefix \`osrs-seed-*\`, often **inactive** until you enable and set prices after configuring), **GP/XP pricing rows** where applicable.
+- **After preload:** Open **Categories** and **Services** for that game (from Games → game → categories/services in the admin UI). Edit or replace starter services; set pricing model **Quest + stats** on the quest service you sell from; configure per-quest prices and multipliers there.
+- **Quest required items (optional):** On the same **Setup** page, **Fetch quest items from Wiki** pulls wiki item requirements into the DB for **Bank / loadout** displays — this is **extra** metadata, **not** the main quest list import.
+- **/admin/import** does **not** import quests — only CSV **orders**.
 
 ## Order number format
 - [BRAND]-[GAME]-[SERVICE]-[SEQ]; brand in Settings → General (order_id); game/service **order_code** on game and service rows; sequence auto.
@@ -60,8 +71,8 @@ export const ADMIN_SETUP_KNOWLEDGE = `
 - Marketing → Lootboxes; deliveries queue for in-game item fulfilment — configure there.
 
 ## Helpdesk AI vs Setup coach
-- Helpdesk AI (/admin/helpdesk/settings) uses ai_api_key legacy field for ticket auto-replies.
-- Setup coach uses resolved keys from openai_api_key / anthropic_api_key when set (see Settings → API Keys).
+- Helpdesk AI (/admin/helpdesk/settings) may use legacy **ai_api_key** for ticket auto-replies.
+- Setup coach prefers shop API keys when set; otherwise **hosted** env keys from the deploy.
 
 ## Workers / boosters
 - Applications reviewed under Workers → Applications.
@@ -79,9 +90,10 @@ export const ADMIN_SETUP_KNOWLEDGE = `
 - Slash/commands: claim, progress, etc. — workers must link Discord on the **same** shop profile.
 
 ## AI configuration for THIS assistant
-- Keys live in **Admin → Settings → API Keys**: openai_api_key and/or anthropic_api_key, plus ai_provider (openai | anthropic) and ai_model.
-- Legacy single field **ai_api_key** (Helpdesk settings) still works as fallback if provider-specific keys are empty.
-- You cannot read keys back in chat; only guide where to paste them.
+- **Hosted:** Many deployments inject platform keys via server env (\`BOOST_PLATFORM_HOSTED_AI_*\`); shops do not need their own key for Setup Assistant.
+- **Optional override:** **Admin → Settings → API Keys** — openai_api_key / anthropic_api_key, ai_provider, ai_model (also used for other AI features).
+- Legacy **ai_api_key** (Helpdesk) can still act as fallback for some features.
+- Never ask users to paste secrets into this chat.
 
 ## Security & honesty rules for answers
 - Never invent credentials; never ask users to paste secrets in Discord #public channels.
