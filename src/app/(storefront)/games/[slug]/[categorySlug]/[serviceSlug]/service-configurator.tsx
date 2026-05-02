@@ -162,6 +162,11 @@ export default function ServiceConfigurator({ service, game, categorySlug }: Ser
 
   const [added, setAdded] = useState(false);
   const [addedSkills, setAddedSkills] = useState<Set<string>>(new Set());
+  const [bossSearch, setBossSearch] = useState("");
+
+  useEffect(() => {
+    setBossSearch("");
+  }, [service.id]);
 
   // ── Loadout state ──
   const [loadouts, setLoadouts] = useState<LoadoutSummary[]>([]);
@@ -299,6 +304,18 @@ export default function ServiceConfigurator({ service, game, categorySlug }: Ser
 
   const totalPrice = breakdown?.final ?? service.base_price;
   const isBossTiered = priceMatrix?.type === "boss_tiered" && !!bossTieredMatrix;
+
+  const filteredBossTieredBosses = useMemo(() => {
+    if (!bossTieredMatrix) return [];
+    const q = bossSearch.trim().toLowerCase();
+    if (!q) return bossTieredMatrix.bosses;
+    return bossTieredMatrix.bosses.filter(
+      (b) =>
+        b.label.toLowerCase().includes(q)
+        || (b.description?.toLowerCase().includes(q) ?? false)
+        || b.id.toLowerCase().includes(q)
+    );
+  }, [bossTieredMatrix, bossSearch]);
 
   const questPrices = useMemo(() => {
     if (!perItemStatMatrix || !formConfig || !priceMatrix) return {} as Record<string, number>;
@@ -2652,10 +2669,36 @@ export default function ServiceConfigurator({ service, game, categorySlug }: Ser
                       <p className="text-sm font-semibold text-[var(--text-primary)]">Choose boss</p>
                       <p className="text-[11px] text-[var(--text-muted)] mt-0.5">Select the exact service variant.</p>
                     </div>
-                    <span className="text-[10px] rounded-full border border-[var(--border-default)] bg-[var(--bg-elevated)] px-2 py-1 text-[var(--text-muted)]">
-                      {bossTieredMatrix.bosses.length} option{bossTieredMatrix.bosses.length !== 1 ? "s" : ""}
+                    <span className="text-[10px] rounded-full border border-[var(--border-default)] bg-[var(--bg-elevated)] px-2 py-1 text-[var(--text-muted)] shrink-0 text-right max-w-[140px] leading-tight">
+                      {bossSearch.trim()
+                        ? `${filteredBossTieredBosses.length}/${bossTieredMatrix.bosses.length} shown`
+                        : `${bossTieredMatrix.bosses.length} option${bossTieredMatrix.bosses.length !== 1 ? "s" : ""}`}
                     </span>
                   </div>
+
+                  {bossTieredMatrix.bosses.length > 4 && (
+                    <div className="flex items-center gap-2.5 px-4 py-2.5 border-b border-[var(--border-subtle)] bg-[var(--bg-card)]">
+                      <Search className="h-4 w-4 text-[var(--text-muted)] shrink-0" />
+                      <input
+                        type="search"
+                        value={bossSearch}
+                        onChange={(e) => setBossSearch(e.target.value)}
+                        placeholder={`Search ${bossTieredMatrix.bosses.length} bosses…`}
+                        autoComplete="off"
+                        className="flex-1 min-w-0 bg-transparent text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] outline-none"
+                      />
+                      {bossSearch.trim() && (
+                        <button
+                          type="button"
+                          onClick={() => setBossSearch("")}
+                          className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors shrink-0"
+                          aria-label="Clear boss search"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  )}
 
                   {/* Quantity — directly under header so it stays visible above the scrollable boss list */}
                   <div className="px-4 py-3 border-b border-[var(--border-subtle)] bg-[var(--bg-elevated)]/25 space-y-2">
@@ -2714,7 +2757,19 @@ export default function ServiceConfigurator({ service, game, categorySlug }: Ser
 
                   <div className="max-h-[min(440px,52vh)] overflow-y-auto overscroll-y-contain [scrollbar-gutter:stable]">
                   <div className="grid grid-cols-2 gap-3 p-3">
-                    {bossTieredMatrix.bosses.map((boss) => {
+                    {filteredBossTieredBosses.length === 0 ? (
+                      <div className="col-span-2 flex flex-col items-center justify-center py-12 px-4 text-center text-[var(--text-muted)]">
+                        <p className="text-sm">No bosses match &ldquo;{bossSearch.trim()}&rdquo;</p>
+                        <button
+                          type="button"
+                          onClick={() => setBossSearch("")}
+                          className="text-xs text-primary hover:underline mt-2"
+                        >
+                          Clear search
+                        </button>
+                      </div>
+                    ) : null}
+                    {filteredBossTieredBosses.map((boss) => {
                       const isActive = selectedBossId === boss.id;
                       const bossImg = boss.image_url ?? service.image_url ?? game.logo_url;
                       return (

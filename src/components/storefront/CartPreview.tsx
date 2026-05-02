@@ -14,11 +14,10 @@ function formatUSD(n: number) {
 export default function CartPreview() {
   const { items, removeItem, getSubtotal, getTotal, couponDiscount } = useCartStore();
 
-  if (items.length === 0) return null;
-
   const subtotal = getSubtotal();
   const total = getTotal();
   const hasDiscount = couponDiscount > 0;
+  const empty = items.length === 0;
 
   return (
     <div className="rounded-xl border border-[var(--border-default)] overflow-hidden bg-[var(--bg-card)]">
@@ -40,6 +39,11 @@ export default function CartPreview() {
       </div>
 
       {/* Items */}
+      {empty ? (
+        <div className="px-4 py-3 text-xs text-[var(--text-muted)] leading-relaxed">
+          No items yet — add a configuration below; your running total appears here.
+        </div>
+      ) : (
       <div className="divide-y divide-[var(--border-subtle)] max-h-72 overflow-y-auto">
         {items.map((item) => {
           const summary = formatConfigurationSummary(item.configuration);
@@ -89,6 +93,7 @@ export default function CartPreview() {
           );
         })}
       </div>
+      )}
 
       {/* Footer */}
       <div className="px-4 py-3 border-t border-[var(--border-default)] bg-[var(--bg-elevated)] space-y-3">

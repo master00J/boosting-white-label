@@ -6,6 +6,7 @@ import Image from "next/image";
 import { ArrowLeft, Star, ChevronRight, Search, X, ShoppingBag } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import ServiceConfigurator from "./[serviceSlug]/service-configurator";
+import CartPreview from "@/components/storefront/CartPreview";
 
 type ServiceData = {
   id: string;
@@ -357,6 +358,10 @@ export default function CategoryClient({ game, category, services, initialServic
                     <span className="text-[var(--text-secondary)]">{f.label}</span>
                   </div>
                 ))}
+              </div>
+
+              <div className="mb-5">
+                <CartPreview />
               </div>
 
               <ServiceConfigurator key={selected.id} service={selected} game={game} categorySlug={category.slug} />

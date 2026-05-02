@@ -31,6 +31,7 @@ import StatCalculator, {
 import RoutePlanner from "@/components/storefront/RoutePlanner";
 import InlineLoadoutCreator from "@/components/storefront/InlineLoadoutCreator";
 import { useCartStore } from "@/stores/cart-store";
+import CartPreview from "@/components/storefront/CartPreview";
 import { useUIStore } from "@/stores/ui-store";
 import { useAuth } from "@/components/providers/auth-provider";
 import { createClient } from "@/lib/supabase/client";
@@ -2189,6 +2190,8 @@ export default function AccountBuilderClient({
           </div>
         </div>
       </div>
+
+      <CartPreview />
 
       {/* â”€â”€ Loadout picker â”€â”€ */}
       <div className={cn(
