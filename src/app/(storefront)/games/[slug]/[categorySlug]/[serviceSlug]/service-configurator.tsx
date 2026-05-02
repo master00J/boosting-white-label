@@ -455,12 +455,29 @@ export default function ServiceConfigurator({ service, game, categorySlug }: Ser
     const activeGearEffects = breakdown?.loadout_modifiers_active ?? [];
     const gearMultiplier = activeGearEffects.reduce((acc, effect) => acc * effect.multiplier, 1);
 
+    const sortedKillTiers = [...killTiers].sort((a, b) => a.min_kills - b.min_kills);
+    const killTierSchedule = sortedKillTiers.map((tier) => ({
+      ...tier,
+      isActive: kills >= tier.min_kills && kills <= tier.max_kills,
+    }));
+    let upcomingCheaperTier: { min_kills: number; price_per_kill: number } | null = null;
+    if (activeTier) {
+      const cheaper = sortedKillTiers.find(
+        (t) => kills < t.min_kills && t.price_per_kill < activeTier.price_per_kill,
+      );
+      if (cheaper) {
+        upcomingCheaperTier = { min_kills: cheaper.min_kills, price_per_kill: cheaper.price_per_kill };
+      }
+    }
+
     return {
       selectedBoss,
       unitLabel,
       unitLabelSingular,
       kills,
       activeTier,
+      killTierSchedule,
+      upcomingCheaperTier,
       statSummaries,
       statMultiplier,
       modifierEffects,
@@ -1093,7 +1110,12 @@ export default function ServiceConfigurator({ service, game, categorySlug }: Ser
       </div>
 
       <div className="grid gap-3 md:grid-cols-2">
-        <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-card)] p-3 space-y-1.5">
+        <div
+          className={cn(
+            "rounded-xl border border-[var(--border-default)] bg-[var(--bg-card)] p-3 space-y-2",
+            bossPricingInsights.killTierSchedule.length > 1 && "md:col-span-2",
+          )}
+        >
           <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[var(--text-muted)]">Kill tier</p>
           {bossPricingInsights.activeTier ? (
             <>
@@ -1101,11 +1123,58 @@ export default function ServiceConfigurator({ service, game, categorySlug }: Ser
                 {bossPricingInsights.kills} × {formatUSD(bossPricingInsights.activeTier.price_per_kill)}
               </p>
               <p className="text-xs text-[var(--text-secondary)]">
-                {bossPricingInsights.activeTier.min_kills}–{bossPricingInsights.activeTier.max_kills === 999999 ? "∞" : bossPricingInsights.activeTier.max_kills} {bossPricingInsights.unitLabel}
+                Active band:{" "}
+                {bossPricingInsights.activeTier.min_kills}–
+                {bossPricingInsights.activeTier.max_kills === 999999
+                  ? "∞"
+                  : bossPricingInsights.activeTier.max_kills}{" "}
+                {bossPricingInsights.unitLabel}
               </p>
               <p className="text-xs text-primary">
                 Base: {formatUSD(bossPricingInsights.baseCost)}
               </p>
+              {bossPricingInsights.killTierSchedule.length > 0 && (
+                <div className="pt-2 mt-1 border-t border-[var(--border-default)] space-y-1.5">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--text-muted)]">
+                    Volume pricing ({bossPricingInsights.unitLabel})
+                  </p>
+                  <ul className="space-y-1">
+                    {bossPricingInsights.killTierSchedule.map((row) => (
+                      <li
+                        key={`${row.min_kills}-${row.max_kills}-${row.price_per_kill}`}
+                        className={cn(
+                          "flex items-center justify-between gap-2 text-xs rounded-lg px-2 py-1",
+                          row.isActive
+                            ? "bg-primary/10 border border-primary/25 text-[var(--text-primary)]"
+                            : "text-[var(--text-secondary)]",
+                        )}
+                      >
+                        <span>
+                          {row.min_kills}
+                          {"–"}
+                          {row.max_kills === 999999 ? "∞" : row.max_kills}
+                        </span>
+                        <span className="font-medium tabular-nums whitespace-nowrap">
+                          {formatUSD(row.price_per_kill)}
+                          <span className="font-normal text-[var(--text-muted)]"> /kill</span>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                  {bossPricingInsights.killTierSchedule.length === 1 ? (
+                    <p className="text-[11px] text-[var(--text-muted)] leading-snug">
+                      Only one kill band is configured for this boss — add more tiers in admin to show bulk discounts.
+                    </p>
+                  ) : null}
+                  {bossPricingInsights.upcomingCheaperTier ? (
+                    <p className="text-[11px] text-green-400 leading-snug">
+                      Lower per-kill rate from{" "}
+                      <span className="font-semibold">{bossPricingInsights.upcomingCheaperTier.min_kills}+</span>{" "}
+                      kills: {formatUSD(bossPricingInsights.upcomingCheaperTier.price_per_kill)}/kill.
+                    </p>
+                  ) : null}
+                </div>
+              )}
             </>
           ) : (
             <p className="text-xs text-[var(--text-secondary)]">Select a boss to see the active price tier.</p>
