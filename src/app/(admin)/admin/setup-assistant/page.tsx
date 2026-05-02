@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Sparkles } from "lucide-react";
 import { SetupCoachPanel } from "@/components/admin/setup-coach-panel";
 
@@ -18,13 +19,13 @@ export default function AdminSetupAssistantPage() {
           <h1 className="text-2xl font-bold tracking-tight">Setup Assistant</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Ask about payments, catalog, Discord, workers, and more. Answers use an internal admin guide; for static docs see{" "}
-            <a href="/admin/guide" className="text-primary hover:underline">
+            <Link href="/admin/guide" className="text-primary hover:underline">
               Admin Guide
-            </a>
+            </Link>
             . Hosted shops use platform AI by default. To bring your own provider key, use{" "}
-            <a href="/admin/helpdesk/settings" className="text-primary hover:underline">
+            <Link href="/admin/helpdesk/settings" className="text-primary hover:underline">
               Helpdesk → AI &amp; Settings
-            </a>{" "}
+            </Link>{" "}
             (the Settings → API Keys screen is not live yet).
           </p>
         </div>
