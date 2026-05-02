@@ -1,5 +1,13 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 
+/** site_settings.value is Json — coerce to string for URL building. */
+function siteSettingString(value: unknown): string {
+  if (value == null) return "";
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  return "";
+}
+
 /** Normalize user/env input to origin only (no trailing slash, no path). */
 export function normalizeShopOrigin(raw: string | null | undefined): string | null {
   const t = (raw ?? "").trim();
@@ -25,7 +33,9 @@ export async function resolveShopOriginForSetupAI(): Promise<string | null> {
       .select("key, value")
       .in("key", ["site_url", "custom_domain"]);
 
-    const map = Object.fromEntries((rows ?? []).map((r) => [r.key, r.value ?? ""]));
+    const map = Object.fromEntries(
+      (rows ?? []).map((r) => [r.key, siteSettingString(r.value)]),
+    ) as Record<string, string>;
 
     const fromSiteUrl = normalizeShopOrigin(map["site_url"]);
     if (fromSiteUrl) return fromSiteUrl;
