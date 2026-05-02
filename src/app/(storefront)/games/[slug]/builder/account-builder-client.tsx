@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { formatUSD } from "@/lib/format";
-import { calculatePrice, type Selections } from "@/lib/pricing-engine";
+import { calculatePrice, bossTieredEffectiveStats, type Selections } from "@/lib/pricing-engine";
 import StatCalculator, {
   type StatSelections,
 } from "@/components/storefront/StatCalculator";
@@ -1328,6 +1328,7 @@ function ExtrasCard({
             const bosses = bm.bosses ?? [];
             const selectedBossId = (config["boss"] as string) ?? bosses[0]?.id;
             const selectedBoss = bosses.find((b) => b.id === selectedBossId);
+            const bossTierStats = bossTieredEffectiveStats(selectedBoss?.stats ?? bm.stats ?? []);
             const activeModifiers = (selectedBoss?.modifiers?.length ? selectedBoss.modifiers : bm.modifiers) ?? [];
             const minK = bm.minimum_kills ?? 1;
             const maxK = bm.maximum_kills ?? 10000;
@@ -1448,8 +1449,8 @@ function ExtrasCard({
                     )}
                   </div>
                 ))}
-                {/* Boss tiered stats: show StatCalculator (like Firecape) when no account selected */}
-                {((selectedBoss?.stats ?? bm.stats)?.length ?? 0) > 0 && (
+                {/* Boss tiered stats: skill-based multipliers when no account selected */}
+                {bossTierStats.length > 0 && (
                   <div className="space-y-2 pt-2 border-t border-[#E8720C]/8">
                     {(selectedLoadoutId || gearLoadoutId) ? (
                       <p className="text-[11px] text-white/30">
@@ -1467,7 +1468,7 @@ function ExtrasCard({
                           matrix={{
                             type: "stat_based",
                             base_price: 0,
-                            stats: selectedBoss?.stats ?? bm.stats ?? [],
+                            stats: bossTierStats,
                           } as StatBasedPriceMatrix}
                           selections={stats}
                           onChange={onStatsChange}

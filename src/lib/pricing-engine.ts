@@ -21,6 +21,11 @@ import type {
 
 export type Selections = Record<string, string | number | boolean | string[] | RouteSegment[] | undefined>;
 
+/** Legacy id `combat` (global combat level). Boss-tiered pricing uses individual skill stats instead. */
+export function bossTieredEffectiveStats(stats: StatConfig[]): StatConfig[] {
+  return stats.filter((s) => s.id !== "combat");
+}
+
 function applyModifiers(
   base: number,
   formConfig: FormConfig,
@@ -473,8 +478,8 @@ function calcBossTiered(
 
   let base = kills * pricePerKill;
 
-  // Apply stat multipliers (combat level, range, etc.)
-  const activeStats = (boss?.stats && boss.stats.length > 0) ? boss.stats : (matrix.stats ?? []);
+  const rawStatConfigs = (boss?.stats && boss.stats.length > 0) ? boss.stats : (matrix.stats ?? []);
+  const activeStats = bossTieredEffectiveStats(rawStatConfigs);
   for (const stat of activeStats) {
     const rawVal = selections[`stat_${stat.id}`];
     const statValue = rawVal !== undefined && rawVal !== "" ? Number(rawVal) : stat.max;

@@ -46,7 +46,7 @@ const OPTIONS: { value: PricingType; label: string; description: string; Icon: R
   {
     value: "boss_tiered",
     label: "Boss Tiered",
-    description: "Customer picks a boss, enters kill count. Price per kill decreases at higher quantities. Combat level applies multipliers.",
+    description: "Customer picks a boss, enters kill count. Price per kill decreases at higher quantities. Optional skill stats apply multipliers.",
     Icon: Trophy,
   },
   {

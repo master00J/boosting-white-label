@@ -347,7 +347,7 @@ export interface BossConfig {
   image_url?: string;
   /** Tiered kill pricing for this boss */
   kill_tiers: KillTier[];
-  /** Per-boss stat configs (e.g. Combat level). Overrides global stats when set. */
+  /** Per-boss stat configs (e.g. Attack, Ranged). Overrides global stats when set. */
   stats?: StatConfig[];
   /** Per-boss modifier fields. Overrides global modifiers when set. */
   modifiers?: QuestModifierField[];
@@ -363,7 +363,7 @@ export interface BossConfig {
 export interface BossTieredPriceMatrix extends PriceMatrixBase {
   type: "boss_tiered";
   bosses: BossConfig[];
-  /** Global stats (e.g. Combat level) — fallback if boss has no own stats */
+  /** Global stats (e.g. combat skills) — fallback if boss has no own stats */
   stats?: StatConfig[];
   /** Global modifiers (e.g. Loot split) — fallback if boss has no own modifiers */
   modifiers?: QuestModifierField[];

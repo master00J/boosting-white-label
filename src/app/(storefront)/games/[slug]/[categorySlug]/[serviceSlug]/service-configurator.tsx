@@ -6,7 +6,7 @@ import { Zap, Plus, Check, ChevronDown, ChevronUp, Settings2, X, Coins, Trending
 import { useCartStore } from "@/stores/cart-store";
 import { cn } from "@/lib/utils/cn";
 import { formatUSD } from "@/lib/format";
-import { calculatePrice } from "@/lib/pricing-engine";
+import { calculatePrice, bossTieredEffectiveStats } from "@/lib/pricing-engine";
 import StatCalculator, { type StatSelections } from "@/components/storefront/StatCalculator";
 import { SearchableItemSelect } from "@/components/ui/searchable-item-select";
 import { useAuth } from "@/components/providers/auth-provider";
@@ -382,9 +382,11 @@ export default function ServiceConfigurator({ service, game, categorySlug }: Ser
     const bossMatrix = priceMatrix as BossTieredPriceMatrix;
     const selectedBossId = selections["boss"] as string | undefined;
     const selectedBoss = bossMatrix.bosses.find((boss) => boss.id === selectedBossId);
-    const activeStats = (selectedBoss?.stats && selectedBoss.stats.length > 0)
-      ? selectedBoss.stats
-      : (bossMatrix.stats ?? []);
+    const activeStats = bossTieredEffectiveStats(
+      (selectedBoss?.stats && selectedBoss.stats.length > 0)
+        ? selectedBoss.stats
+        : (bossMatrix.stats ?? []),
+    );
     const activeModifiers = (selectedBoss?.modifiers && selectedBoss.modifiers.length > 0)
       ? selectedBoss.modifiers
       : (bossMatrix.modifiers ?? []);
@@ -2950,7 +2952,7 @@ export default function ServiceConfigurator({ service, game, categorySlug }: Ser
                 </div>
               )}
 
-              {/* Stats (combat level etc.) */}
+              {/* Stats (skill thresholds for boss-tiered pricing) */}
               {activeStats.length > 0 && !selectedLoadoutId && (
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium">Account stats</label>

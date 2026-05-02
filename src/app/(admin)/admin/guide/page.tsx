@@ -465,7 +465,7 @@ export default function AdminGuidePage() {
             <div className="space-y-1 mt-3">
               <FieldRow name="Boss name" required description="E.g. 'Zulrah', 'Vorkath'" />
               <FieldRow name="Tiers" required description="Define price tiers by quantity range. E.g.: 1–10 KC @ $2.50/kill, 11–50 KC @ $2.00/kill, 50+ KC @ $1.50/kill." />
-              <FieldRow name="Combat level" description="Optional: customers with higher combat stats get a discount multiplier." />
+              <FieldRow name="Combat stats" description="Optional: configure skill stats (Attack, Ranged, …). Higher levels typically reduce price via multipliers." />
             </div>
           </Accordion>
 

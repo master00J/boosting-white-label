@@ -592,8 +592,11 @@ function BossRow({
   const hasCustomConfig = bossStats.length > 0 || bossModifiers.length > 0 || bossLoadoutMods.length > 0;
 
   const defaultStat = (): StatConfig => ({
-    id: "combat", label: "Combat Level", min: 3, max: 126,
-    thresholds: [{ max: 70, multiplier: 1.5 }, { max: 100, multiplier: 1.2 }, { max: 126, multiplier: 1.0 }],
+    id: "attack",
+    label: "Attack",
+    min: 1,
+    max: 99,
+    thresholds: [{ max: 70, multiplier: 1.2 }, { max: 99, multiplier: 1.0 }],
   });
 
   const addBossStat = () => onUpdate({ ...boss, stats: [...bossStats, defaultStat()] });
@@ -917,8 +920,11 @@ export default function BossTieredConfig({ matrix, onChange }: Props) {
     onChange({ ...matrix, bosses: matrix.bosses.filter((_, idx) => idx !== i) });
 
   const defaultStat = (): StatConfig => ({
-    id: "combat", label: "Combat Level", min: 3, max: 126,
-    thresholds: [{ max: 70, multiplier: 1.5 }, { max: 100, multiplier: 1.2 }, { max: 126, multiplier: 1.0 }],
+    id: "attack",
+    label: "Attack",
+    min: 1,
+    max: 99,
+    thresholds: [{ max: 70, multiplier: 1.2 }, { max: 99, multiplier: 1.0 }],
   });
   const addGlobalStat = () => onChange({ ...matrix, stats: [...globalStats, defaultStat()] });
   const updateGlobalStat = (i: number, s: StatConfig) =>
@@ -1044,7 +1050,7 @@ export default function BossTieredConfig({ matrix, onChange }: Props) {
             <div className="space-y-2 border-t border-border px-4 py-4">
           <p className="text-xs text-muted-foreground">
             Global stats apply to all bosses that don&apos;t have their own stats configured.
-            Typically: Combat level (higher = cheaper).
+            Use OSRS skill IDs (attack, strength, defence, ranged, magic, …); higher levels usually mean lower prices.
           </p>
           {globalStats.map((s, i) => (
             <StatCard key={i} stat={s}

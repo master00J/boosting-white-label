@@ -142,15 +142,7 @@ function buildBossMatrix(
       image_url: r.icon_url ?? undefined,
       kill_tiers: [{ min_kills: 1, max_kills: 999_999, price_per_kill: 1 }],
     })),
-    stats: [
-      {
-        id: "combat",
-        label: "Combat level",
-        min: 3,
-        max: 126,
-        thresholds: [{ max: 126, multiplier: 1 }],
-      },
-    ],
+    stats: [],
     modifiers: [],
     minimum_kills: 1,
     maximum_kills: 9999,
