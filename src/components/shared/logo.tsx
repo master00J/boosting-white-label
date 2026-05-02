@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { cn } from "@/lib/utils/cn";
-import { useTheme } from "@/components/providers/theme-provider";
+import { useTheme, useSiteBranding } from "@/components/providers/theme-provider";
 
 interface LogoProps {
   className?: string;
@@ -13,6 +13,7 @@ interface LogoProps {
 
 export default function Logo({ className, size = "md", href = "/" }: LogoProps) {
   const theme = useTheme();
+  const { siteName } = useSiteBranding();
 
   const sizeClasses = {
     sm: "h-6",
@@ -36,7 +37,7 @@ export default function Logo({ className, size = "md", href = "/" }: LogoProps) 
       size === "md" && "text-xl",
       size === "lg" && "text-2xl",
     )}>
-      {theme.brand_name?.trim() || "BoostPlatform"}
+      {theme.brand_name?.trim() || siteName.trim() || "BoostPlatform"}
     </span>
   );
 

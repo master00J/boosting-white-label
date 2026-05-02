@@ -94,10 +94,14 @@ export default function StorefrontBuilderClient({
   const openLiveThemePreview = useCallback(() => {
     try {
       const payload = {
-        ...theme,
-        logo_url: theme.logo_url?.trim() ?? "",
-        favicon_url: theme.favicon_url?.trim() ?? "",
-        hero_bg_url: theme.hero_bg_url?.trim() ?? "",
+        theme: {
+          ...theme,
+          logo_url: theme.logo_url?.trim() ?? "",
+          favicon_url: theme.favicon_url?.trim() ?? "",
+          hero_bg_url: theme.hero_bg_url?.trim() ?? "",
+        },
+        site_name: siteName.trim(),
+        site_tagline: siteTagline.trim(),
       };
       sessionStorage.setItem(STOREFRONT_THEME_PREVIEW_STORAGE_KEY, JSON.stringify(payload));
     } catch {
@@ -105,7 +109,7 @@ export default function StorefrontBuilderClient({
     }
     const url = `/?${STOREFRONT_THEME_PREVIEW_QUERY}=1`;
     window.open(url, "_blank", "noopener,noreferrer");
-  }, [theme]);
+  }, [theme, siteName, siteTagline]);
 
   const save = async () => {
     setSaving(true);

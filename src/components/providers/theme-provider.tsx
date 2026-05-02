@@ -20,6 +20,7 @@ import {
 import {
   STOREFRONT_THEME_PREVIEW_QUERY,
   STOREFRONT_THEME_PREVIEW_STORAGE_KEY,
+  parseThemePreviewSession,
 } from "@/lib/storefront-theme-preview";
 
 export type {
@@ -225,8 +226,17 @@ export const defaultTheme: ThemeSettings = {
 
 const ThemeContext = createContext<ThemeSettings>(defaultTheme);
 
+export type SiteBranding = { siteName: string; siteTagline: string };
+
+const SiteBrandingContext = createContext<SiteBranding>({ siteName: "", siteTagline: "" });
+
+function strSetting(val: unknown): string {
+  return typeof val === "string" ? val : "";
+}
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<ThemeSettings>(defaultTheme);
+  const [siteBranding, setSiteBranding] = useState<SiteBranding>({ siteName: "", siteTagline: "" });
 
   useEffect(() => {
     let cancelled = false;
@@ -238,9 +248,18 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
           try {
             const raw = sessionStorage.getItem(STOREFRONT_THEME_PREVIEW_STORAGE_KEY);
             if (raw) {
-              const parsed = JSON.parse(raw) as Partial<ThemeSettings>;
-              if (!cancelled) setTheme({ ...defaultTheme, ...parsed });
-              return;
+              const parsed = parseThemePreviewSession(raw);
+              if (parsed) {
+                const partial = parsed.themePartial as Partial<ThemeSettings>;
+                if (!cancelled) {
+                  setTheme({ ...defaultTheme, ...partial });
+                  setSiteBranding({
+                    siteName: parsed.siteName ?? "",
+                    siteTagline: parsed.siteTagline ?? "",
+                  });
+                }
+                return;
+              }
             }
           } catch {
             /* fall through to saved theme */
@@ -258,29 +277,37 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       const { createClient } = await import("@/lib/supabase/client");
       const supabase = createClient();
 
-      const { data, error } = await supabase
+      const { data: rows, error } = await supabase
         .from("site_settings")
-        .select("value")
-        .eq("key", "theme")
-        .maybeSingle();
+        .select("key, value")
+        .in("key", ["theme", "site_name", "site_tagline"]);
 
       if (cancelled) return;
 
-      if (!error && data) {
-        let themeValue: Partial<ThemeSettings> | string | null = (
-          data as { value: Partial<ThemeSettings> | string }
-        ).value;
-        if (typeof themeValue === "string") {
-          try {
-            themeValue = JSON.parse(themeValue) as Partial<ThemeSettings>;
-          } catch {
-            themeValue = null;
-          }
-        }
-        if (themeValue && typeof themeValue === "object") {
-          setTheme({ ...defaultTheme, ...themeValue });
+      if (error || !rows?.length) return;
+
+      const rowList = rows as { key: string; value: unknown }[];
+      const map = Object.fromEntries(rowList.map((r) => [r.key, r.value]));
+
+      let themeValue: Partial<ThemeSettings> | string | null = map.theme as
+        | Partial<ThemeSettings>
+        | string
+        | null;
+      if (typeof themeValue === "string") {
+        try {
+          themeValue = JSON.parse(themeValue) as Partial<ThemeSettings>;
+        } catch {
+          themeValue = null;
         }
       }
+      if (themeValue && typeof themeValue === "object") {
+        setTheme({ ...defaultTheme, ...themeValue });
+      }
+
+      setSiteBranding({
+        siteName: strSetting(map.site_name),
+        siteTagline: strSetting(map.site_tagline),
+      });
     };
 
     loadTheme();
@@ -327,7 +354,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     document.body.style.color = theme.text_primary;
   }, [theme]);
 
-  return <ThemeContext.Provider value={theme}>{children}</ThemeContext.Provider>;
+  return (
+    <ThemeContext.Provider value={theme}>
+      <SiteBrandingContext.Provider value={siteBranding}>{children}</SiteBrandingContext.Provider>
+    </ThemeContext.Provider>
+  );
 }
 
 /** Resolved nav links (theme override or defaults). */
@@ -364,3 +395,7 @@ export function useHomepageFaq(): HomepageFaqItem[] {
 }
 
 export const useTheme = () => useContext(ThemeContext);
+
+export function useSiteBranding(): SiteBranding {
+  return useContext(SiteBrandingContext);
+}
