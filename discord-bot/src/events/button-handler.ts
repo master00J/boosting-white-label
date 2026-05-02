@@ -2,7 +2,6 @@ import type { Client, ButtonInteraction } from "discord.js";
 import { supabase } from "../services/supabase.js";
 import { requireWorker } from "../lib/permissions.js";
 import { buildOrderEmbed, buildErrorEmbed, buildSuccessEmbed } from "../lib/embeds.js";
-import { buildProgressRow } from "../lib/buttons.js";
 import { logger } from "../lib/logger.js";
 import { resolveOrderUuidFromButtonKey } from "../lib/order-key.js";
 import { getResolvedSiteOrigin, refreshSiteOriginKeysFromDatabase } from "../services/config.js";
@@ -124,7 +123,7 @@ async function handleClaim(interaction: ButtonInteraction, orderKey: string): Pr
       await interaction.editReply({
         embeds: [
           buildErrorEmbed(
-            "Deze order is gesplitst. Er staat nog geen deel-order in de wachtrij — gebruik het nieuwste Discord-bericht of het ordernummer van een vrijgegeven deel-order.",
+            "This order was split and no child order is queued yet. Use the latest Discord message or the order number of a released sub-order.",
           ),
         ],
       });
@@ -282,10 +281,9 @@ async function handleClaim(interaction: ButtonInteraction, orderKey: string): Pr
 
   const embed = buildSuccessEmbed(
     `Order #${order.order_number} claimed!`,
-    `**Your payout:** $${personalPayout.toFixed(2)}\n\nUse \`/progress\` to update the progress.`,
+    `**Your payout:** $${personalPayout.toFixed(2)}\n\nUse \`/progress\` with your order number and percentage to update progress.`,
   );
-  const row = buildProgressRow(effectiveId);
-  await interaction.editReply({ embeds: [embed], components: [row] });
+  await interaction.editReply({ embeds: [embed] });
 }
 
 async function handleStatusCheck(interaction: ButtonInteraction, orderKey: string): Promise<void> {

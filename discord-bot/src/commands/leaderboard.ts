@@ -6,7 +6,7 @@ import { COLORS } from "../lib/constants.js";
 export const leaderboardCommand: BotCommand = {
   data: new SlashCommandBuilder()
     .setName("leaderboard")
-    .setDescription("Bekijk de top boosters"),
+    .setDescription("View the top boosters"),
 
   async execute(interaction) {
     await interaction.deferReply();
@@ -19,7 +19,7 @@ export const leaderboardCommand: BotCommand = {
       .limit(10);
 
     if (!workers || workers.length === 0) {
-      await interaction.editReply({ content: "Geen boosters gevonden." });
+      await interaction.editReply({ content: "No boosters found." });
       return;
     }
 
@@ -33,7 +33,7 @@ export const leaderboardCommand: BotCommand = {
 
     const medals = ["🥇", "🥈", "🥉"];
     const lines = workers.map((w, i) => {
-      const name = profileMap.get(w.profile_id) ?? "Anoniem";
+      const name = profileMap.get(w.profile_id) ?? "Anonymous";
       const tierData = (Array.isArray(w.tier) ? w.tier[0] : w.tier) as { name: string; icon: string } | null;
       const tierText = tierData ? `${tierData.icon} ${tierData.name}` : "";
       const medal = medals[i] ?? `${i + 1}.`;

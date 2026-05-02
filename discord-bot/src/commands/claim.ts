@@ -3,7 +3,6 @@ import type { BotCommand } from "./index.js";
 import { supabase } from "../services/supabase.js";
 import { requireWorker } from "../lib/permissions.js";
 import { buildSuccessEmbed, buildErrorEmbed } from "../lib/embeds.js";
-import { buildProgressRow } from "../lib/buttons.js";
 import { normalizeOrderNumberKey } from "../lib/order-key.js";
 import { getResolvedSiteOrigin, refreshSiteOriginKeysFromDatabase } from "../services/config.js";
 import { notifyTicketWorkerClaimed } from "../services/ticket-service.js";
@@ -34,9 +33,9 @@ function getServiceIdsFromOrder(order: OrderRow): string[] {
 export const claimCommand: BotCommand = {
   data: new SlashCommandBuilder()
     .setName("claim")
-    .setDescription("Claim een order om te boosten")
+    .setDescription("Claim an order to boost")
     .addStringOption((opt) =>
-      opt.setName("ordernummer").setDescription("Het ordernummer (bijv. BP-12345)").setRequired(true)
+      opt.setName("order_number").setDescription("Order number (e.g. BP-12345)").setRequired(true),
     ),
 
   async execute(interaction) {
@@ -45,7 +44,7 @@ export const claimCommand: BotCommand = {
     const worker = await requireWorker(interaction);
     if (!worker) return;
 
-    const orderNumber = normalizeOrderNumberKey(interaction.options.getString("ordernummer", true));
+    const orderNumber = normalizeOrderNumberKey(interaction.options.getString("order_number", true));
 
     const { data: order } = await supabase
       .from("orders")
@@ -54,17 +53,19 @@ export const claimCommand: BotCommand = {
       .maybeSingle() as { data: OrderRow | null };
 
     if (!order) {
-      await interaction.editReply({ embeds: [buildErrorEmbed(`Order ${orderNumber} niet gevonden.`)] });
+      await interaction.editReply({ embeds: [buildErrorEmbed(`Order ${orderNumber} not found.`)] });
       return;
     }
 
     if (order.status !== "queued") {
-      await interaction.editReply({ embeds: [buildErrorEmbed(`Order ${orderNumber} is niet beschikbaar (status: ${order.status}).`)] });
+      await interaction.editReply({
+        embeds: [buildErrorEmbed(`Order ${orderNumber} is not available (status: ${order.status}).`)],
+      });
       return;
     }
 
     if (order.worker_id) {
-      await interaction.editReply({ embeds: [buildErrorEmbed(`Order ${orderNumber} is al geclaimd.`)] });
+      await interaction.editReply({ embeds: [buildErrorEmbed(`Order ${orderNumber} is already claimed.`)] });
       return;
     }
 
@@ -77,7 +78,9 @@ export const claimCommand: BotCommand = {
 
     if (workerData && workerData.current_active_orders >= workerData.max_active_orders) {
       await interaction.editReply({
-        embeds: [buildErrorEmbed(`Je hebt het maximale aantal actieve orders bereikt (${workerData.max_active_orders}).`)],
+        embeds: [
+          buildErrorEmbed(`You have reached your maximum active orders (${workerData.max_active_orders}).`),
+        ],
       });
       return;
     }
@@ -113,7 +116,7 @@ export const claimCommand: BotCommand = {
 
     if (requiredSortOrder != null && workerSortOrder < requiredSortOrder) {
       await interaction.editReply({
-        embeds: [buildErrorEmbed("Deze order vereist een hogere booster rank. Je huidige rank is niet hoog genoeg.")],
+        embeds: [buildErrorEmbed("This order requires a higher booster rank.")],
       });
       return;
     }
@@ -131,7 +134,7 @@ export const claimCommand: BotCommand = {
       const availableDeposit = depositPaid - held;
       if (availableDeposit < orderAccountValue) {
         await interaction.editReply({
-          embeds: [buildErrorEmbed("Onvoldoende deposit. Deze order vereist een hogere beschikbare deposit dan je hebt.")],
+          embeds: [buildErrorEmbed("Insufficient deposit available for this order.")],
         });
         return;
       }
@@ -156,7 +159,9 @@ export const claimCommand: BotCommand = {
       .select("id");
 
     if (!claimedOrders || claimedOrders.length === 0) {
-      await interaction.editReply({ embeds: [buildErrorEmbed(`Order ${orderNumber} is net door iemand anders geclaimd.`)] });
+      await interaction.editReply({
+        embeds: [buildErrorEmbed(`Order ${orderNumber} was just claimed by someone else.`)],
+      });
       return;
     }
 
@@ -167,7 +172,7 @@ export const claimCommand: BotCommand = {
 
     await supabase.from("order_messages").insert({
       order_id: order.id,
-      content: `Booster ${worker.displayName} heeft de order geclaimd via Discord.`,
+      content: `Booster ${worker.displayName} claimed this order via Discord.`,
       is_system: true,
     });
 
@@ -200,10 +205,9 @@ export const claimCommand: BotCommand = {
     }
 
     const embed = buildSuccessEmbed(
-      `Order ${orderNumber} geclaimd!`,
-      `Je payout is $${workerPayout.toFixed(2)}. Gebruik \`/progress ${orderNumber} <percentage>\` om de voortgang bij te werken.`,
+      `Order ${orderNumber} claimed!`,
+      `**Your payout:** $${workerPayout.toFixed(2)}\n\nUse \`/progress\` with this order number and a percentage (0–100) to update progress.`,
     );
-    const row = buildProgressRow(order.id);
-    await interaction.editReply({ embeds: [embed], components: [row] });
+    await interaction.editReply({ embeds: [embed] });
   },
 };

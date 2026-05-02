@@ -9,7 +9,7 @@ export const unclaimCommand: BotCommand = {
     .setName("unclaim")
     .setDescription("Return a claimed order back to the queue")
     .addStringOption((opt) =>
-      opt.setName("ordernummer").setDescription("The order number").setRequired(true)
+      opt.setName("order_number").setDescription("The order number").setRequired(true),
     ),
 
   async execute(interaction) {
@@ -18,7 +18,7 @@ export const unclaimCommand: BotCommand = {
     const worker = await requireWorker(interaction);
     if (!worker) return;
 
-    const orderNumber = interaction.options.getString("ordernummer", true).toUpperCase();
+    const orderNumber = interaction.options.getString("order_number", true).toUpperCase();
 
     const { data: order } = await supabase
       .from("orders")

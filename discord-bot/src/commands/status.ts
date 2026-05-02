@@ -8,13 +8,13 @@ export const statusCommand: BotCommand = {
     .setName("status")
     .setDescription("Check the status of an order")
     .addStringOption((opt) =>
-      opt.setName("ordernummer").setDescription("The order number").setRequired(true)
+      opt.setName("order_number").setDescription("The order number").setRequired(true),
     ),
 
   async execute(interaction) {
     await interaction.deferReply({ ephemeral: true });
 
-    const orderNumber = interaction.options.getString("ordernummer", true).toUpperCase();
+    const orderNumber = interaction.options.getString("order_number", true).toUpperCase();
 
     const { data: rawOrder } = await supabase
       .from("orders")

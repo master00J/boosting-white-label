@@ -265,11 +265,11 @@ export async function notifyTicketWorkerClaimed(
 
   const embed = new EmbedBuilder()
     .setColor(COLORS.success)
-    .setTitle(`🤝 Booster toegevoegd — #${orderNumber}`)
+    .setTitle(`🤝 Booster added — #${orderNumber}`)
     .setDescription(
-      `<@${workerDiscordUserId}> heeft deze order geclaimd en heeft nu toegang tot dit ticket.\n\n` +
+      `<@${workerDiscordUserId}> claimed this order and now has access to this ticket.\n\n` +
         `**🔗 Booster (dashboard)**\n${workerUrl}\n\n` +
-        `**🔗 Klant (order volgen)**\n${customerUrl}`,
+        `**🔗 Customer (track order)**\n${customerUrl}`,
     )
     .setFooter({ text: params.workerDisplayName })
     .setTimestamp();

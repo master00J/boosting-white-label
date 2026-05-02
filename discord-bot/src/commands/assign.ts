@@ -9,7 +9,7 @@ export const assignCommand: BotCommand = {
     .setName("assign")
     .setDescription("[Admin] Assign an order to a booster")
     .addStringOption((opt) =>
-      opt.setName("ordernummer").setDescription("The order number").setRequired(true)
+      opt.setName("order_number").setDescription("The order number").setRequired(true),
     )
     .addUserOption((opt) =>
       opt.setName("booster").setDescription("The Discord user of the booster").setRequired(true)
@@ -21,7 +21,7 @@ export const assignCommand: BotCommand = {
     const isAdmin = await requireAdmin(interaction);
     if (!isAdmin) return;
 
-    const orderNumber = interaction.options.getString("ordernummer", true).toUpperCase();
+    const orderNumber = interaction.options.getString("order_number", true).toUpperCase();
     const targetUser = interaction.options.getUser("booster", true);
 
     // Find profile by discord_id

@@ -9,7 +9,7 @@ export const completeCommand: BotCommand = {
     .setName("complete")
     .setDescription("Mark an order as completed")
     .addStringOption((opt) =>
-      opt.setName("ordernummer").setDescription("The order number").setRequired(true)
+      opt.setName("order_number").setDescription("The order number").setRequired(true),
     ),
 
   async execute(interaction) {
@@ -18,7 +18,7 @@ export const completeCommand: BotCommand = {
     const worker = await requireWorker(interaction);
     if (!worker) return;
 
-    const orderNumber = interaction.options.getString("ordernummer", true).toUpperCase();
+    const orderNumber = interaction.options.getString("order_number", true).toUpperCase();
 
     const { data: order } = await supabase
       .from("orders")

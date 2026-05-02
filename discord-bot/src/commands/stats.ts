@@ -7,7 +7,7 @@ import { buildWorkerStatsEmbed, buildErrorEmbed } from "../lib/embeds.js";
 export const statsCommand: BotCommand = {
   data: new SlashCommandBuilder()
     .setName("stats")
-    .setDescription("Bekijk jouw booster statistieken"),
+    .setDescription("View your booster statistics"),
 
   async execute(interaction) {
     await interaction.deferReply({ ephemeral: true });
@@ -22,7 +22,7 @@ export const statsCommand: BotCommand = {
       .single();
 
     if (!workerData) {
-      await interaction.editReply({ embeds: [buildErrorEmbed("Kon je stats niet ophalen.")] });
+      await interaction.editReply({ embeds: [buildErrorEmbed("Could not load your stats.")] });
       return;
     }
 

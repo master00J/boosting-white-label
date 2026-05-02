@@ -1,7 +1,7 @@
 {
   "name": "boost-platform-discord-bot",
   "version": "1.0.0",
-  "description": "Discord bot voor BoostPlatform — order management, notifications, role sync",
+  "description": "BoostPlatform Discord bot — order management, notifications, role sync",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",

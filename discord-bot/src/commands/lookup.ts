@@ -9,7 +9,7 @@ export const lookupCommand: BotCommand = {
     .setName("lookup")
     .setDescription("[Admin] Look up an order")
     .addStringOption((opt) =>
-      opt.setName("ordernummer").setDescription("The order number").setRequired(true)
+      opt.setName("order_number").setDescription("The order number").setRequired(true),
     ),
 
   async execute(interaction) {
@@ -18,7 +18,7 @@ export const lookupCommand: BotCommand = {
     const isAdmin = await requireAdmin(interaction);
     if (!isAdmin) return;
 
-    const orderNumber = interaction.options.getString("ordernummer", true).toUpperCase();
+    const orderNumber = interaction.options.getString("order_number", true).toUpperCase();
 
     const { data: rawOrder } = await supabase
       .from("orders")

@@ -9,13 +9,13 @@ export const progressCommand: BotCommand = {
     .setName("progress")
     .setDescription("Update the progress of an order")
     .addStringOption((opt) =>
-      opt.setName("ordernummer").setDescription("The order number").setRequired(true)
+      opt.setName("order_number").setDescription("The order number").setRequired(true),
     )
     .addIntegerOption((opt) =>
       opt.setName("percentage").setDescription("Progress in percent (0-100)").setRequired(true).setMinValue(0).setMaxValue(100)
     )
     .addStringOption((opt) =>
-      opt.setName("notitie").setDescription("Optional progress note").setRequired(false)
+      opt.setName("note").setDescription("Optional progress note").setRequired(false),
     ),
 
   async execute(interaction) {
@@ -24,9 +24,9 @@ export const progressCommand: BotCommand = {
     const worker = await requireWorker(interaction);
     if (!worker) return;
 
-    const orderNumber = interaction.options.getString("ordernummer", true).toUpperCase();
+    const orderNumber = interaction.options.getString("order_number", true).toUpperCase();
     const percentage = interaction.options.getInteger("percentage", true);
-    const notes = interaction.options.getString("notitie");
+    const notes = interaction.options.getString("note");
 
     const { data: order } = await supabase
       .from("orders")
