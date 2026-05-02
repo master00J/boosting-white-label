@@ -9,6 +9,8 @@ import { formatUSD } from "@/lib/format";
 import { formatConfigurationSummary } from "@/lib/utils/configuration-summary";
 import { useCartStore } from "@/stores/cart-store";
 import { cartItemThumbSrc, cartThumbUnoptimized } from "@/lib/cart-item-image";
+import { isBossTieredCartItem } from "@/lib/cart-boss-line-price";
+import BossCartKillsControl from "@/components/storefront/BossCartKillsControl";
 import { useUIStore } from "@/stores/ui-store";
 
 export default function CartDrawer() {
@@ -141,25 +143,29 @@ export default function CartDrawer() {
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                      className="w-6 h-6 rounded-md bg-[var(--bg-card)] flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
-                      aria-label="Decrease quantity"
-                    >
-                      <Minus className="h-3 w-3" />
-                    </button>
-                    <span className="text-sm font-medium w-5 text-center">{item.quantity}</span>
-                    <button
-                      type="button"
-                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                      className="w-6 h-6 rounded-md bg-[var(--bg-card)] flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
-                      aria-label="Increase quantity"
-                    >
-                      <Plus className="h-3 w-3" />
-                    </button>
-                  </div>
+                  {isBossTieredCartItem(item) ? (
+                    <BossCartKillsControl item={item} compact />
+                  ) : (
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                        className="w-6 h-6 rounded-md bg-[var(--bg-card)] flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+                        aria-label="Decrease quantity"
+                      >
+                        <Minus className="h-3 w-3" />
+                      </button>
+                      <span className="text-sm font-medium w-5 text-center">{item.quantity}</span>
+                      <button
+                        type="button"
+                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                        className="w-6 h-6 rounded-md bg-[var(--bg-card)] flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+                        aria-label="Increase quantity"
+                      >
+                        <Plus className="h-3 w-3" />
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
               );

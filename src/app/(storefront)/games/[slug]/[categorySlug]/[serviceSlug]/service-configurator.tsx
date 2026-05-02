@@ -570,6 +570,9 @@ export default function ServiceConfigurator({ service, game, categorySlug }: Ser
       }
       // Build human-readable labels for active upcharges (for cart/checkout display)
       if (bossTieredMatrix) {
+        cfg.cart_service_name = service.name;
+        cfg.minimum_kills = bossTieredMatrix.minimum_kills ?? 1;
+        cfg.maximum_kills = bossTieredMatrix.maximum_kills ?? 10000;
         cfg.unit_label = bossTieredMatrix.unit_label ?? "kills";
         const selectedBossId = selections["boss"] as string | undefined;
         const selectedBoss = bossTieredMatrix.bosses.find((b) => b.id === selectedBossId);
@@ -737,7 +740,13 @@ export default function ServiceConfigurator({ service, game, categorySlug }: Ser
       serviceSlug: service.slug,
       gameLogoUrl: game.logo_url,
       lineImageUrl,
-      configuration: buildConfiguration(),
+      configuration: (() => {
+        const c = buildConfiguration();
+        if (priceMatrix?.type === "boss_tiered" && effectiveGearItems.length > 0) {
+          c.loadout_items = [...effectiveGearItems];
+        }
+        return c;
+      })(),
       basePrice: totalPrice,
       finalPrice: totalPrice,
       quantity: 1,

@@ -8,6 +8,8 @@ import { useCartStore } from "@/stores/cart-store";
 import { formatUSD } from "@/lib/format";
 import { formatConfigurationSummary } from "@/lib/utils/configuration-summary";
 import { cartItemThumbSrc, cartThumbUnoptimized } from "@/lib/cart-item-image";
+import { isBossTieredCartItem } from "@/lib/cart-boss-line-price";
+import BossCartKillsControl from "@/components/storefront/BossCartKillsControl";
 import { createClient } from "@/lib/supabase/client";
 import type { Database } from "@/types/database";
 
@@ -179,25 +181,29 @@ export default function CartPage() {
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                    className="w-7 h-7 rounded-lg border border-[var(--border-default)] flex items-center justify-center hover:border-primary/40 transition-colors"
-                    aria-label="Decrease quantity"
-                  >
-                    <Minus className="h-3 w-3" />
-                  </button>
-                  <span className="font-medium w-6 text-center">{item.quantity}</span>
-                  <button
-                    type="button"
-                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                    className="w-7 h-7 rounded-lg border border-[var(--border-default)] flex items-center justify-center hover:border-primary/40 transition-colors"
-                    aria-label="Increase quantity"
-                  >
-                    <Plus className="h-3 w-3" />
-                  </button>
-                </div>
+                {isBossTieredCartItem(item) ? (
+                  <BossCartKillsControl item={item} />
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                      className="w-7 h-7 rounded-lg border border-[var(--border-default)] flex items-center justify-center hover:border-primary/40 transition-colors"
+                      aria-label="Decrease quantity"
+                    >
+                      <Minus className="h-3 w-3" />
+                    </button>
+                    <span className="font-medium w-6 text-center">{item.quantity}</span>
+                    <button
+                      type="button"
+                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                      className="w-7 h-7 rounded-lg border border-[var(--border-default)] flex items-center justify-center hover:border-primary/40 transition-colors"
+                      aria-label="Increase quantity"
+                    >
+                      <Plus className="h-3 w-3" />
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
             );
