@@ -7,12 +7,12 @@ export const dynamic = "force-dynamic";
 /** POST — Idempotent preload of OSRS skills, starter quests, boss profiles (global), and GP/XP rows for this game. */
 export async function POST(
   _request: Request,
-  { params }: { params: Promise<{ gameId: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const ctx = await assertAdmin();
   if (!ctx.ok) return ctx.response;
 
-  const { gameId } = await params;
+  const { id: gameId } = await params;
   const { data: game, error } = await ctx.admin
     .from("games")
     .select("id, slug")
