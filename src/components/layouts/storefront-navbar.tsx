@@ -7,21 +7,13 @@ import { ShoppingCart, Menu, X, LogOut, LayoutDashboard, Package, ChevronDown, G
 import { cn } from "@/lib/utils/cn";
 import Logo from "@/components/shared/logo";
 import { useAuth } from "@/components/providers/auth-provider";
+import { useStorefrontNavLinks } from "@/components/providers/theme-provider";
 import { useCartStore } from "@/stores/cart-store";
 import UserAvatar from "@/components/shared/user-avatar";
 import GamesMegaMenu from "@/components/layouts/games-mega-menu";
 
-const NAV_LINKS = [
-  { href: "/how-it-works", label: "How it works" },
-  { href: "/shop", label: "GIM Shop" },
-  { href: "/live-map", label: "Live Map" },
-  { href: "/lootboxes", label: "Lootboxes" },
-  { href: "/duel-arena", label: "Duel Arena" },
-  { href: "/apply", label: "Become a booster" },
-  { href: "/contact", label: "Contact" },
-];
-
 export default function StorefrontNavbar() {
+  const navLinks = useStorefrontNavLinks();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -84,10 +76,8 @@ export default function StorefrontNavbar() {
   return (
     <header
       className={cn(
-        "fixed top-0 left-0 right-0 z-40 transition-all duration-300",
-        scrolled
-          ? "bg-[#0C0906]/96 backdrop-blur-xl border-b border-[#E8720C]/20 shadow-lg shadow-black/30"
-          : "bg-[#0C0906]/85 backdrop-blur-md border-b border-[#E8720C]/08"
+        "fixed top-0 left-0 right-0 z-40 transition-all duration-300 backdrop-blur-xl bg-[var(--bg-primary)] border-b border-[var(--border-default)]",
+        scrolled && "shadow-lg shadow-black/30"
       )}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-4">
@@ -109,8 +99,8 @@ export default function StorefrontNavbar() {
               className={cn(
                 "flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                 gamesOpen || pathname.startsWith("/games")
-                  ? "text-[#FF9438] bg-[#E8720C]/[0.08]"
-                  : "text-[var(--text-secondary)] hover:text-[#FF9438] hover:bg-[#E8720C]/[0.06]"
+                  ? "text-[var(--color-accent)] bg-[var(--color-primary)]/10"
+                  : "text-[var(--text-secondary)] hover:text-[var(--color-accent)] hover:bg-[var(--color-primary)]/8"
               )}
             >
               <Gamepad2 className="h-4 w-4" />
@@ -125,15 +115,15 @@ export default function StorefrontNavbar() {
           </div>
 
           {/* Direct nav links */}
-          {NAV_LINKS.map((link) => (
+          {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
               className={cn(
                 "px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                 pathname.startsWith(link.href)
-                  ? "text-[#FF9438] bg-[#E8720C]/[0.08]"
-                  : "text-[var(--text-secondary)] hover:text-[#FF9438] hover:bg-[#E8720C]/[0.06]"
+                  ? "text-[var(--color-accent)] bg-[var(--color-primary)]/10"
+                  : "text-[var(--text-secondary)] hover:text-[var(--color-accent)] hover:bg-[var(--color-primary)]/8"
               )}
             >
               {link.label}
@@ -172,11 +162,11 @@ export default function StorefrontNavbar() {
               placeholder="Search games & services…"
               className={cn(
                 "w-full h-9 pl-9 pr-3 rounded-lg text-sm transition-colors",
-                "bg-[#1A1208]/80 border text-[var(--text-primary)] placeholder:text-[var(--text-muted)]",
+                "bg-[var(--bg-elevated)]/90 border text-[var(--text-primary)] placeholder:text-[var(--text-muted)]",
                 "focus:outline-none",
                 gamesOpen
-                  ? "border-[#E8720C]/50 bg-[#1A1208]"
-                  : "border-[#E8720C]/20 hover:border-[#E8720C]/35"
+                  ? "border-[var(--color-primary)]/50 bg-[var(--bg-elevated)]"
+                  : "border-[var(--border-default)] hover:border-[var(--color-primary)]/35"
               )}
             />
           </div>
@@ -187,7 +177,7 @@ export default function StorefrontNavbar() {
           {/* Cart */}
           <Link
             href="/cart"
-            className="relative p-2 rounded-lg text-[var(--text-secondary)] hover:text-[#FF9438] hover:bg-[#E8720C]/[0.06] transition-colors"
+            className="relative p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--color-accent)] hover:bg-[var(--color-primary)]/8 transition-colors"
             aria-label={`Shopping cart${mounted && itemCount > 0 ? `, ${itemCount} items` : ""}`}
           >
             <ShoppingCart className="h-5 w-5" />
@@ -204,7 +194,7 @@ export default function StorefrontNavbar() {
               <button
                 type="button"
                 onClick={() => setUserMenuOpen((v) => !v)}
-                className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-[#E8720C]/[0.08] transition-colors"
+                className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-[var(--color-primary)]/10 transition-colors"
                 aria-label="User menu"
                 aria-expanded={userMenuOpen}
               >
@@ -225,7 +215,7 @@ export default function StorefrontNavbar() {
                     <Link
                       href={getDashboardHref()}
                       onClick={() => setUserMenuOpen(false)}
-                      className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-[#E8720C]/[0.06] hover:text-[#FF9438] transition-colors"
+                      className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-[var(--color-primary)]/8 hover:text-[var(--color-accent)] transition-colors"
                     >
                       <LayoutDashboard className="h-3.5 w-3.5 text-[var(--text-muted)]" />
                       {getDashboardLabel()}
@@ -233,7 +223,7 @@ export default function StorefrontNavbar() {
                     <Link
                       href="/orders"
                       onClick={() => setUserMenuOpen(false)}
-                      className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-[#E8720C]/[0.06] hover:text-[#FF9438] transition-colors"
+                      className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-[var(--color-primary)]/8 hover:text-[var(--color-accent)] transition-colors"
                     >
                       <Package className="h-3.5 w-3.5 text-[var(--text-muted)]" />
                       My orders
@@ -241,7 +231,7 @@ export default function StorefrontNavbar() {
                     <Link
                       href="/support"
                       onClick={() => setUserMenuOpen(false)}
-                      className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-[#E8720C]/[0.06] hover:text-[#FF9438] transition-colors"
+                      className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-[var(--color-primary)]/8 hover:text-[var(--color-accent)] transition-colors"
                     >
                       <MessageSquare className="h-3.5 w-3.5 text-[var(--text-muted)]" />
                       Support
@@ -266,13 +256,13 @@ export default function StorefrontNavbar() {
             <div className="hidden md:flex items-center gap-2">
               <Link
                 href="/login"
-                className="px-3 py-1.5 rounded-lg text-sm font-medium text-[var(--text-secondary)] hover:text-[#FF9438] hover:bg-[#E8720C]/[0.06] transition-colors"
+                className="px-3 py-1.5 rounded-lg text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--color-accent)] hover:bg-[var(--color-primary)]/8 transition-colors"
               >
                 Sign in
               </Link>
               <Link
                 href="/register"
-                className="px-3 py-1.5 rounded-md text-sm font-semibold bg-[var(--color-primary)] text-[#0E0B07] hover:bg-[#FF9438] hover:shadow-lg hover:shadow-[#E8720C]/25 transition-all"
+                className="px-3 py-1.5 rounded-md text-sm font-semibold bg-[var(--color-primary)] text-[#0E0B07] hover:bg-[var(--color-accent)] hover:shadow-lg hover:shadow-[var(--color-primary)]/25 transition-all"
               >
                 Register
               </Link>
@@ -283,7 +273,7 @@ export default function StorefrontNavbar() {
           <button
             type="button"
             onClick={() => setMobileOpen((v) => !v)}
-            className="md:hidden p-2 rounded-lg text-[var(--text-secondary)] hover:text-[#FF9438] hover:bg-[#E8720C]/[0.06] transition-colors"
+            className="md:hidden p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--color-accent)] hover:bg-[var(--color-primary)]/8 transition-colors"
             aria-label={mobileOpen ? "Close menu" : "Open menu"}
             aria-expanded={mobileOpen}
           >
@@ -294,10 +284,10 @@ export default function StorefrontNavbar() {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="md:hidden bg-[#0C0906]/98 backdrop-blur-xl border-t border-[#E8720C]/15 px-4 py-4 space-y-1">
+        <div className="md:hidden bg-[var(--bg-primary)] backdrop-blur-xl border-t border-[var(--border-default)] px-4 py-4 space-y-1">
           <Link
             href="/games"
-            className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium text-[var(--text-secondary)] hover:text-[#FF9438] hover:bg-[#E8720C]/[0.06] transition-colors"
+            className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--color-accent)] hover:bg-[var(--color-primary)]/8 transition-colors"
           >
             <Gamepad2 className="h-4 w-4" />
             Games
@@ -305,18 +295,18 @@ export default function StorefrontNavbar() {
 
           <Link
             href="/shop"
-            className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium text-[var(--text-secondary)] hover:text-[#FF9438] hover:bg-[#E8720C]/[0.06] transition-colors"
+            className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--color-accent)] hover:bg-[var(--color-primary)]/8 transition-colors"
           >
             <Store className="h-4 w-4" />
             GIM Shop
           </Link>
 
           {/* Nav links */}
-          {NAV_LINKS.filter((l) => l.href !== "/shop").map((link) => (
+          {navLinks.filter((l) => l.href !== "/shop").map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="block px-3 py-2.5 rounded-lg text-sm font-medium text-[var(--text-secondary)] hover:text-[#FF9438] hover:bg-[#E8720C]/[0.06] transition-colors"
+              className="block px-3 py-2.5 rounded-lg text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--color-accent)] hover:bg-[var(--color-primary)]/8 transition-colors"
             >
               {link.label}
             </Link>
@@ -332,11 +322,11 @@ export default function StorefrontNavbar() {
           </Link>
 
           {mounted && !user && (
-            <div className="pt-3 border-t border-[#E8720C]/15 flex gap-2">
-              <Link href="/login" className="flex-1 text-center px-3 py-2 rounded-lg text-sm border border-[#E8720C]/20 text-[var(--text-secondary)] hover:text-[#FF9438] hover:bg-[#E8720C]/[0.06] transition-colors">
+            <div className="pt-3 border-t border-[var(--border-default)] flex gap-2">
+              <Link href="/login" className="flex-1 text-center px-3 py-2 rounded-lg text-sm border border-[var(--border-default)] text-[var(--text-secondary)] hover:text-[var(--color-accent)] hover:bg-[var(--color-primary)]/8 transition-colors">
                 Sign in
               </Link>
-              <Link href="/register" className="flex-1 text-center px-3 py-2 rounded-md text-sm font-semibold bg-[var(--color-primary)] text-[#0E0B07] hover:bg-[#FF9438] transition-colors">
+              <Link href="/register" className="flex-1 text-center px-3 py-2 rounded-md text-sm font-semibold bg-[var(--color-primary)] text-[#0E0B07] hover:bg-[var(--color-accent)] transition-colors">
                 Register
               </Link>
             </div>

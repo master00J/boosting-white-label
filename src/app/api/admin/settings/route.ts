@@ -43,12 +43,15 @@ const ALLOWED_SETTINGS_KEYS = new Set([
   "order_id_brand", "order_id",
   "maintenance_mode", "maintenance_message",
   "integrations",
+  /** Unified storefront visual theme (colors, hero copy, logo) — see ThemeProvider */
+  "theme",
 ]);
 
 const JSON_SETTINGS_KEYS = new Set([
   "currency_rates",
   "integrations",
   "order_id",
+  "theme",
 ]);
 
 export async function POST(req: NextRequest) {

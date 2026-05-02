@@ -9,15 +9,30 @@ import {
   Check,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import {
+  useTheme,
+  useHomepageTrustFeatures,
+  useHomepageHowItWorks,
+  useHomepageServiceCategories,
+  useHomepageFaq,
+} from "@/components/providers/theme-provider";
+
+const FALLBACK_CTA_BULLETS = [
+  "Booster assigned within 1 hour",
+  "No hidden fees",
+  "Satisfaction guaranteed",
+];
 
 /* ─── Hero Background (static image) ─── */
 function HeroBackground({
   imageUrl,
   overlayOpacity = 0.65,
+  primaryColor = "#E8720C",
 }: {
   imageUrl?: string;
   overlayOpacity?: number;
+  primaryColor?: string;
 }) {
   return (
     <div className="absolute inset-0 z-0 overflow-hidden">
@@ -53,8 +68,7 @@ function HeroBackground({
       <div
         className="absolute bottom-0 left-0 right-0 w-full h-1/2 pointer-events-none opacity-[0.07]"
         style={{
-          background:
-            "radial-gradient(ellipse at 50% 100%, #E8720C 0%, transparent 65%)",
+          background: `radial-gradient(ellipse at 50% 100%, ${primaryColor} 0%, transparent 65%)`,
         }}
       />
 
@@ -121,126 +135,6 @@ function useInView(options?: IntersectionObserverInit) {
   return { ref, inView };
 }
 
-/* ─── OSRS wiki icon helper ─── */
-const WIKI = "https://oldschool.runescape.wiki/images";
-
-/* ─── Static Data ─── */
-const TRUST_FEATURES = [
-  {
-    osrsIcon: `${WIKI}/Defence_icon.png`,
-    iconAlt: "Defence",
-    number: "01",
-    title: "Account safety guaranteed",
-    description:
-      "Boosters use VPN connections matching your region and work within game guidelines. No bans, no risks.",
-  },
-  {
-    osrsIcon: `${WIKI}/Agility_icon.png`,
-    iconAlt: "Agility",
-    number: "02",
-    title: "Booster assigned within 1 hour",
-    description:
-      "After payment your order is visible to our verified boosters. Average assignment time is under 60 minutes.",
-  },
-  {
-    osrsIcon: `${WIKI}/Quest_point_icon.png`,
-    iconAlt: "Quest points",
-    number: "03",
-    title: "Verified boosters only",
-    description:
-      "Every booster passes a skill test and maintains a minimum 4.5/5 rating. No exceptions.",
-  },
-];
-
-function getFaqItems(completedOrders: number) {
-  const orderText =
-    completedOrders > 0
-      ? `We've completed ${completedOrders.toLocaleString()} orders without a single ban.`
-      : "We take account safety seriously and have a strong track record.";
-  return [
-    {
-      question: "Is game boosting safe for my account?",
-      answer: `Yes. Our boosters work with VPN connections matching your region and always stay within the game's terms of service. ${orderText}`,
-    },
-    {
-      question: "How long until my order starts?",
-      answer:
-        "After payment, your order is immediately visible to available boosters. On average someone starts within 1 hour. During off-peak hours this can take up to 3 hours.",
-    },
-    {
-      question: "Can I track progress while my order is active?",
-      answer:
-        "Yes. Through your dashboard you can follow progress in real-time and message your booster directly. You'll also receive notifications on every status update.",
-    },
-    {
-      question: "What payment methods do you accept?",
-      answer:
-        "We accept credit and debit cards (Visa, Mastercard), PayPal, and account balance top-ups. All payments are processed securely via Whop and Stripe.",
-    },
-  ];
-}
-
-const HOW_IT_WORKS = [
-  {
-    step: "01",
-    osrsIcon: `${WIKI}/Coins_1000.png`,
-    iconAlt: "Coins",
-    title: "Select service",
-    description: "Browse our services and choose the boost you need.",
-  },
-  {
-    step: "02",
-    osrsIcon: `${WIKI}/Old_school_bond.png`,
-    iconAlt: "Bond",
-    title: "Checkout",
-    description:
-      "Pay securely with Card, Crypto, or in-game Gold. Your data is encrypted.",
-  },
-  {
-    step: "03",
-    osrsIcon: `${WIKI}/Magic_icon.png`,
-    iconAlt: "Magic",
-    title: "Ticket created",
-    description:
-      "A private Discord ticket is created for your order so you can follow progress.",
-  },
-  {
-    step: "04",
-    osrsIcon: `${WIKI}/Dragon_scimitar.png`,
-    iconAlt: "Dragon scimitar",
-    title: "We play",
-    description:
-      "Sit back while our vetted boosters complete your order securely.",
-  },
-];
-
-const SERVICE_CATEGORIES = [
-  {
-    osrsIcon: `${WIKI}/Coins_detail.png`,
-    iconAlt: "Coins",
-    title: "Gold & Items",
-    desc: "Buy & sell in-game currency and rare items safely.",
-    cta: "Trade Gold",
-    href: "/games",
-  },
-  {
-    osrsIcon: `${WIKI}/Dragon_scimitar.png`,
-    iconAlt: "Dragon scimitar",
-    title: "Boosting Services",
-    desc: "PVM, raids, quests, skilling & more from verified boosters.",
-    cta: "Browse services",
-    href: "/games",
-  },
-  {
-    osrsIcon: `${WIKI}/Prayer_icon.png`,
-    iconAlt: "Prayer",
-    title: "Accounts",
-    desc: "Ready-made & custom builds available immediately.",
-    cta: "Shop accounts",
-    href: "/games",
-  },
-];
-
 /* ─── Other sub-components ─── */
 
 function Reveal({
@@ -276,7 +170,7 @@ function StarRating({ rating }: { rating: number }) {
           key={i}
           className={cn(
             "h-3.5 w-3.5",
-            i <= rating ? "text-[#FF9438] fill-[#FF9438]" : "text-white/10"
+            i <= rating ? "fill-[var(--color-accent)] text-[var(--color-accent)]" : "text-white/10"
           )}
         />
       ))}
@@ -320,7 +214,7 @@ function GameCard({ game, index }: { game: Game; index: number }) {
       <TiltCard>
         <Link
           href={`/games/${game.slug}`}
-          className="group relative block overflow-hidden rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] hover:border-[#E8720C]/40 transition-all duration-300"
+          className="group relative block overflow-hidden rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] hover:border-[color-mix(in_srgb,var(--color-primary)_40%,transparent)] transition-all duration-300"
         >
           {/* Hover glow */}
           <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-10">
@@ -352,7 +246,7 @@ function GameCard({ game, index }: { game: Game; index: number }) {
             </div>
 
             {game.is_featured && (
-              <div className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-full bg-[#E8720C]/20 border border-[#E8720C]/35 text-[#FF9438] text-[10px] font-semibold tracking-wide uppercase">
+              <div className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-full border text-[10px] font-semibold tracking-wide uppercase bg-[color-mix(in_srgb,var(--color-primary)_22%,transparent)] border-[color-mix(in_srgb,var(--color-primary)_38%,transparent)] text-[var(--color-accent)]">
                 Featured
               </div>
             )}
@@ -368,8 +262,8 @@ function GameCard({ game, index }: { game: Game; index: number }) {
               </p>
             )}
             <div className="flex items-center gap-1.5 mt-3 text-xs font-medium">
-              <span className="text-[#E8720C] group-hover:text-white transition-colors">View services</span>
-              <ArrowRight className="h-3 w-3 text-[#E8720C] group-hover:translate-x-1 transition-all duration-300" />
+              <span className="text-[var(--color-primary)] group-hover:text-white transition-colors">View services</span>
+              <ArrowRight className="h-3 w-3 text-[var(--color-primary)] group-hover:translate-x-1 transition-all duration-300" />
             </div>
           </div>
         </Link>
@@ -384,9 +278,11 @@ function ReviewCard({ review, index }: { review: Review; index: number }) {
 
   return (
     <Reveal delay={index * 80}>
-      <div className="group flex flex-col h-full p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] hover:border-[#E8720C]/35 hover:-translate-y-0.5 transition-all duration-300">
+      <div className="group flex flex-col h-full p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] hover:border-[color-mix(in_srgb,var(--color-primary)_35%,transparent)] hover:-translate-y-0.5 transition-all duration-300">
         {/* Quote mark */}
-        <div className="text-3xl leading-none text-[#E8720C]/25 font-serif mb-2 select-none">&ldquo;</div>
+        <div className="text-3xl leading-none font-serif mb-2 select-none text-[color-mix(in_srgb,var(--color-primary)_28%,transparent)]">
+          &ldquo;
+        </div>
         <StarRating rating={review.rating} />
         {review.comment && (
           <p className="text-sm text-[var(--text-secondary)] mt-3 leading-relaxed line-clamp-4 flex-1">
@@ -394,7 +290,7 @@ function ReviewCard({ review, index }: { review: Review; index: number }) {
           </p>
         )}
         <div className="flex items-center gap-2.5 mt-4 pt-4 border-t border-white/[0.04]">
-          <div className="w-8 h-8 rounded-full bg-[#E8720C]/10 border border-[#E8720C]/20 flex items-center justify-center text-[10px] font-bold text-[#E8720C] flex-shrink-0">
+          <div className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 bg-[color-mix(in_srgb,var(--color-primary)_14%,transparent)] border border-[color-mix(in_srgb,var(--color-primary)_24%,transparent)] text-[var(--color-primary)]">
             {initials}
           </div>
           <div>
@@ -422,8 +318,8 @@ function FaqItem({ question, answer, index }: { question: string; answer: string
         className={cn(
           "rounded-xl overflow-hidden border transition-all duration-300",
           open
-            ? "border-[#E8720C]/30 bg-[#E8720C]/[0.03]"
-            : "border-[var(--border-default)] hover:border-[#E8720C]/20"
+            ? "border-[color-mix(in_srgb,var(--color-primary)_32%,transparent)] bg-[color-mix(in_srgb,var(--color-primary)_6%,transparent)]"
+            : "border-[var(--border-default)] hover:border-[color-mix(in_srgb,var(--color-primary)_22%,transparent)]"
         )}
       >
         <button
@@ -441,14 +337,14 @@ function FaqItem({ question, answer, index }: { question: string; answer: string
             className={cn(
               "flex-shrink-0 w-6 h-6 rounded-lg flex items-center justify-center transition-all duration-300",
               open
-                ? "bg-[#E8720C]/15 rotate-180"
+                ? "rotate-180 bg-[color-mix(in_srgb,var(--color-primary)_18%,transparent)]"
                 : "bg-white/[0.04]"
             )}
           >
             <ChevronDown
               className={cn(
                 "h-3.5 w-3.5 transition-colors",
-                open ? "text-[#E8720C]" : "text-[var(--text-muted)]"
+                open ? "text-[var(--color-primary)]" : "text-[var(--text-muted)]"
               )}
             />
           </div>
@@ -477,8 +373,8 @@ function FaqItem({ question, answer, index }: { question: string; answer: string
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <div className="inline-flex items-center gap-2 mb-3">
-      <span className="w-4 h-px bg-[#E8720C]" />
-      <p className="text-[10px] font-bold text-[#E8720C] uppercase tracking-[0.22em]">{children}</p>
+      <span className="w-4 h-px bg-[var(--color-primary)]" />
+      <p className="text-[10px] font-bold text-[var(--color-primary)] uppercase tracking-[0.22em]">{children}</p>
     </div>
   );
 }
@@ -509,11 +405,30 @@ export default function HomepageClient({
   heroMobileLogo?: string;
   heroMobileLogoOnly?: boolean;
 }) {
+  const theme = useTheme();
+  const trustFeatures = useHomepageTrustFeatures();
+  const howItWorks = useHomepageHowItWorks();
+  const serviceCategories = useHomepageServiceCategories();
+  const rawFaq = useHomepageFaq();
+
+  const faqItems = useMemo(() => {
+    const orderSnippet =
+      stats.completed_orders > 0
+        ? `We've completed ${stats.completed_orders.toLocaleString()} orders without a single ban.`
+        : "We take account safety seriously and have a strong track record.";
+    return rawFaq.map((item) => ({
+      ...item,
+      answer: item.answer.replace("PLACEHOLDER_ORDER_STATS", orderSnippet),
+    }));
+  }, [rawFaq, stats.completed_orders]);
+
+  const ctaBullets =
+    theme.homepage_cta_bullets?.length > 0 ? theme.homepage_cta_bullets : FALLBACK_CTA_BULLETS;
+
   const featuredGames = games.filter((g) => g.is_featured);
   const displayGames = featuredGames.length > 0 ? featuredGames : games;
   const displayWorkers = featuredWorkers.slice(0, 8);
   const moreCount = Math.max(0, featuredWorkers.length - 8);
-  const faqItems = getFaqItems(stats.completed_orders);
 
   const statItems = [
     stats.completed_orders > 0
@@ -538,8 +453,9 @@ export default function HomepageClient({
       >
         {/* Achtergrondafbeelding */}
         <HeroBackground
-          imageUrl={heroImages[0]}
-          overlayOpacity={heroOverlayOpacity}
+          imageUrl={theme.hero_bg_url || heroImages[0]}
+          overlayOpacity={theme.hero_bg_overlay ?? heroOverlayOpacity}
+          primaryColor={theme.primary_color}
         />
 
         {/* Mobiel: alleen logo (indien ingesteld via admin) */}
@@ -559,14 +475,23 @@ export default function HomepageClient({
         )}
 
         {/* Hero text content — positioned at the bottom third to avoid covering the banner art */}
-        <div className="absolute inset-x-0 bottom-0 z-10 flex flex-col items-center text-center px-4 pb-10 sm:pb-14"
-          style={{ background: "linear-gradient(to top, rgba(12,9,6,0.92) 0%, rgba(12,9,6,0.6) 55%, transparent 100%)" }}
+        <div
+          className="absolute inset-x-0 bottom-0 z-10 flex flex-col items-center text-center px-4 pb-10 sm:pb-14"
+          style={{
+            background: `linear-gradient(to top, color-mix(in srgb, ${theme.bg_primary} 92%, transparent) 0%, color-mix(in srgb, ${theme.bg_primary} 55%, transparent) 55%, transparent 100%)`,
+          }}
         >
           {/* Trust badge — alleen tonen als er echte data is */}
           {stats.completed_orders > 0 && (
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#E8720C]/15 border border-[#E8720C]/35 backdrop-blur-sm mb-5">
-              <Star className="h-3 w-3 text-[#FF9438] fill-[#FF9438]" />
-              <span className="text-xs font-semibold text-[#FF9438] tracking-wide">
+            <div
+              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full backdrop-blur-sm mb-5 border"
+              style={{
+                backgroundColor: `color-mix(in srgb, ${theme.primary_color} 15%, transparent)`,
+                borderColor: `color-mix(in srgb, ${theme.primary_color} 35%, transparent)`,
+              }}
+            >
+              <Star className="h-3 w-3 fill-[var(--color-accent)] text-[var(--color-accent)]" />
+              <span className="text-xs font-semibold text-[var(--color-accent)] tracking-wide">
                 {stats.completed_orders.toLocaleString()}+ orders completed
               </span>
             </div>
@@ -574,38 +499,39 @@ export default function HomepageClient({
 
           {/* Headline */}
           <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-bold text-white max-w-4xl leading-[1.1] tracking-tight">
-            The Fastest &amp;{" "}
+            {theme.hero_headline_before}{" "}
             <span
               className="text-transparent bg-clip-text"
               style={{
-                backgroundImage: "linear-gradient(135deg, #E8720C 0%, #FF9438 50%, #FFB570 100%)",
+                backgroundImage: `linear-gradient(135deg, ${theme.primary_color} 0%, ${theme.accent_color} 50%, ${theme.accent_color} 100%)`,
               }}
             >
-              Safest
+              {theme.hero_headline_highlight}
             </span>{" "}
-            Game Boosting
+            {theme.hero_headline_after}
           </h1>
 
           {/* Subtitle */}
-          <p className="mt-5 text-base sm:text-lg text-white/65 max-w-lg leading-relaxed">
-            Verified boosters, instant start, and a satisfaction guarantee — for all your favourite games.
-          </p>
+          <p className="mt-5 text-base sm:text-lg text-white/65 max-w-lg leading-relaxed">{theme.hero_subtitle}</p>
 
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row items-center gap-3 mt-8">
             <Link
-              href="/games"
-              className="group inline-flex items-center gap-2 px-8 py-3.5 rounded-xl font-bold text-white transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-[#E8720C]/30"
-              style={{ background: "linear-gradient(135deg, #E8720C, #C95E08)" }}
+              href={theme.hero_primary_cta_href}
+              className="group inline-flex items-center gap-2 px-8 py-3.5 rounded-xl font-bold text-white transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl"
+              style={{
+                background: `linear-gradient(135deg, ${theme.primary_color}, ${theme.secondary_color})`,
+                boxShadow: `0 12px 40px color-mix(in srgb, ${theme.primary_color} 28%, transparent)`,
+              }}
             >
-              Browse Services
+              {theme.hero_primary_cta_label}
               <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
             </Link>
             <Link
-              href="/how-it-works"
+              href={theme.hero_secondary_cta_href}
               className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl font-semibold text-white/85 bg-white/[0.08] backdrop-blur border border-white/[0.15] hover:bg-white/[0.13] hover:text-white transition-all duration-300"
             >
-              How it works
+              {theme.hero_secondary_cta_label}
             </Link>
           </div>
 
@@ -620,15 +546,17 @@ export default function HomepageClient({
             {stats.review_count > 0 && (
               <>
                 <div className="flex items-center gap-1">
-                  <Star className="h-3 w-3 text-[#FF9438] fill-[#FF9438]" />
-                  <span>{stats.avg_rating.toFixed(1)} from {stats.review_count.toLocaleString()} reviews</span>
+                  <Star className="h-3 w-3 fill-[var(--color-accent)] text-[var(--color-accent)]" />
+                  <span>
+                    {stats.avg_rating.toFixed(1)} from {stats.review_count.toLocaleString()} reviews
+                  </span>
                 </div>
                 <span className="w-px h-3 bg-white/20" />
               </>
             )}
             <div className="flex items-center gap-1.5">
               <Check className="h-3 w-3 text-emerald-400" />
-              <span>Satisfaction guaranteed</span>
+              <span>{theme.hero_trust_guarantee_label}</span>
             </div>
           </div>
         </div>
@@ -636,10 +564,16 @@ export default function HomepageClient({
 
       {/* ── STATS STRIP ── alleen tonen als er minimaal 1 echte stat is */}
       {statItems.length > 0 && (
-        <div className="border-y border-[#E8720C]/10 bg-gradient-to-r from-[#E8720C]/[0.04] via-[#E8720C]/[0.02] to-[#E8720C]/[0.04]">
+        <div
+          className="border-y"
+          style={{
+            borderColor: `color-mix(in srgb, ${theme.primary_color} 14%, transparent)`,
+            background: `linear-gradient(to right, color-mix(in srgb, ${theme.primary_color} 5%, transparent), color-mix(in srgb, ${theme.primary_color} 2%, transparent), color-mix(in srgb, ${theme.primary_color} 5%, transparent))`,
+          }}
+        >
           <div className="max-w-5xl mx-auto px-4 py-6">
             <div
-              className="grid gap-6 divide-x divide-[#E8720C]/10"
+              className="grid gap-6 divide-x divide-[color-mix(in_srgb,var(--color-primary)_12%,transparent)]"
               style={{ gridTemplateColumns: `repeat(${statItems.length}, minmax(0, 1fr))` }}
             >
               {statItems.map((s, i) => (
@@ -647,7 +581,7 @@ export default function HomepageClient({
                   <p
                     className="text-2xl sm:text-3xl font-bold font-heading"
                     style={{
-                      backgroundImage: "linear-gradient(135deg, #FF9438, #E8720C)",
+                      backgroundImage: `linear-gradient(135deg, ${theme.accent_color}, ${theme.primary_color})`,
                       WebkitBackgroundClip: "text",
                       WebkitTextFillColor: "transparent",
                     }}
@@ -666,24 +600,24 @@ export default function HomepageClient({
       <section className="py-24 px-4">
         <div className="max-w-7xl mx-auto">
           <Reveal>
-            <SectionLabel>Services</SectionLabel>
+            <SectionLabel>{theme.homepage_services_section_label}</SectionLabel>
             <h2 className="font-heading text-3xl sm:text-4xl font-bold text-white mb-12">
-              Everything you need for OSRS
+              {theme.homepage_services_section_title}
             </h2>
           </Reveal>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-            {SERVICE_CATEGORIES.map((cat, i) => (
+            {serviceCategories.map((cat, i) => (
               <Reveal key={cat.title} delay={i * 100}>
                 <Link
                   href={cat.href}
-                  className="group relative flex flex-col gap-5 p-7 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] hover:border-[#E8720C]/40 hover:-translate-y-1 transition-all duration-300 overflow-hidden"
+                  className="group relative flex flex-col gap-5 p-7 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] hover:border-[color-mix(in_srgb,var(--color-primary)_40%,transparent)] hover:-translate-y-1 transition-all duration-300 overflow-hidden"
                 >
                   {/* Background hover glow */}
                   <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
                     <div
                       className="absolute inset-0"
                       style={{
-                        background: "radial-gradient(circle at 50% 0%, rgba(232,114,12,0.06), transparent 70%)",
+                        background: `radial-gradient(circle at 50% 0%, color-mix(in srgb, ${theme.primary_color} 10%, transparent), transparent 70%)`,
                       }}
                     />
                   </div>
@@ -691,16 +625,24 @@ export default function HomepageClient({
                   {/* OSRS icon */}
                   <div
                     className="w-14 h-14 rounded-2xl flex items-center justify-center relative"
-                    style={{ background: "linear-gradient(135deg, rgba(232,114,12,0.15), rgba(232,114,12,0.06))", border: "1px solid rgba(232,114,12,0.2)" }}
+                    style={{
+                      background: `linear-gradient(135deg, color-mix(in srgb, ${theme.primary_color} 18%, transparent), color-mix(in srgb, ${theme.primary_color} 8%, transparent))`,
+                      border: `1px solid color-mix(in srgb, ${theme.primary_color} 22%, transparent)`,
+                    }}
                   >
-                    <Image
-                      src={cat.osrsIcon}
-                      alt={cat.iconAlt}
-                      width={36}
-                      height={36}
-                      className="object-contain drop-shadow-[0_0_6px_rgba(232,114,12,0.4)]"
-                      style={{ imageRendering: "pixelated" }}
-                    />
+                    {cat.osrs_icon_url ? (
+                      <Image
+                        src={cat.osrs_icon_url}
+                        alt={cat.icon_alt ?? ""}
+                        width={36}
+                        height={36}
+                        className="object-contain"
+                        style={{
+                          imageRendering: "pixelated",
+                          filter: `drop-shadow(0 0 6px color-mix(in srgb, ${theme.primary_color} 45%, transparent))`,
+                        }}
+                      />
+                    ) : null}
                   </div>
 
                   <div>
@@ -708,7 +650,7 @@ export default function HomepageClient({
                     <p className="text-sm text-[var(--text-muted)] leading-relaxed">{cat.desc}</p>
                   </div>
 
-                  <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#E8720C] group-hover:text-[#FF9438] transition-colors">
+                  <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--color-primary)] group-hover:text-[var(--color-accent)] transition-colors">
                     {cat.cta}
                     <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform duration-300" />
                   </span>
@@ -723,20 +665,22 @@ export default function HomepageClient({
       <section className="py-24 px-4 relative">
         <div
           className="absolute inset-0 opacity-[0.015]"
-          style={{ backgroundImage: "radial-gradient(circle at 30% 50%, #E8720C, transparent 60%)" }}
+          style={{
+            backgroundImage: `radial-gradient(circle at 30% 50%, ${theme.primary_color}, transparent 60%)`,
+          }}
         />
         <div className="relative max-w-7xl mx-auto">
           <Reveal>
             <div className="flex items-end justify-between mb-12">
               <div>
-                <SectionLabel>Catalog</SectionLabel>
+                <SectionLabel>{theme.homepage_catalog_section_label}</SectionLabel>
                 <h2 className="font-heading text-3xl sm:text-4xl font-bold text-white">
-                  Available games
+                  {theme.homepage_catalog_section_title}
                 </h2>
               </div>
               <Link
                 href="/games"
-                className="hidden sm:flex items-center gap-1.5 text-sm text-[var(--text-muted)] hover:text-[#FF9438] transition-colors"
+                className="hidden sm:flex items-center gap-1.5 text-sm text-[var(--text-muted)] hover:text-[var(--color-accent)] transition-colors"
               >
                 View all
                 <ArrowRight className="h-3.5 w-3.5" />
@@ -758,7 +702,10 @@ export default function HomepageClient({
           )}
 
           <div className="sm:hidden mt-6 text-center">
-            <Link href="/games" className="text-sm text-[#E8720C] hover:text-[#FF9438] transition-colors">
+            <Link
+              href="/games"
+              className="text-sm text-[var(--color-primary)] hover:text-[var(--color-accent)] transition-colors"
+            >
               View all games →
             </Link>
           </div>
@@ -769,35 +716,43 @@ export default function HomepageClient({
       <section className="py-24 px-4">
         <div className="max-w-7xl mx-auto">
           <Reveal>
-            <SectionLabel>Why us</SectionLabel>
+            <SectionLabel>{theme.homepage_why_section_label}</SectionLabel>
             <h2 className="font-heading text-3xl sm:text-4xl font-bold text-white mb-12">
-              Why players choose us
+              {theme.homepage_why_section_title}
             </h2>
           </Reveal>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            {TRUST_FEATURES.map((feature, i) => (
+            {trustFeatures.map((feature, i) => (
               <Reveal key={feature.title} delay={i * 80}>
-                <div className="group flex items-start gap-5 p-6 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] hover:border-[#E8720C]/35 hover:-translate-y-0.5 transition-all duration-300">
+                <div className="group flex items-start gap-5 p-6 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] hover:border-[color-mix(in_srgb,var(--color-primary)_35%,transparent)] hover:-translate-y-0.5 transition-all duration-300">
                   {/* OSRS icon with number badge */}
                   <div className="flex-shrink-0 relative">
                     <div
                       className="w-12 h-12 rounded-2xl flex items-center justify-center"
                       style={{
-                        background: "linear-gradient(135deg, rgba(232,114,12,0.15), rgba(232,114,12,0.05))",
-                        border: "1px solid rgba(232,114,12,0.2)",
+                        background: `linear-gradient(135deg, color-mix(in srgb, ${theme.primary_color} 18%, transparent), color-mix(in srgb, ${theme.primary_color} 8%, transparent))`,
+                        border: `1px solid color-mix(in srgb, ${theme.primary_color} 22%, transparent)`,
                       }}
                     >
-                      <Image
-                        src={feature.osrsIcon}
-                        alt={feature.iconAlt}
-                        width={28}
-                        height={28}
-                        className="object-contain drop-shadow-[0_0_4px_rgba(232,114,12,0.5)]"
-                        style={{ imageRendering: "pixelated" }}
-                      />
+                      {feature.osrs_icon_url ? (
+                        <Image
+                          src={feature.osrs_icon_url}
+                          alt={feature.icon_alt ?? ""}
+                          width={28}
+                          height={28}
+                          className="object-contain"
+                          style={{
+                            imageRendering: "pixelated",
+                            filter: `drop-shadow(0 0 4px color-mix(in srgb, ${theme.primary_color} 55%, transparent))`,
+                          }}
+                        />
+                      ) : null}
                     </div>
-                    <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-[#E8720C] text-white text-[9px] font-bold flex items-center justify-center leading-none">
-                      {feature.number}
+                    <span
+                      className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full text-white text-[9px] font-bold flex items-center justify-center leading-none"
+                      style={{ backgroundColor: theme.primary_color }}
+                    >
+                      {feature.number ?? String(i + 1).padStart(2, "0")}
                     </span>
                   </div>
                   <div>
@@ -816,22 +771,30 @@ export default function HomepageClient({
         <section className="py-24 px-4 relative">
           <div
             className="absolute inset-0 opacity-[0.012]"
-            style={{ backgroundImage: "radial-gradient(circle at 70% 50%, #E8720C, transparent 60%)" }}
+            style={{
+              backgroundImage: `radial-gradient(circle at 70% 50%, ${theme.primary_color}, transparent 60%)`,
+            }}
           />
           <div className="relative max-w-7xl mx-auto">
             <Reveal>
               <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-12 gap-4">
                 <div>
-                  <SectionLabel>Reviews</SectionLabel>
+                  <SectionLabel>{theme.homepage_reviews_section_label}</SectionLabel>
                   <h2 className="font-heading text-3xl sm:text-4xl font-bold text-white">
-                    What customers say
+                    {theme.homepage_reviews_section_title}
                   </h2>
                 </div>
                 <div className="flex items-center gap-3 flex-wrap">
                   {stats.review_count > 0 && (
-                    <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-[#E8720C]/[0.08] border border-[#E8720C]/20">
+                    <div
+                      className="flex items-center gap-3 px-4 py-2.5 rounded-xl border"
+                      style={{
+                        backgroundColor: `color-mix(in srgb, ${theme.primary_color} 10%, transparent)`,
+                        borderColor: `color-mix(in srgb, ${theme.primary_color} 22%, transparent)`,
+                      }}
+                    >
                       <StarRating rating={stats.avg_rating} />
-                      <span className="text-sm font-semibold text-[#FF9438]">
+                      <span className="text-sm font-semibold text-[var(--color-accent)]">
                         {stats.avg_rating.toFixed(1)}
                       </span>
                       <span className="text-sm text-[var(--text-muted)]">
@@ -856,20 +819,25 @@ export default function HomepageClient({
         <section className="py-24 px-4">
           <div className="max-w-7xl mx-auto">
             <Reveal>
-              <div className="rounded-2xl border border-[#E8720C]/15 p-8 sm:p-10 relative overflow-hidden"
-                style={{ background: "linear-gradient(135deg, rgba(232,114,12,0.05), rgba(232,114,12,0.02) 50%, transparent)" }}>
+              <div
+                className="rounded-2xl border p-8 sm:p-10 relative overflow-hidden"
+                style={{
+                  borderColor: `color-mix(in srgb, ${theme.primary_color} 18%, transparent)`,
+                  background: `linear-gradient(135deg, color-mix(in srgb, ${theme.primary_color} 8%, transparent), color-mix(in srgb, ${theme.primary_color} 4%, transparent) 50%, transparent)`,
+                }}
+              >
                 {/* Decorative glow */}
                 <div
                   className="absolute top-0 right-0 w-64 h-64 opacity-[0.06] pointer-events-none"
-                  style={{ background: "radial-gradient(circle, #E8720C, transparent 70%)" }}
+                  style={{ background: `radial-gradient(circle, ${theme.primary_color}, transparent 70%)` }}
                 />
                 <div className="relative">
-                  <SectionLabel>Our team</SectionLabel>
+                  <SectionLabel>{theme.homepage_team_section_label}</SectionLabel>
                   <h2 className="font-heading text-2xl sm:text-3xl font-bold text-white mb-1">
-                    Meet the people behind the boosts
+                    {theme.homepage_team_section_title}
                   </h2>
                   <p className="text-[var(--text-secondary)] text-sm sm:text-base max-w-xl mb-8">
-                    Hand-picked, verified boosters. See who might be playing on your account.
+                    {theme.homepage_team_section_subtitle}
                   </p>
                   <div className="flex flex-wrap items-center gap-4">
                     {displayWorkers.map((w, i) => {
@@ -884,7 +852,7 @@ export default function HomepageClient({
                           title={name}
                           style={{ animationDelay: `${i * 60}ms` }}
                         >
-                          <div className="w-14 h-14 rounded-full bg-[var(--bg-elevated)] border-2 border-white/[0.06] overflow-hidden flex items-center justify-center text-sm font-semibold text-[var(--text-secondary)] group-hover:border-[#E8720C]/60 group-hover:scale-110 transition-all duration-300">
+                          <div className="w-14 h-14 rounded-full bg-[var(--bg-elevated)] border-2 border-white/[0.06] overflow-hidden flex items-center justify-center text-sm font-semibold text-[var(--text-secondary)] group-hover:border-[color-mix(in_srgb,var(--color-primary)_60%,transparent)] group-hover:scale-110 transition-all duration-300">
                             {avatar ? (
                               <Image src={avatar} alt={name} width={56} height={56} className="object-cover w-full h-full" />
                             ) : (
@@ -900,7 +868,7 @@ export default function HomepageClient({
                     {moreCount > 0 && (
                       <Link
                         href="/boosters"
-                        className="w-14 h-14 rounded-full bg-white/[0.02] border-2 border-dashed border-white/[0.08] flex items-center justify-center text-sm font-semibold text-[var(--text-muted)] hover:border-[#E8720C]/50 hover:text-[#E8720C] hover:scale-110 transition-all duration-300"
+                        className="w-14 h-14 rounded-full bg-white/[0.02] border-2 border-dashed border-white/[0.08] flex items-center justify-center text-sm font-semibold text-[var(--text-muted)] hover:border-[color-mix(in_srgb,var(--color-primary)_50%,transparent)] hover:text-[var(--color-primary)] hover:scale-110 transition-all duration-300"
                         aria-label={`View ${moreCount} more boosters`}
                       >
                         +{moreCount}
@@ -909,7 +877,7 @@ export default function HomepageClient({
                   </div>
                   <Link
                     href="/boosters"
-                    className="inline-flex items-center gap-2 mt-6 text-[#E8720C] font-semibold hover:text-[#FF9438] transition-colors"
+                    className="inline-flex items-center gap-2 mt-6 text-[var(--color-primary)] font-semibold hover:text-[var(--color-accent)] transition-colors"
                   >
                     Meet our full team
                     <ArrowRight className="h-4 w-4" />
@@ -925,47 +893,60 @@ export default function HomepageClient({
       <section className="py-24 px-4 relative">
         <div
           className="absolute inset-0 opacity-[0.015]"
-          style={{ backgroundImage: "radial-gradient(circle at 50% 50%, #E8720C, transparent 60%)" }}
+          style={{
+            backgroundImage: `radial-gradient(circle at 50% 50%, ${theme.primary_color}, transparent 60%)`,
+          }}
         />
         <div className="relative max-w-5xl mx-auto">
           <Reveal>
             <div className="mb-16 text-center">
-              <SectionLabel>Process</SectionLabel>
+              <SectionLabel>{theme.homepage_process_section_label}</SectionLabel>
               <h2 className="font-heading text-3xl sm:text-4xl font-bold text-white">
-                Simple, secure, fast
+                {theme.homepage_process_section_title}
               </h2>
               <p className="mt-3 text-[var(--text-secondary)] text-sm max-w-lg mx-auto">
-                We&apos;ve streamlined the process so getting your boost is as easy as possible.
+                {theme.homepage_process_section_subtitle}
               </p>
             </div>
           </Reveal>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 relative">
             {/* Connector line on desktop */}
-            <div className="hidden lg:block absolute top-5 left-[calc(12.5%+22px)] right-[calc(12.5%+22px)] h-px"
-              style={{ background: "linear-gradient(to right, transparent, #E8720C 30%, #E8720C 70%, transparent)" }}
+            <div
+              className="hidden lg:block absolute top-5 left-[calc(12.5%+22px)] right-[calc(12.5%+22px)] h-px"
+              style={{
+                background: `linear-gradient(to right, transparent, ${theme.primary_color} 30%, ${theme.primary_color} 70%, transparent)`,
+              }}
             />
 
-            {HOW_IT_WORKS.map((item, i) => (
-                <Reveal key={item.step} delay={i * 120}>
+            {howItWorks.map((item, i) => (
+                <Reveal key={item.step ?? item.title} delay={i * 120}>
                   <div className="flex flex-col gap-4 relative">
                     {/* Step circle with OSRS icon */}
                     <div
                       className="relative z-10 w-11 h-11 rounded-full flex items-center justify-center"
-                      style={{ background: "linear-gradient(135deg, #E8720C, #C95E08)", boxShadow: "0 0 20px rgba(232,114,12,0.35)" }}
+                      style={{
+                        background: `linear-gradient(135deg, ${theme.primary_color}, ${theme.secondary_color})`,
+                        boxShadow: `0 0 20px color-mix(in srgb, ${theme.primary_color} 40%, transparent)`,
+                      }}
                     >
-                      <Image
-                        src={item.osrsIcon}
-                        alt={item.iconAlt}
-                        width={24}
-                        height={24}
-                        className="object-contain drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)]"
-                        style={{ imageRendering: "pixelated" }}
-                      />
+                      {item.osrs_icon_url ? (
+                        <Image
+                          src={item.osrs_icon_url}
+                          alt={item.icon_alt ?? ""}
+                          width={24}
+                          height={24}
+                          className="object-contain drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)]"
+                          style={{ imageRendering: "pixelated" }}
+                        />
+                      ) : null}
                     </div>
                     <div>
-                      <span className="text-[10px] font-bold text-[#E8720C]/70 tracking-[0.18em] uppercase">
-                        Step {item.step}
+                      <span
+                        className="text-[10px] font-bold tracking-[0.18em] uppercase"
+                        style={{ color: `color-mix(in srgb, ${theme.primary_color} 72%, transparent)` }}
+                      >
+                        Step {item.step ?? String(i + 1).padStart(2, "0")}
                       </span>
                       <h3 className="font-heading font-bold text-white mt-0.5 mb-1.5">{item.title}</h3>
                       <p className="text-sm text-[var(--text-muted)] leading-relaxed">{item.description}</p>
@@ -982,9 +963,9 @@ export default function HomepageClient({
         <div className="max-w-2xl mx-auto">
           <Reveal>
             <div className="mb-10">
-              <SectionLabel>FAQ</SectionLabel>
+              <SectionLabel>{theme.homepage_faq_section_label}</SectionLabel>
               <h2 className="font-heading text-3xl sm:text-4xl font-bold text-white">
-                Frequently asked questions
+                {theme.homepage_faq_section_title}
               </h2>
             </div>
           </Reveal>
@@ -996,7 +977,10 @@ export default function HomepageClient({
           <Reveal delay={300}>
             <p className="text-sm text-[var(--text-muted)] mt-8">
               Still have questions?{" "}
-              <Link href="/faq" className="text-[#E8720C] hover:text-[#FF9438] transition-colors font-medium">
+              <Link
+                href="/faq"
+                className="text-[var(--color-primary)] hover:text-[var(--color-accent)] transition-colors font-medium"
+              >
                 Visit our full FAQ
               </Link>
             </p>
@@ -1020,12 +1004,14 @@ export default function HomepageClient({
               <div
                 className="absolute inset-0 opacity-40"
                 style={{
-                  background:
-                    "radial-gradient(ellipse at 60% 50%, rgba(232,114,12,0.25), transparent 70%)",
+                  background: `radial-gradient(ellipse at 60% 50%, color-mix(in srgb, ${theme.primary_color} 28%, transparent), transparent 70%)`,
                 }}
               />
               {/* Border */}
-              <div className="absolute inset-0 rounded-3xl border border-[#E8720C]/25" />
+              <div
+                className="absolute inset-0 rounded-3xl border"
+                style={{ borderColor: `color-mix(in srgb, ${theme.primary_color} 28%, transparent)` }}
+              />
 
               {/* Decorative dot grid */}
               <svg className="absolute inset-0 w-full h-full opacity-[0.04]" xmlns="http://www.w3.org/2000/svg">
@@ -1040,22 +1026,25 @@ export default function HomepageClient({
               <div className="relative p-10 sm:p-14 flex flex-col sm:flex-row items-center gap-10">
                 <div className="flex-1 text-center sm:text-left">
                   <h2 className="font-heading text-3xl sm:text-4xl font-bold text-white mb-3">
-                    Start your first order today
+                    {theme.homepage_cta_title}
                   </h2>
                   <p className="text-[var(--text-secondary)] mb-8 text-base leading-relaxed max-w-lg">
-                    Choose your game, configure your service, and let a verified booster handle the rest.
+                    {theme.homepage_cta_subtitle}
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 items-center sm:items-start">
                     <Link
-                      href="/games"
-                      className="group inline-flex items-center gap-2 px-8 py-4 rounded-xl font-bold text-white transition-all duration-300 hover:-translate-y-0.5 hover:shadow-2xl hover:shadow-[#E8720C]/30 text-base"
-                      style={{ background: "linear-gradient(135deg, #E8720C, #C95E08)" }}
+                      href={theme.homepage_cta_primary_href}
+                      className="group inline-flex items-center gap-2 px-8 py-4 rounded-xl font-bold text-white transition-all duration-300 hover:-translate-y-0.5 hover:shadow-2xl text-base"
+                      style={{
+                        background: `linear-gradient(135deg, ${theme.primary_color}, ${theme.secondary_color})`,
+                        boxShadow: `0 16px 48px color-mix(in srgb, ${theme.primary_color} 28%, transparent)`,
+                      }}
                     >
-                      Browse games
+                      {theme.homepage_cta_primary_label}
                       <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
                     </Link>
                     <div className="flex flex-col gap-2">
-                      {["Booster assigned within 1 hour", "No hidden fees", "Satisfaction guaranteed"].map((item) => (
+                      {ctaBullets.map((item) => (
                         <div key={item} className="flex items-center gap-2 text-sm text-[var(--text-muted)]">
                           <Check className="h-3.5 w-3.5 text-emerald-400 flex-shrink-0" />
                           {item}
@@ -1067,15 +1056,24 @@ export default function HomepageClient({
 
                 {/* Rating block — alleen tonen als er echte data is */}
                 {stats.avg_rating > 0 && stats.review_count > 0 && (
-                  <div className="flex-shrink-0 hidden sm:flex flex-col items-center justify-center w-44 h-44 rounded-2xl border border-[#E8720C]/20"
-                    style={{ background: "linear-gradient(135deg, rgba(232,114,12,0.1), rgba(232,114,12,0.04))" }}>
-                    <div className="text-4xl font-bold font-heading text-transparent bg-clip-text"
-                      style={{ backgroundImage: "linear-gradient(135deg, #FF9438, #E8720C)" }}>
+                  <div
+                    className="flex-shrink-0 hidden sm:flex flex-col items-center justify-center w-44 h-44 rounded-2xl border"
+                    style={{
+                      borderColor: `color-mix(in srgb, ${theme.primary_color} 22%, transparent)`,
+                      background: `linear-gradient(135deg, color-mix(in srgb, ${theme.primary_color} 14%, transparent), color-mix(in srgb, ${theme.primary_color} 6%, transparent))`,
+                    }}
+                  >
+                    <div
+                      className="text-4xl font-bold font-heading text-transparent bg-clip-text"
+                      style={{
+                        backgroundImage: `linear-gradient(135deg, ${theme.accent_color}, ${theme.primary_color})`,
+                      }}
+                    >
                       {stats.avg_rating.toFixed(1)}
                     </div>
                     <div className="flex gap-0.5 my-2">
-                      {[1,2,3,4,5].map((s) => (
-                        <Star key={s} className="h-4 w-4 text-[#FF9438] fill-[#FF9438]" />
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <Star key={s} className="h-4 w-4 fill-[var(--color-accent)] text-[var(--color-accent)]" />
                       ))}
                     </div>
                     <p className="text-xs text-[var(--text-muted)] text-center leading-snug">

@@ -130,8 +130,8 @@ export const adminNav: AdminNavItem[] = [
     icon: TrendingUp,
     sectionKey: "storefront",
     children: [
+      { href: "/admin/storefront/builder", label: "Visual builder" },
       { href: "/admin/storefront/hero", label: "Hero banners" },
-      { href: "/admin/storefront/theme", label: "Theme" },
     ],
   },
   { href: "/admin/discord", label: "Discord", icon: Trophy, sectionKey: "discord" },

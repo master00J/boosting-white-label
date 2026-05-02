@@ -36,7 +36,7 @@ export default function Logo({ className, size = "md", href = "/" }: LogoProps) 
       size === "md" && "text-xl",
       size === "lg" && "text-2xl",
     )}>
-      BoostPlatform
+      {theme.brand_name?.trim() || "BoostPlatform"}
     </span>
   );
 

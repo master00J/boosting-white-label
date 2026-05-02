@@ -29,7 +29,7 @@ export default function StorefrontShell({
   const showBanners = topBanners && !HERO_PATHS.includes(pathname) && !isPending;
 
   return (
-    <div className="flex flex-col min-h-screen" style={{ backgroundColor: "#09090b" }}>
+    <div className="flex flex-col min-h-screen" style={{ backgroundColor: "var(--shell-bg)" }}>
       <StorefrontNavbar />
       <main className="flex-1 pt-16">
         {showBanners && topBanners}
