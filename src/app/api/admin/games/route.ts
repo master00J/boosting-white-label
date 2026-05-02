@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { assertAdmin } from "@/lib/auth/assert-admin";
+import { seedOsrsCatalogForGame } from "@/lib/osrs-catalog-seed";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
@@ -60,5 +61,14 @@ export async function POST(request: Request) {
   }
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  if (data) {
+    try {
+      await seedOsrsCatalogForGame(admin, data.id, data.slug);
+    } catch (e) {
+      console.error("[admin/games POST] OSRS catalog preload failed:", e);
+    }
+  }
+
   return NextResponse.json(data);
 }

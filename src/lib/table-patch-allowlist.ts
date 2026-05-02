@@ -33,7 +33,7 @@ export const TABLE_PATCH_ALLOWLIST: Record<string, string[]> = {
   static_pages: ["slug", "title", "content", "is_published", "updated_at"],
   promo_banners: ["title", "message", "bg_color", "image_url", "cta_text", "cta_url", "starts_at", "ends_at", "is_active", "created_at"],
   game_skills: ["name", "slug", "icon", "game_id", "sort_order", "created_at"],
-  game_service_methods: ["name", "slug", "skill_id", "sort_order", "created_at"],
+  game_service_methods: ["name", "slug", "skill_id", "game_id", "description", "multiplier", "sort_order", "created_at"],
   affiliates: [
     "profile_id", "affiliate_code", "company_name", "website_url", "is_active",
     "commission_rate", "cookie_days", "notes", "approved_at", "approved_by",

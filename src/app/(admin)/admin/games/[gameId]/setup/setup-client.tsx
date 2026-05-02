@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft, Plus, Trash2, GripVertical, Pencil, Download } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, Plus, Trash2, GripVertical, Pencil, Download, Library } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -160,11 +161,13 @@ export default function SetupClient({
   game: Game;
   initialSkills: GameSkill[];
 }) {
+  const router = useRouter();
   const [skills, setSkills] = useState<GameSkill[]>(initialSkills);
   const [showSkillForm, setShowSkillForm] = useState(false);
   const [editingSkillId, setEditingSkillId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [fetchingQuestItems, setFetchingQuestItems] = useState(false);
+  const [preloadingCatalog, setPreloadingCatalog] = useState(false);
   const isOsrs = game.slug === "oldschool-runescape" || game.slug === "osrs";
 
   // ── Skills CRUD ──
@@ -218,6 +221,35 @@ export default function SetupClient({
       setError("Request failed");
     } finally {
       setFetchingQuestItems(false);
+    }
+  };
+
+  const preloadOsrsCatalog = async () => {
+    setPreloadingCatalog(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/games/${game.id}/preload-osrs-catalog`, { method: "POST" });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(typeof json.error === "string" ? json.error : "Preload failed");
+        return;
+      }
+      const s = json.summary as {
+        skillsInserted?: number;
+        questsInserted?: number;
+        bossProfilesInserted?: number;
+        skillingRowsCopied?: number;
+      } | undefined;
+      if (s) {
+        alert(
+          `Catalog updated.\nSkills: ${s.skillsInserted ?? 0}\nQuests: ${s.questsInserted ?? 0}\nBoss profiles (global): ${s.bossProfilesInserted ?? 0}\nGP/XP rows copied: ${s.skillingRowsCopied ?? 0}`
+        );
+      }
+      router.refresh();
+    } catch {
+      setError("Preload request failed");
+    } finally {
+      setPreloadingCatalog(false);
     }
   };
 
@@ -319,6 +351,28 @@ export default function SetupClient({
           )}
         </CardContent>
       </Card>
+
+      {isOsrs && (
+        <Card>
+          <CardContent className="pt-4 space-y-3">
+            <div>
+              <p className="text-sm font-medium mb-1">Pre-load OSRS catalog</p>
+              <p className="text-xs text-muted-foreground mb-3">
+                Skills (all OSRS skills), starter quests (from built-in requirement graph), global boss/minigame profiles for gear optimise, and GP/XP skilling rows copied from your existing template if this game has none yet. Safe to run again (upserts).
+              </p>
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={preloadOsrsCatalog}
+                disabled={preloadingCatalog}
+              >
+                <Library className="h-4 w-4 mr-1.5" />
+                {preloadingCatalog ? "Loading…" : "Load / refresh OSRS catalog"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {isOsrs && (
         <Card>
