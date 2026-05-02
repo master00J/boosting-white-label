@@ -3,10 +3,7 @@
 import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
 import { Save, Loader2, Check, ExternalLink, Palette, Plus, Trash2, MonitorPlay, MousePointerClick } from "lucide-react";
-import {
-  STOREFRONT_VISUAL_EDIT_MAP,
-  type StorefrontVisualEditTarget,
-} from "@/lib/storefront-visual-edit";
+import { resolveStorefrontVisualPick } from "@/lib/storefront-visual-edit";
 import StorefrontMiniPreview from "@/components/admin/storefront/storefront-mini-preview";
 import {
   ColorHexRow,
@@ -85,8 +82,9 @@ export default function StorefrontBuilderClient({
   const [error, setError] = useState("");
   const [visualClickEdit, setVisualClickEdit] = useState(false);
 
-  const focusBuilderField = useCallback((target: StorefrontVisualEditTarget) => {
-    const meta = STOREFRONT_VISUAL_EDIT_MAP[target];
+  const focusBuilderField = useCallback((pick: string) => {
+    const meta = resolveStorefrontVisualPick(pick);
+    if (!meta) return;
     const sectionEl = document.getElementById(`storefront-builder-section-${meta.section}`);
     const fieldEl = document.getElementById(meta.fieldId);
     const focusEl =
@@ -179,7 +177,7 @@ export default function StorefrontBuilderClient({
           </h1>
           <p className="text-sm text-[var(--text-muted)] mt-2 max-w-xl">
             Edit colors, surfaces, typography, navigation, footer, full hero, homepage section headings, service tiles, trust blocks, how-it-works steps, and FAQ.
-            Use color pickers where available; advanced values can still be typed. Turn on <strong className="text-[var(--text-secondary)]">Click-to-edit</strong> and tap areas in the preview to jump to the matching field—changes apply instantly in the preview. Open <strong className="text-[var(--text-secondary)]">Live preview</strong> in a new tab for the full storefront (unsaved draft, session only).
+            Use color pickers where available; advanced values can still be typed. Turn on <strong className="text-[var(--text-secondary)]">Click-to-edit</strong> for quick chips (colors, fonts, surfaces) and tap hero, stats, tiles, catalog, why, process, CTA, FAQ or footer in the preview to open that field—including indexed service tiles and trust rows. Changes apply instantly. Open <strong className="text-[var(--text-secondary)]">Live preview</strong> in a new tab for the full storefront (unsaved draft, session only).
           </p>
           <div className="flex flex-wrap gap-2 mt-3">
             <Link
@@ -334,6 +332,7 @@ export default function StorefrontBuilderClient({
             <div>
               <label className="block text-xs font-medium mb-1.5">Corner radius (CSS)</label>
               <input
+                id="storefront-field-border_radius"
                 value={theme.border_radius}
                 onChange={(e) => patchTheme({ border_radius: e.target.value })}
                 placeholder="0.5rem"
@@ -571,6 +570,7 @@ export default function StorefrontBuilderClient({
                   Overlay strength ({theme.hero_bg_overlay})
                 </label>
                 <input
+                  id="storefront-field-hero_bg_overlay"
                   type="range"
                   min={0}
                   max={1}
@@ -694,6 +694,7 @@ export default function StorefrontBuilderClient({
               <div>
                 <label className="block text-xs font-medium mb-1.5">Brand · short blurb</label>
                 <textarea
+                  id="storefront-field-footer_brand_blurb"
                   value={theme.footer_brand_blurb}
                   onChange={(e) => patchTheme({ footer_brand_blurb: e.target.value })}
                   rows={2}
@@ -713,6 +714,7 @@ export default function StorefrontBuilderClient({
                 <div>
                   <label className="block text-xs font-medium mb-1.5">Copyright name</label>
                   <input
+                    id="storefront-field-copyright_name"
                     value={theme.copyright_name}
                     onChange={(e) => patchTheme({ copyright_name: e.target.value })}
                     className={inputCls()}
@@ -721,6 +723,7 @@ export default function StorefrontBuilderClient({
                 <div>
                   <label className="block text-xs font-medium mb-1.5">Trust · payments</label>
                   <input
+                    id="storefront-field-trust_line_payments"
                     value={theme.trust_line_payments}
                     onChange={(e) => patchTheme({ trust_line_payments: e.target.value })}
                     className={inputCls()}
@@ -729,6 +732,7 @@ export default function StorefrontBuilderClient({
                 <div>
                   <label className="block text-xs font-medium mb-1.5">Trust · start</label>
                   <input
+                    id="storefront-field-trust_line_start"
                     value={theme.trust_line_start}
                     onChange={(e) => patchTheme({ trust_line_start: e.target.value })}
                     className={inputCls()}
@@ -753,6 +757,7 @@ export default function StorefrontBuilderClient({
                 >
                   <div className="flex gap-2 items-center">
                     <input
+                      id={`storefront-field-footer_col_${ci}_title`}
                       value={col.title}
                       onChange={(e) => {
                         const next = [...theme.footer_columns];
@@ -890,6 +895,7 @@ export default function StorefrontBuilderClient({
               <div className="sm:col-span-2">
                 <label className="block text-xs font-medium mb-1.5">Title</label>
                 <input
+                  id="storefront-field-homepage_cta_title"
                   value={theme.homepage_cta_title}
                   onChange={(e) => patchTheme({ homepage_cta_title: e.target.value })}
                   className={inputCls()}
@@ -907,6 +913,7 @@ export default function StorefrontBuilderClient({
               <div>
                 <label className="block text-xs font-medium mb-1.5">Button · label</label>
                 <input
+                  id="storefront-field-homepage_cta_primary_label"
                   value={theme.homepage_cta_primary_label}
                   onChange={(e) => patchTheme({ homepage_cta_primary_label: e.target.value })}
                   className={inputCls()}
@@ -1013,6 +1020,7 @@ export default function StorefrontBuilderClient({
                     className={smallInputCls()}
                   />
                   <input
+                    id={`storefront-field-trust_${i}_title`}
                     placeholder="Title"
                     value={row.title}
                     onChange={(e) => {
@@ -1118,6 +1126,7 @@ export default function StorefrontBuilderClient({
                       className={smallInputCls()}
                     />
                     <input
+                      id={`storefront-field-how_${i}_title`}
                       placeholder="Title"
                       value={row.title}
                       onChange={(e) => {
@@ -1220,6 +1229,7 @@ export default function StorefrontBuilderClient({
                 </div>
                 <div className="grid sm:grid-cols-2 gap-2">
                   <input
+                    id={`storefront-field-service_tile_${i}_title`}
                     placeholder="Title"
                     value={row.title}
                     onChange={(e) => {
@@ -1366,6 +1376,7 @@ export default function StorefrontBuilderClient({
                   </button>
                 </div>
                 <input
+                  id={`storefront-field-faq_${i}_question`}
                   placeholder="Question"
                   value={row.question}
                   onChange={(e) => {
@@ -1409,7 +1420,7 @@ export default function StorefrontBuilderClient({
           <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Live preview</p>
           {visualClickEdit ? (
             <p className="text-[11px] text-primary/90 font-medium">
-              Click-to-edit on — tap outlined areas to jump to the field.
+              Click-to-edit on — chips + outlined regions jump to fields (including indexed tiles, FAQ, footer).
             </p>
           ) : null}
           <StorefrontMiniPreview
