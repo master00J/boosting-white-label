@@ -294,6 +294,37 @@ async function copyOsrsSkillingPrices(admin: AdminCatalogClient, targetGameId: s
   return n;
 }
 
+/** Starter storefront sections; individual services (per boss, etc.) stay manual. */
+const DEFAULT_OSRS_SERVICE_CATEGORIES = [
+  { slug: "skilling", name: "Skilling", icon: "⚡", sort_order: 0 },
+  { slug: "quests", name: "Quests", icon: "📜", sort_order: 1 },
+  { slug: "bossing", name: "Bossing", icon: "🐲", sort_order: 2 },
+  { slug: "minigames", name: "Minigames", icon: "🎲", sort_order: 3 },
+] as const;
+
+async function seedDefaultOsrsServiceCategoriesIfEmpty(admin: AdminCatalogClient, gameId: string): Promise<number> {
+  const { count, error: cErr } = await ac(admin)
+    .from("service_categories")
+    .select("*", { count: "exact", head: true })
+    .eq("game_id", gameId);
+  if (cErr) throw new Error(cErr.message);
+  if ((count ?? 0) > 0) return 0;
+
+  const rows = DEFAULT_OSRS_SERVICE_CATEGORIES.map((c) => ({
+    game_id: gameId,
+    name: c.name,
+    slug: c.slug,
+    icon: c.icon,
+    image_url: null as string | null,
+    is_active: true,
+    sort_order: c.sort_order,
+  }));
+
+  const { error } = await ac(admin).from("service_categories").insert(rows as never[]);
+  if (error) throw new Error(error.message);
+  return rows.length;
+}
+
 export type OsrsCatalogSeedResult = {
   skillsInserted: number;
   questsInserted: number;
@@ -301,10 +332,13 @@ export type OsrsCatalogSeedResult = {
   skillingRowsCopied: number;
   bossIconsSynced: number;
   methodsInserted: number;
+  /** Default Skilling / Quests / Bossing / Minigames rows when the game had no categories yet. */
+  categoriesInserted: number;
 };
 
 /**
- * Idempotent: global boss profiles + wiki icons; per-game skills, standard methods, full quest catalog (+ icons), GP/XP rows for OSRS slugs.
+ * Idempotent: global boss profiles + wiki icons; per-game skills, standard methods, full quest catalog (+ icons),
+ * default service categories when empty, GP/XP rows for OSRS slugs.
  */
 export async function seedOsrsCatalogForGame(
   admin: AdminCatalogClient,
@@ -318,6 +352,7 @@ export async function seedOsrsCatalogForGame(
     skillingRowsCopied: 0,
     bossIconsSynced: 0,
     methodsInserted: 0,
+    categoriesInserted: 0,
   };
 
   result.bossProfilesInserted = await seedGlobalBossProfilesIfEmpty(admin);
@@ -326,6 +361,8 @@ export async function seedOsrsCatalogForGame(
   if (!isOsrsCatalogGameSlug(gameSlug)) {
     return result;
   }
+
+  result.categoriesInserted = await seedDefaultOsrsServiceCategoriesIfEmpty(admin, gameId);
 
   const skillRows = OSRS_SKILLS.map((s, i) => ({
     game_id: gameId,

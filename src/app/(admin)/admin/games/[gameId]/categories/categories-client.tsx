@@ -36,6 +36,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { slugify } from "@/lib/utils/slugify";
+import { isOsrsCatalogGameSlug } from "@/lib/osrs-catalog-slugs";
 
 interface Category {
   id: string;
@@ -281,8 +282,14 @@ export default function CategoriesClient({
       <Card>
         <CardContent className="p-0">
           {categories.length === 0 ? (
-            <div className="py-12 text-center text-muted-foreground text-sm">
-              No categories yet. Add a category to start organising services.
+            <div className="py-12 text-center text-muted-foreground text-sm px-4 space-y-2 max-w-md mx-auto">
+              <p>No categories yet. Add a category to start organising services.</p>
+              {isOsrsCatalogGameSlug(game.slug ?? "") && (
+                <p className="text-xs text-muted-foreground/90">
+                  OSRS tip: open <strong className="text-foreground">Setup</strong> for this game and run{" "}
+                  <strong className="text-foreground">Load OSRS catalog</strong> — if you still have zero categories, it creates Skilling, Quests, Bossing, and Minigames automatically.
+                </p>
+              )}
             </div>
           ) : (
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>

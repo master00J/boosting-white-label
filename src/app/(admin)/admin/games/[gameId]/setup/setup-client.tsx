@@ -257,11 +257,12 @@ export default function SetupClient({
         skillingRowsCopied?: number;
         bossIconsSynced?: number;
         methodsInserted?: number;
+        categoriesInserted?: number;
       } | undefined;
       await reloadSkillsFromApi();
       if (s) {
         alert(
-          `Catalog updated.\nSkills: ${s.skillsInserted ?? 0}\nTraining methods: ${s.methodsInserted ?? 0}\nQuests: ${s.questsInserted ?? 0}\nBoss profiles (global, new): ${s.bossProfilesInserted ?? 0}\nBoss icons synced (wiki): ${s.bossIconsSynced ?? 0}\nGP/XP rows copied: ${s.skillingRowsCopied ?? 0}\n\nNote: 0 boss rows/icons usually means the shared boss catalog was already populated. Bosses/minigames are not listed under Skills — configure boss services under Categories.`
+          `Catalog updated.\nService categories (new, if list was empty): ${s.categoriesInserted ?? 0}\nSkills: ${s.skillsInserted ?? 0}\nTraining methods: ${s.methodsInserted ?? 0}\nQuests: ${s.questsInserted ?? 0}\nBoss profiles (global, new): ${s.bossProfilesInserted ?? 0}\nBoss icons synced (wiki): ${s.bossIconsSynced ?? 0}\nGP/XP rows copied: ${s.skillingRowsCopied ?? 0}\n\nIndividual boss/minigame offers are separate services — add them under Catalog → Categories → Bossing / Minigames after picking a pricing model.`
         );
       }
       router.refresh();
@@ -329,7 +330,7 @@ export default function SetupClient({
         <CardContent className="py-3 px-4 text-xs leading-relaxed text-muted-foreground space-y-2">
           <p>
             <span className="font-medium text-foreground">OSRS catalog — </span>
-            Click <strong className="text-foreground">Load OSRS catalog</strong> next to <strong className="text-foreground">Add skill</strong> (top right) to import skills, quests, training methods, shared boss/minigame profiles (global table), and GP/XP rows where applicable. Safe to run again. Summary counts of <strong className="text-foreground">0</strong> for bosses/icons/GP often mean that data already existed.
+            Click <strong className="text-foreground">Load OSRS catalog</strong> next to <strong className="text-foreground">Add skill</strong> (top right) to import skills, quests, training methods, shared boss/minigame profiles (global table), and GP/XP rows where applicable. Safe to run again.             Summary counts of <strong className="text-foreground">0</strong> for bosses/icons/GP often mean that data already existed. Empty <strong className="text-foreground">Categories</strong> are filled with Skilling / Quests / Bossing / Minigames the first time you run this import while the game has no categories yet.
           </p>
           <p>
             Game slug in database:{" "}
