@@ -59,6 +59,18 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
 
   const { id } = await params;
   const { error } = await ctx.admin.from("games").delete().eq("id", id);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    const msg = error.message ?? "";
+    if (msg.includes("orders_game_id_fkey") || msg.includes("reviews_game_id_fkey")) {
+      return NextResponse.json(
+        {
+          error:
+            "Deleting this game is blocked: orders or reviews still reference it. Apply migration 00079_orders_reviews_game_delete_set_null.sql (ON DELETE SET NULL), or archive the game (set inactive) instead of deleting.",
+        },
+        { status: 409 }
+      );
+    }
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
   return NextResponse.json({ success: true });
 }
