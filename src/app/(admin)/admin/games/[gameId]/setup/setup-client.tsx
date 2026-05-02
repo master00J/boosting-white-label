@@ -239,10 +239,12 @@ export default function SetupClient({
         questsInserted?: number;
         bossProfilesInserted?: number;
         skillingRowsCopied?: number;
+        bossIconsSynced?: number;
+        methodsInserted?: number;
       } | undefined;
       if (s) {
         alert(
-          `Catalog updated.\nSkills: ${s.skillsInserted ?? 0}\nQuests: ${s.questsInserted ?? 0}\nBoss profiles (global): ${s.bossProfilesInserted ?? 0}\nGP/XP rows copied: ${s.skillingRowsCopied ?? 0}`
+          `Catalog updated.\nSkills: ${s.skillsInserted ?? 0}\nTraining methods: ${s.methodsInserted ?? 0}\nQuests: ${s.questsInserted ?? 0}\nBoss profiles (global, new): ${s.bossProfilesInserted ?? 0}\nBoss icons synced (wiki): ${s.bossIconsSynced ?? 0}\nGP/XP rows copied: ${s.skillingRowsCopied ?? 0}`
         );
       }
       router.refresh();

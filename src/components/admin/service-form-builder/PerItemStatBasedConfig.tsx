@@ -159,6 +159,7 @@ type QuestRow = {
   quest_points: number;
   series: string | null;
   is_members: boolean;
+  icon_url?: string | null;
 };
 
 // ─── Threshold row (reused from StatBasedConfig) ──────────────────────────────
@@ -415,6 +416,12 @@ function QuestItemRow({ item, globalStats, onUpdate, onRemove }: {
     <div className={cn("rounded-lg border bg-muted/20 overflow-hidden", hasCustomConfig ? "border-primary/30" : "border-border")}>
       {/* Main row */}
       <div className="flex items-center gap-2 p-2">
+        {item.icon_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={item.icon_url} alt="" width={28} height={28} className="rounded-sm object-contain shrink-0 bg-muted/40" />
+        ) : (
+          <div className="w-7 h-7 shrink-0 rounded-sm bg-muted/30 border border-border/40" aria-hidden />
+        )}
         <div className="flex-1 min-w-0">
           <Input
             value={item.label}
@@ -640,6 +647,7 @@ export default function PerItemStatBasedConfig({ matrix, onChange, gameId }: Pro
           id: q.slug,
           label: q.name,
           price: 0,
+          icon_url: q.icon_url ?? undefined,
           description: `${q.difficulty} · ${q.length} · ${q.quest_points} QP${q.series ? ` · ${q.series}` : ""}`,
         }));
       onChange({ ...matrix, items: [...items, ...newItems] });

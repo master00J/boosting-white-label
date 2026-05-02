@@ -25,7 +25,7 @@ export async function GET(req: Request) {
 
   let query = rawClient
     .from("game_quests")
-    .select("id, name, slug, difficulty, length, quest_points, series, is_members, sort_order")
+    .select("id, name, slug, difficulty, length, quest_points, series, is_members, sort_order, icon_url")
     .eq("game_id", gameId)
     .order("sort_order", { ascending: true });
 

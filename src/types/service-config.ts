@@ -79,6 +79,8 @@ export interface PriceItem {
   id: string;
   label: string;
   price: number;
+  /** Optional inventory/wiki icon when imported from game_quests */
+  icon_url?: string | null;
   description?: string;
   /** Per-quest stat configs — overrides the global stats when set */
   stats?: StatConfig[];
