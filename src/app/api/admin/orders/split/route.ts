@@ -90,7 +90,7 @@ export async function POST(req: Request) {
   }
 
   if (!["queued", "paid"].includes(parentOrder.status)) {
-    return NextResponse.json({ error: "Only queued orders can be split" }, { status: 400 });
+    return NextResponse.json({ error: "Only paid or queued orders can be split" }, { status: 400 });
   }
 
   const items = parentOrder.items;

@@ -20,9 +20,11 @@ export async function POST(req: NextRequest) {
   }
   const { orderId } = parsed.data;
 
+  // Same as Stripe/balance: stay on "paid" until admin releases to "queued"
+  // so multi-item orders can be split before boosters see them.
   const { data: updatedOrders, error } = await admin
     .from("orders")
-    .update(dbUpdate({ gold_received: true, status: "queued", payment_status: "completed" }))
+    .update(dbUpdate({ gold_received: true, status: "paid", payment_status: "completed" }))
     .eq("id", orderId)
     .eq("payment_method", "gold")
     .eq("payment_status", "pending")

@@ -279,7 +279,6 @@ export default function CheckoutPage() {
       fee: feeLabel("gold"),
       hidden: !goldEnabled,
       disabled: !goldAvailableForCart,
-      disabledReason: "Configure Currency & Gold for every game in your cart before accepting in-game currency.",
     },
     {
       id: "whop" as PaymentMethod,
@@ -397,7 +396,7 @@ export default function CheckoutPage() {
                       )}
                     </div>
                     <p className="text-xs text-[var(--text-muted)] mt-0.5">{pm.description}</p>
-                    {pm.disabledReason && (
+                    {pm.disabled && pm.disabledReason && (
                       <p className="text-xs text-amber-400 mt-1">{pm.disabledReason}</p>
                     )}
                   </div>

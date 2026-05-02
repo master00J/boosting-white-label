@@ -96,8 +96,8 @@ export default function AdminOrderDetailClient({
         body: JSON.stringify({ orderId: order.id }),
       });
       if (res.ok) {
-        setOrder((o) => ({ ...o, gold_received: true, status: "queued", payment_status: "completed" }));
-        setSelectedStatus("queued");
+        setOrder((o) => ({ ...o, gold_received: true, status: "paid", payment_status: "completed" }));
+        setSelectedStatus("paid");
       }
     } finally {
       setConfirmingGold(false);
@@ -434,7 +434,9 @@ export default function AdminOrderDetailClient({
           {order.payment_method === "gold" && order.gold_received && (
             <div className="p-4 rounded-2xl bg-green-400/10 border border-green-400/20 flex items-center gap-3">
               <CheckCircle2 className="h-5 w-5 text-green-400" />
-              <p className="text-sm font-medium text-green-400">Gold received — order activated</p>
+              <p className="text-sm font-medium text-green-400">
+                Gold received — split if needed, then use <strong className="font-semibold">Release to queue</strong> in the sidebar so boosters can claim.
+              </p>
             </div>
           )}
 

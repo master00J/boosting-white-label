@@ -4,31 +4,76 @@ import { requireWorker } from "../lib/permissions.js";
 import { buildOrderEmbed, buildErrorEmbed, buildSuccessEmbed } from "../lib/embeds.js";
 import { buildProgressRow } from "../lib/buttons.js";
 import { logger } from "../lib/logger.js";
+import { resolveOrderUuidFromButtonKey } from "../lib/order-key.js";
 
-/** Discord custom_id uses underscores; order_number values like BST-GME-SVC-MON40JD2 must not be split on "_". */
-const ORDER_UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+type ClaimOrderRow = {
+  id: string;
+  order_number: string;
+  status: string;
+  worker_id: string | null;
+  total: number;
+  service_id: string | null;
+  items: Array<{ serviceId?: string }> | null;
+  account_value: number | null;
+};
 
-function normalizeOrderNumberKey(key: string): string {
-  return key.trim().toUpperCase().replace(/\s+/g, "");
-}
+const CLAIM_ORDER_SELECT =
+  "id, order_number, status, worker_id, total, service_id, items, account_value";
 
-/** Button payload is either orders.id (UUID) or orders.order_number. */
-async function resolveOrderUuidFromButtonKey(orderKey: string): Promise<string | null> {
-  const raw = orderKey.trim();
-  if (!raw) return null;
-
-  if (ORDER_UUID_RE.test(raw)) {
-    const { data } = await supabase.from("orders").select("id").eq("id", raw).maybeSingle();
-    if (data?.id) return data.id;
-  }
-
-  const { data } = await supabase
+async function selectClaimOrderRow(orderId: string): Promise<ClaimOrderRow | null> {
+  let { data, error } = await supabase
     .from("orders")
-    .select("id")
-    .eq("order_number", normalizeOrderNumberKey(raw))
+    .select(CLAIM_ORDER_SELECT)
+    .eq("id", orderId)
     .maybeSingle();
 
-  return data?.id ?? null;
+  if (error) {
+    logger.warn(`selectClaimOrderRow(${orderId}): ${error.message}`);
+    ({ data, error } = await supabase
+      .from("orders")
+      .select("id, order_number, status, worker_id, total, service_id, items")
+      .eq("id", orderId)
+      .maybeSingle());
+    if (error) {
+      logger.warn(`selectClaimOrderRow fallback (${orderId}): ${error.message}`);
+      return null;
+    }
+    if (!data) return null;
+    return { ...data, account_value: null } as ClaimOrderRow;
+  }
+
+  return data as ClaimOrderRow | null;
+}
+
+/** Worker messages may still reference the parent UUID after an admin split; resolve to a queued child when needed. */
+async function resolveClaimTarget(orderId: string): Promise<
+  | { ok: true; order: ClaimOrderRow; effectiveId: string }
+  | { ok: false; reason: "not_found" | "split_no_child" }
+> {
+  const row = await selectClaimOrderRow(orderId);
+  if (!row) return { ok: false, reason: "not_found" };
+
+  if (row.status !== "split") {
+    return { ok: true, order: row, effectiveId: row.id };
+  }
+
+  const { data: childRows, error } = await supabase
+    .from("orders")
+    .select("id")
+    .eq("parent_order_id", orderId)
+    .eq("status", "queued")
+    .is("worker_id", null)
+    .order("created_at", { ascending: true })
+    .limit(1);
+
+  if (error) logger.warn(`resolveClaimTarget split (${orderId}): ${error.message}`);
+  const childId = childRows?.[0]?.id;
+  if (!childId) return { ok: false, reason: "split_no_child" };
+
+  const childRow = await selectClaimOrderRow(childId);
+  if (!childRow) return { ok: false, reason: "not_found" };
+
+  return { ok: true, order: childRow, effectiveId: childRow.id };
 }
 
 export async function handleButtonInteraction(client: Client, interaction: ButtonInteraction): Promise<void> {
@@ -71,25 +116,23 @@ async function handleClaim(interaction: ButtonInteraction, orderKey: string): Pr
     return;
   }
 
-  const { data: order } = await supabase
-    .from("orders")
-    .select("id, order_number, status, worker_id, total, service_id, items, account_value")
-    .eq("id", resolvedId)
-    .maybeSingle() as { data: {
-      id: string;
-      order_number: string;
-      status: string;
-      worker_id: string | null;
-      total: number;
-      service_id: string | null;
-      items: Array<{ serviceId?: string }> | null;
-      account_value: number | null;
-    } | null };
-
-  if (!order) {
+  const target = await resolveClaimTarget(resolvedId);
+  if (!target.ok) {
+    if (target.reason === "split_no_child") {
+      await interaction.editReply({
+        embeds: [
+          buildErrorEmbed(
+            "Deze order is gesplitst. Er staat nog geen deel-order in de wachtrij — gebruik het nieuwste Discord-bericht of het ordernummer van een vrijgegeven deel-order.",
+          ),
+        ],
+      });
+      return;
+    }
     await interaction.editReply({ embeds: [buildErrorEmbed("Order not found.")] });
     return;
   }
+
+  const { order, effectiveId } = target;
   if (order.status !== "queued" || order.worker_id) {
     await interaction.editReply({ embeds: [buildErrorEmbed("This order is no longer available.")] });
     return;
@@ -186,7 +229,7 @@ async function handleClaim(interaction: ButtonInteraction, orderKey: string): Pr
       worker_payout: personalPayout,
       worker_commission_rate: commissionRate,
     })
-    .eq("id", resolvedId)
+    .eq("id", effectiveId)
     .eq("status", "queued")
     .is("worker_id", null)
     .select("id");
@@ -203,7 +246,7 @@ async function handleClaim(interaction: ButtonInteraction, orderKey: string): Pr
     .eq("id", worker.workerId);
 
   await supabase.from("order_messages").insert({
-    order_id: resolvedId,
+    order_id: effectiveId,
     content: `Booster ${worker.displayName} has claimed your order via Discord.`,
     is_system: true,
   });
@@ -212,7 +255,7 @@ async function handleClaim(interaction: ButtonInteraction, orderKey: string): Pr
     actor_id: worker.profileId,
     action: "worker_claimed_order",
     target_type: "order",
-    target_id: resolvedId,
+    target_id: effectiveId,
     metadata: {
       worker_id: worker.workerId,
       payout: personalPayout,
@@ -225,7 +268,7 @@ async function handleClaim(interaction: ButtonInteraction, orderKey: string): Pr
     `Order #${order.order_number} claimed!`,
     `**Your payout:** $${personalPayout.toFixed(2)} (${commissionPct}% of $${order.total.toFixed(2)})\n\nUse \`/progress\` to update the progress.`,
   );
-  const row = buildProgressRow(resolvedId);
+  const row = buildProgressRow(effectiveId);
   await interaction.editReply({ embeds: [embed], components: [row] });
 }
 

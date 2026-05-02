@@ -386,7 +386,7 @@ export default function OrdersAdminClient({ initialOrders }: { initialOrders: Or
       if (res.ok) {
         setOrders((prev) => prev.map((o) =>
           o.id === orderId
-            ? { ...o, gold_received: true, status: "queued", payment_status: "completed" }
+            ? { ...o, gold_received: true, status: "paid", payment_status: "completed" }
             : o
         ));
       }

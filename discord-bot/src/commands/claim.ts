@@ -4,6 +4,7 @@ import { supabase } from "../services/supabase.js";
 import { requireWorker } from "../lib/permissions.js";
 import { buildSuccessEmbed, buildErrorEmbed } from "../lib/embeds.js";
 import { buildProgressRow } from "../lib/buttons.js";
+import { normalizeOrderNumberKey } from "../lib/order-key.js";
 
 /** Order row with items, service_id (tier check) and account_value (deposit check). */
 type OrderRow = {
@@ -42,13 +43,13 @@ export const claimCommand: BotCommand = {
     const worker = await requireWorker(interaction);
     if (!worker) return;
 
-    const orderNumber = interaction.options.getString("ordernummer", true).toUpperCase();
+    const orderNumber = normalizeOrderNumberKey(interaction.options.getString("ordernummer", true));
 
     const { data: order } = await supabase
       .from("orders")
       .select("id, order_number, status, worker_id, total, service_id, items, account_value")
       .eq("order_number", orderNumber)
-      .single() as { data: OrderRow | null };
+      .maybeSingle() as { data: OrderRow | null };
 
     if (!order) {
       await interaction.editReply({ embeds: [buildErrorEmbed(`Order ${orderNumber} niet gevonden.`)] });
