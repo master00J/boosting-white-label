@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, startTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
   Plus,
@@ -119,25 +120,61 @@ function GameForm({
 }
 
 export default function GamesClient({ initialGames }: { initialGames: Game[] }) {
+  const router = useRouter();
   const [games, setGames] = useState<Game[]>(initialGames);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [listRevalidating, setListRevalidating] = useState(true);
+  const [listSyncError, setListSyncError] = useState<string | null>(null);
 
-  /** RSC snapshot can be stale after DB changes outside the app; always reconcile with API. */
+  /**
+   * Server-renderde lijst kan achterlopen na verwijderen in Supabase (ander tabblad / edge).
+   * Setup gebruikt een verse DB-query → oude id geeft 404. Altijd met API gelijkzetten.
+   */
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/admin/games", { cache: "no-store" })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data: unknown) => {
-        if (cancelled || !Array.isArray(data)) return;
-        setGames(data as Game[]);
-      })
-      .catch(() => {});
+    let ac: AbortController | null = null;
+
+    const run = () => {
+      ac?.abort();
+      ac = new AbortController();
+      setListRevalidating(true);
+      setListSyncError(null);
+      fetch("/api/admin/games", { cache: "no-store", signal: ac.signal })
+        .then(async (res) => {
+          if (!res.ok) {
+            const j = (await res.json().catch(() => ({}))) as { error?: string };
+            throw new Error(j.error ?? `HTTP ${res.status}`);
+          }
+          return res.json();
+        })
+        .then((data: unknown) => {
+          if (cancelled) return;
+          if (!Array.isArray(data)) throw new Error("Ongeldig antwoord");
+          setGames(data as Game[]);
+          startTransition(() => router.refresh());
+        })
+        .catch((e: unknown) => {
+          if (cancelled || (e instanceof DOMException && e.name === "AbortError")) return;
+          setListSyncError(e instanceof Error ? e.message : "Games laden mislukt");
+        })
+        .finally(() => {
+          if (!cancelled) setListRevalidating(false);
+        });
+    };
+
+    run();
+    const onVis = () => {
+      if (document.visibilityState === "visible") run();
+    };
+    document.addEventListener("visibilitychange", onVis);
     return () => {
       cancelled = true;
+      ac?.abort();
+      document.removeEventListener("visibilitychange", onVis);
     };
-  }, []);
+  }, [router]);
 
   const handleCreate = async (data: Partial<Game>) => {
     setError(null);
@@ -208,6 +245,17 @@ export default function GamesClient({ initialGames }: { initialGames: Game[] }) 
           )
         }
       />
+
+      {(listRevalidating || listSyncError) && (
+        <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+          {listRevalidating && <span>Gameslijst verversen…</span>}
+          {listSyncError && (
+            <span className="text-amber-600 dark:text-amber-400">
+              Kon lijst niet verversen ({listSyncError}). Vernieuw de pagina of controleer je sessie.
+            </span>
+          )}
+        </div>
+      )}
 
       {error && (
         <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-sm text-destructive">
