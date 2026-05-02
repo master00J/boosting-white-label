@@ -9,10 +9,11 @@ import {
   resolveQuestSlug,
   wikiTitleToInventoryIconUrl,
 } from "@/lib/osrs-quest-slug";
+import { OSRS_CATALOG_SLUGS } from "@/lib/osrs-catalog-slugs";
 
 export type AdminCatalogClient = ReturnType<typeof createAdminClient>;
 
-export const OSRS_CATALOG_SLUGS = new Set(["oldschool-runescape", "osrs"]);
+export { OSRS_CATALOG_SLUGS };
 
 /** Catalog tables are not fully represented in generated Supabase typings */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- loose client for catalog tables

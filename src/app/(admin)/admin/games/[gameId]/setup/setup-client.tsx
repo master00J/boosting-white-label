@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import PageHeader from "@/components/shared/page-header";
 import { slugify } from "@/lib/utils/slugify";
 import { OSRS_SKILLS } from "@/lib/osrs-skills";
+import { OSRS_CATALOG_SLUGS } from "@/lib/osrs-catalog-slugs";
 import { cn } from "@/lib/utils/cn";
 
 interface Game { id: string; name: string; slug: string }
@@ -168,7 +169,7 @@ export default function SetupClient({
   const [error, setError] = useState<string | null>(null);
   const [fetchingQuestItems, setFetchingQuestItems] = useState(false);
   const [preloadingCatalog, setPreloadingCatalog] = useState(false);
-  const isOsrs = game.slug === "oldschool-runescape" || game.slug === "osrs";
+  const isOsrs = OSRS_CATALOG_SLUGS.has((game.slug ?? "").trim().toLowerCase());
 
   // ── Skills CRUD ──
 
@@ -296,11 +297,42 @@ export default function SetupClient({
         </Card>
       )}
 
+      {isOsrs && (
+        <Card className="border-primary/25 bg-primary/[0.04]">
+          <CardContent className="pt-4 space-y-3">
+            <div>
+              <p className="text-sm font-medium mb-1">Pre-load OSRS catalog</p>
+              <p className="text-xs text-muted-foreground mb-3">
+                Skills (all OSRS skills), quests, global boss/minigame profiles, standard training methods, and GP/XP rows when applicable. Safe to run again (upserts).
+              </p>
+              <Button
+                size="sm"
+                onClick={preloadOsrsCatalog}
+                disabled={preloadingCatalog}
+              >
+                <Library className="h-4 w-4 mr-1.5" />
+                {preloadingCatalog ? "Loading…" : "Load / refresh OSRS catalog"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardContent className="p-0">
           {skills.length === 0 ? (
-            <div className="py-12 text-center text-sm text-muted-foreground">
-              No skills added yet. Add skills to use in XP-based services.
+            <div className="py-12 text-center text-sm text-muted-foreground space-y-2 px-4">
+              <p>No skills in the database for this game yet.</p>
+              {isOsrs ? (
+                <p>
+                  Use <strong className="text-foreground">Load / refresh OSRS catalog</strong> above to import all skills at once, or add skills manually with <strong className="text-foreground">Add skill</strong>.
+                </p>
+              ) : (
+                <p>
+                  Game slug must be <code className="text-xs bg-muted px-1 rounded">oldschool-runescape</code> or{" "}
+                  <code className="text-xs bg-muted px-1 rounded">osrs</code> for automatic OSRS catalog preload. You can still add skills manually.
+                </p>
+              )}
             </div>
           ) : (
             <div className="divide-y divide-border">
@@ -353,28 +385,6 @@ export default function SetupClient({
           )}
         </CardContent>
       </Card>
-
-      {isOsrs && (
-        <Card>
-          <CardContent className="pt-4 space-y-3">
-            <div>
-              <p className="text-sm font-medium mb-1">Pre-load OSRS catalog</p>
-              <p className="text-xs text-muted-foreground mb-3">
-                Skills (all OSRS skills), starter quests (from built-in requirement graph), global boss/minigame profiles for gear optimise, and GP/XP skilling rows copied from your existing template if this game has none yet. Safe to run again (upserts).
-              </p>
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={preloadOsrsCatalog}
-                disabled={preloadingCatalog}
-              >
-                <Library className="h-4 w-4 mr-1.5" />
-                {preloadingCatalog ? "Loading…" : "Load / refresh OSRS catalog"}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {isOsrs && (
         <Card>

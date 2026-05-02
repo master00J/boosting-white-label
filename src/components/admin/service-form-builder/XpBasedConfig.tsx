@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Plus, Trash2, ChevronDown, ChevronUp, Database, Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { NumericInput } from "@/components/ui/numeric-input";
@@ -747,6 +748,23 @@ export default function XpBasedConfig({ matrix, onChange, gameSkills = [], gameM
           {XP_TABLES.map((t) => <option key={t.value} value={t.value} className="bg-background text-foreground">{t.label}</option>)}
         </select>
       </div>
+
+      {gameSkills.length === 0 && gameId && (
+        <div className="rounded-lg border border-amber-500/35 bg-amber-500/10 px-3 py-2.5 text-xs space-y-1.5">
+          <p className="font-medium text-foreground flex items-center gap-1.5">
+            <Database className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+            No skills in your game catalog yet
+          </p>
+          <p className="text-muted-foreground leading-relaxed">
+            The quick-import row (“skills available to import”) only appears after skills exist in the database.
+            Open{" "}
+            <Link href={`/admin/games/${gameId}/setup`} className="text-primary underline font-medium hover:text-primary/90">
+              Game setup
+            </Link>
+            {" "}and run <strong className="text-foreground/90">Load / refresh OSRS catalog</strong> (OSRS games), or add skills there manually. Then return here — you’ll see <strong className="text-foreground/90">Import all</strong>.
+          </p>
+        </div>
+      )}
 
       {/* Import strip */}
       {unimportedSkills.length > 0 && (
