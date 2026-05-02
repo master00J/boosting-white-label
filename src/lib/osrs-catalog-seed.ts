@@ -10,6 +10,7 @@ import {
   wikiTitleToInventoryIconUrl,
 } from "@/lib/osrs-quest-slug";
 import { OSRS_CATALOG_SLUGS, isOsrsCatalogGameSlug } from "@/lib/osrs-catalog-slugs";
+import { ensureOsrsStarterServices } from "@/lib/osrs-starter-services-seed";
 
 export type AdminCatalogClient = ReturnType<typeof createAdminClient>;
 
@@ -334,6 +335,8 @@ export type OsrsCatalogSeedResult = {
   methodsInserted: number;
   /** Default Skilling / Quests / Bossing / Minigames rows when the game had no categories yet. */
   categoriesInserted: number;
+  /** Starter services inserted (one per category, slug osrs-seed-*), inactive until you price them. */
+  starterServicesInserted: number;
 };
 
 /**
@@ -353,6 +356,7 @@ export async function seedOsrsCatalogForGame(
     bossIconsSynced: 0,
     methodsInserted: 0,
     categoriesInserted: 0,
+    starterServicesInserted: 0,
   };
 
   result.bossProfilesInserted = await seedGlobalBossProfilesIfEmpty(admin);
@@ -386,6 +390,8 @@ export async function seedOsrsCatalogForGame(
     .upsert(questRows as never[], { onConflict: "game_id,slug" });
   if (qErr) throw new Error(qErr.message);
   result.questsInserted = questRows.length;
+
+  result.starterServicesInserted = await ensureOsrsStarterServices(admin, gameId);
 
   result.skillingRowsCopied = await copyOsrsSkillingPrices(admin, gameId);
 

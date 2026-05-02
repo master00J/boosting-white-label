@@ -258,11 +258,12 @@ export default function SetupClient({
         bossIconsSynced?: number;
         methodsInserted?: number;
         categoriesInserted?: number;
+        starterServicesInserted?: number;
       } | undefined;
       await reloadSkillsFromApi();
       if (s) {
         alert(
-          `Catalog updated.\nService categories (new, if list was empty): ${s.categoriesInserted ?? 0}\nSkills: ${s.skillsInserted ?? 0}\nTraining methods: ${s.methodsInserted ?? 0}\nQuests: ${s.questsInserted ?? 0}\nBoss profiles (global, new): ${s.bossProfilesInserted ?? 0}\nBoss icons synced (wiki): ${s.bossIconsSynced ?? 0}\nGP/XP rows copied: ${s.skillingRowsCopied ?? 0}\n\nIndividual boss/minigame offers are separate services — add them under Catalog → Categories → Bossing / Minigames after picking a pricing model.`
+          `Catalog updated.\nService categories (new, if list was empty): ${s.categoriesInserted ?? 0}\nStarter services (new, slug osrs-seed-*): ${s.starterServicesInserted ?? 0} — inactive until you activate after pricing\nSkills: ${s.skillsInserted ?? 0}\nTraining methods: ${s.methodsInserted ?? 0}\nQuests: ${s.questsInserted ?? 0}\nBoss profiles (global, new): ${s.bossProfilesInserted ?? 0}\nBoss icons synced (wiki): ${s.bossIconsSynced ?? 0}\nGP/XP rows copied: ${s.skillingRowsCopied ?? 0}\n\nBosses/minigames in the storefront come from the Bossing & Minigames starter services (all profiles from osrs_boss_profiles). Tune kill prices there.`
         );
       }
       router.refresh();
