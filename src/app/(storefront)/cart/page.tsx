@@ -7,6 +7,7 @@ import { Trash2, Plus, Minus, ArrowRight, ShoppingCart, Tag, X, Pencil } from "l
 import { useCartStore } from "@/stores/cart-store";
 import { formatUSD } from "@/lib/format";
 import { formatConfigurationSummary } from "@/lib/utils/configuration-summary";
+import { cartItemThumbSrc, cartThumbUnoptimized } from "@/lib/cart-item-image";
 import { createClient } from "@/lib/supabase/client";
 import type { Database } from "@/types/database";
 
@@ -121,15 +122,24 @@ export default function CartPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Items */}
         <div className="lg:col-span-2 space-y-4">
-          {items.map((item) => (
+          {items.map((item) => {
+            const thumb = cartItemThumbSrc(item);
+            return (
             <div
               key={item.id}
               className="flex gap-4 p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)]"
             >
-              {/* Logo */}
+              {/* Logo / quest icon */}
               <div className="w-14 h-14 rounded-xl bg-[var(--bg-elevated)] flex items-center justify-center flex-shrink-0 overflow-hidden">
-                {item.gameLogoUrl ? (
-                  <Image src={item.gameLogoUrl} alt={item.gameName} width={56} height={56} className="object-cover" />
+                {thumb ? (
+                  <Image
+                    src={thumb}
+                    alt={item.lineImageUrl ? item.serviceName : item.gameName}
+                    width={56}
+                    height={56}
+                    className={item.lineImageUrl ? "object-contain p-1" : "object-cover"}
+                    unoptimized={cartThumbUnoptimized(item)}
+                  />
                 ) : (
                   <span className="text-2xl">🎮</span>
                 )}
@@ -190,7 +200,8 @@ export default function CartPage() {
                 </div>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Summary */}

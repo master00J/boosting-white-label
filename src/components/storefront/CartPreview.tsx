@@ -5,6 +5,7 @@ import Image from "next/image";
 import { ShoppingCart, X, ChevronRight, Zap } from "lucide-react";
 import { useCartStore } from "@/stores/cart-store";
 import { formatConfigurationSummary } from "@/lib/utils/configuration-summary";
+import { cartItemThumbSrc, cartThumbUnoptimized } from "@/lib/cart-item-image";
 
 function formatUSD(n: number) {
   return `$${n.toFixed(2)}`;
@@ -42,17 +43,19 @@ export default function CartPreview() {
       <div className="divide-y divide-[var(--border-subtle)] max-h-72 overflow-y-auto">
         {items.map((item) => {
           const summary = formatConfigurationSummary(item.configuration);
+          const thumb = cartItemThumbSrc(item);
           return (
             <div key={item.id} className="flex items-start gap-3 px-4 py-3">
-              {/* Game logo */}
-              {item.gameLogoUrl && (
+              {/* Quest line icon or game logo */}
+              {thumb && (
                 <div className="h-8 w-8 shrink-0 rounded-md overflow-hidden border border-[var(--border-subtle)] bg-[var(--bg-elevated)] flex items-center justify-center">
                   <Image
-                    src={item.gameLogoUrl}
-                    alt={item.gameName}
+                    src={thumb}
+                    alt={item.lineImageUrl ? item.serviceName : item.gameName}
                     width={32}
                     height={32}
-                    className="object-contain h-6 w-6"
+                    className={item.lineImageUrl ? "object-contain h-7 w-7 p-0.5" : "object-contain h-6 w-6"}
+                    unoptimized={cartThumbUnoptimized(item)}
                   />
                 </div>
               )}

@@ -12,6 +12,8 @@ export interface CartItem {
   serviceName: string;
   serviceSlug: string;
   gameLogoUrl: string | null;
+  /** Quest/boss/item icon (e.g. wiki URL); shown in cart/checkout previews instead of game logo when set. */
+  lineImageUrl?: string | null;
   configuration: Record<string, unknown>;
   basePrice: number;
   finalPrice: number;

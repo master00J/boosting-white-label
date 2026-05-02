@@ -659,6 +659,39 @@ export default function ServiceConfigurator({ service, game, categorySlug }: Ser
     const packageLabel = packageId && perItemStatMatrix?.packages?.length
       ? perItemStatMatrix.packages.find((p) => p.id === packageId)?.label
       : null;
+
+    let lineImageUrl: string | null = null;
+    const pm = priceMatrix;
+    if (pm?.type === "per_item_stat_based" && perItemStatMatrix) {
+      if (packageId) {
+        const pkg = perItemStatMatrix.packages?.find((p) => p.id === packageId);
+        if (pkg?.quest_ids?.length) {
+          for (const qid of pkg.quest_ids) {
+            const q = perItemStatMatrix.items.find((x) => x.id === qid);
+            if (q?.icon_url) {
+              lineImageUrl = q.icon_url;
+              break;
+            }
+          }
+        }
+      } else {
+        const selItem = selections["item"] as string | undefined;
+        if (selItem) {
+          lineImageUrl = perItemStatMatrix.items.find((i) => i.id === selItem)?.icon_url ?? null;
+        }
+      }
+    } else if (pm?.type === "per_item") {
+      const selItem = selections["item"] as string | undefined;
+      if (selItem) {
+        lineImageUrl = (pm as PerItemPriceMatrix).items.find((i) => i.id === selItem)?.icon_url ?? null;
+      }
+    } else if (pm?.type === "boss_tiered") {
+      const bossId = selections["boss"] as string | undefined;
+      if (bossId) {
+        lineImageUrl = (pm as BossTieredPriceMatrix).bosses.find((b) => b.id === bossId)?.image_url ?? null;
+      }
+    }
+
     const item: import("@/stores/cart-store").CartItem = {
       id: editItemId ?? `${service.id}-${packageId ?? selections["item"] ?? selections["skill"] ?? "default"}-${Date.now()}`,
       serviceId: service.id,
@@ -672,6 +705,7 @@ export default function ServiceConfigurator({ service, game, categorySlug }: Ser
         routeLabel,
       serviceSlug: service.slug,
       gameLogoUrl: game.logo_url,
+      lineImageUrl,
       configuration: buildConfiguration(),
       basePrice: totalPrice,
       finalPrice: totalPrice,
@@ -770,6 +804,16 @@ export default function ServiceConfigurator({ service, game, categorySlug }: Ser
         const pkgModSels = perQuestMods[`pkg_${pkgId}`] ?? {};
         const pkgModCfg = buildModConfig(pkgMods, pkgModSels);
         const pkgPrice = questPrices[pkgId] ?? pkg.base_price;
+        let pkgLineIcon: string | null = null;
+        if (pkg.quest_ids?.length) {
+          for (const qid of pkg.quest_ids) {
+            const q = perItemStatMatrix.items.find((x) => x.id === qid);
+            if (q?.icon_url) {
+              pkgLineIcon = q.icon_url;
+              break;
+            }
+          }
+        }
         addItem({
           id: `${service.id}-pkg-${pkgId}-${Date.now()}-${i++}`,
           serviceId: service.id,
@@ -780,6 +824,7 @@ export default function ServiceConfigurator({ service, game, categorySlug }: Ser
           serviceName: `${service.name} — ${pkg.label}`,
           serviceSlug: service.slug,
           gameLogoUrl: game.logo_url,
+          lineImageUrl: pkgLineIcon,
           configuration: { package_id: pkgId, ...sharedStats, ...pkgModCfg },
           basePrice: pkgPrice,
           finalPrice: pkgPrice,
@@ -809,6 +854,7 @@ export default function ServiceConfigurator({ service, game, categorySlug }: Ser
         serviceName: `${service.name} — ${questItem.label}`,
         serviceSlug: service.slug,
         gameLogoUrl: game.logo_url,
+        lineImageUrl: questItem.icon_url ?? null,
         configuration: { item: id, ...sharedStats, ...questModCfg },
         basePrice: questPrice,
         finalPrice: questPrice,
@@ -842,6 +888,7 @@ export default function ServiceConfigurator({ service, game, categorySlug }: Ser
         serviceName: `${service.name} — ${itm.label}`,
         serviceSlug: service.slug,
         gameLogoUrl: game.logo_url,
+        lineImageUrl: itm.icon_url ?? null,
         configuration: { item: id, ...(qty > 1 ? { quantity: qty } : {}) },
         basePrice: price,
         finalPrice: price,

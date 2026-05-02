@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils/cn";
 import { formatUSD } from "@/lib/format";
 import { formatConfigurationSummary } from "@/lib/utils/configuration-summary";
 import { useCartStore } from "@/stores/cart-store";
+import { cartItemThumbSrc, cartThumbUnoptimized } from "@/lib/cart-item-image";
 import { useUIStore } from "@/stores/ui-store";
 
 export default function CartDrawer() {
@@ -93,15 +94,24 @@ export default function CartDrawer() {
               </Link>
             </div>
           ) : (
-            items.map((item) => (
+            items.map((item) => {
+              const thumb = cartItemThumbSrc(item);
+              return (
               <div
                 key={item.id}
                 className="flex gap-3 p-3 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)]"
               >
-                {/* Game logo */}
+                {/* Game logo / line icon */}
                 <div className="w-12 h-12 rounded-lg bg-[var(--bg-card)] flex items-center justify-center flex-shrink-0 overflow-hidden">
-                  {item.gameLogoUrl ? (
-                    <Image src={item.gameLogoUrl} alt={item.gameName} width={48} height={48} className="object-cover" />
+                  {thumb ? (
+                    <Image
+                      src={thumb}
+                      alt={item.lineImageUrl ? item.serviceName : item.gameName}
+                      width={48}
+                      height={48}
+                      className={item.lineImageUrl ? "object-contain p-0.5" : "object-cover"}
+                      unoptimized={cartThumbUnoptimized(item)}
+                    />
                   ) : (
                     <span className="text-xl">🎮</span>
                   )}
@@ -152,7 +162,8 @@ export default function CartDrawer() {
                   </div>
                 </div>
               </div>
-            ))
+              );
+            })
           )}
         </div>
 

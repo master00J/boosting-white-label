@@ -10,7 +10,7 @@ import { useAuth } from "@/components/providers/auth-provider";
 export default function QuickMenu() {
   const pathname = usePathname();
   const { user, profile } = useAuth();
-  const cartCount = useCartStore((s) => s.getItemCount());
+  const cartCount = useCartStore((s) => s.items.reduce((sum, i) => sum + i.quantity, 0));
 
   const dashboardHref = () => {
     if (!profile) return "/dashboard";

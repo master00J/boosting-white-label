@@ -31,7 +31,7 @@ export default function StorefrontNavbar() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, profile, signOut } = useAuth();
-  const itemCount = useCartStore((s) => s.getItemCount());
+  const itemCount = useCartStore((s) => s.items.reduce((sum, i) => sum + i.quantity, 0));
   const gamesRef = useRef<HTMLDivElement>(null);
   const gamesCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
