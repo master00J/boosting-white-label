@@ -11,6 +11,8 @@ import { useStorefrontNavLinks } from "@/components/providers/theme-provider";
 import { useCartStore } from "@/stores/cart-store";
 import UserAvatar from "@/components/shared/user-avatar";
 import GamesMegaMenu from "@/components/layouts/games-mega-menu";
+import { useStorefrontBuilderPickMode } from "@/hooks/use-storefront-builder-pick-mode";
+import { storefrontPickProps } from "@/lib/storefront-pick-props";
 
 export default function StorefrontNavbar() {
   const navLinks = useStorefrontNavLinks();
@@ -27,6 +29,7 @@ export default function StorefrontNavbar() {
   const gamesRef = useRef<HTMLDivElement>(null);
   const gamesCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
+  const pickOn = useStorefrontBuilderPickMode();
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -102,6 +105,7 @@ export default function StorefrontNavbar() {
                   ? "text-[var(--color-accent)] bg-[var(--color-primary)]/10"
                   : "text-[var(--text-secondary)] hover:text-[var(--color-accent)] hover:bg-[var(--color-primary)]/8"
               )}
+              {...storefrontPickProps("nav_links", pickOn)}
             >
               <Gamepad2 className="h-4 w-4" />
               Games
@@ -125,6 +129,7 @@ export default function StorefrontNavbar() {
                   ? "text-[var(--color-accent)] bg-[var(--color-primary)]/10"
                   : "text-[var(--text-secondary)] hover:text-[var(--color-accent)] hover:bg-[var(--color-primary)]/8"
               )}
+              {...storefrontPickProps("nav_links", pickOn)}
             >
               {link.label}
             </Link>
@@ -160,6 +165,7 @@ export default function StorefrontNavbar() {
                 }
               }}
               placeholder="Search games & services…"
+              {...storefrontPickProps("text_muted", pickOn)}
               className={cn(
                 "w-full h-9 pl-9 pr-3 rounded-lg text-sm transition-colors",
                 "bg-[var(--bg-elevated)]/90 border text-[var(--text-primary)] placeholder:text-[var(--text-muted)]",
@@ -179,6 +185,7 @@ export default function StorefrontNavbar() {
             href="/cart"
             className="relative p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--color-accent)] hover:bg-[var(--color-primary)]/8 transition-colors"
             aria-label={`Shopping cart${mounted && itemCount > 0 ? `, ${itemCount} items` : ""}`}
+            {...storefrontPickProps("primary_color", pickOn)}
           >
             <ShoppingCart className="h-5 w-5" />
             {mounted && itemCount > 0 && (
@@ -197,6 +204,7 @@ export default function StorefrontNavbar() {
                 className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-[var(--color-primary)]/10 transition-colors"
                 aria-label="User menu"
                 aria-expanded={userMenuOpen}
+                {...storefrontPickProps("accent_color", pickOn)}
               >
                 <UserAvatar
                   src={profile?.avatar_url}
@@ -288,6 +296,7 @@ export default function StorefrontNavbar() {
           <Link
             href="/games"
             className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--color-accent)] hover:bg-[var(--color-primary)]/8 transition-colors"
+            {...storefrontPickProps("nav_links", pickOn)}
           >
             <Gamepad2 className="h-4 w-4" />
             Games
@@ -307,6 +316,7 @@ export default function StorefrontNavbar() {
               key={link.href}
               href={link.href}
               className="block px-3 py-2.5 rounded-lg text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--color-accent)] hover:bg-[var(--color-primary)]/8 transition-colors"
+              {...storefrontPickProps("nav_links", pickOn)}
             >
               {link.label}
             </Link>

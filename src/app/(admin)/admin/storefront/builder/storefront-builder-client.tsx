@@ -30,6 +30,7 @@ import {
   STOREFRONT_THEME_PREVIEW_QUERY,
   STOREFRONT_BUILDER_SYNC_QUERY,
 } from "@/lib/storefront-theme-preview";
+import { STOREFRONT_BUILDER_PICK_MSG } from "@/lib/storefront-builder-pick-bridge";
 import {
   broadcastStorefrontBuilderTheme,
   openStorefrontBuilderBroadcastChannel,
@@ -171,6 +172,17 @@ export default function StorefrontBuilderClient({
     });
   }, []);
 
+  useEffect(() => {
+    const onMsg = (ev: MessageEvent) => {
+      if (ev.origin !== window.location.origin) return;
+      const d = ev.data as { type?: string; pick?: string } | null;
+      if (!d || d.type !== STOREFRONT_BUILDER_PICK_MSG || typeof d.pick !== "string") return;
+      focusBuilderField(d.pick);
+    };
+    window.addEventListener("message", onMsg);
+    return () => window.removeEventListener("message", onMsg);
+  }, [focusBuilderField]);
+
   const headingPresets = useMemo(() => Object.keys(HEADING_FONT_STACKS), []);
   const bodyPresets = useMemo(() => Object.keys(BODY_FONT_STACKS), []);
 
@@ -231,7 +243,7 @@ export default function StorefrontBuilderClient({
           </h1>
           <p className="text-sm text-[var(--text-muted)] mt-2 max-w-xl">
             Edit colors, surfaces, typography, navigation, footer, full hero, homepage section headings, service tiles, trust blocks, how-it-works steps, and FAQ.
-            Use color pickers where available; advanced values can still be typed. Turn on <strong className="text-[var(--text-secondary)]">Click-to-edit</strong> for chips and the compact map. The <strong className="text-[var(--text-secondary)]">full storefront</strong> section below is the real homepage in an iframe with live sync while you edit. <strong className="text-[var(--text-secondary)]">Live preview</strong> opens the draft in a new tab (with banner).
+            Use color pickers where available; advanced values can still be typed. Turn on <strong className="text-[var(--text-secondary)]">Click-to-edit</strong> for chips and the compact map. The <strong className="text-[var(--text-secondary)]">full storefront</strong> iframe is the real homepage with live sync—click highlighted areas (crosshair) to jump to the matching field. <strong className="text-[var(--text-secondary)]">Live preview</strong> opens the draft in a new tab (with banner).
           </p>
           <div className="flex flex-wrap gap-2 mt-3">
             <Link
@@ -758,6 +770,7 @@ export default function StorefrontBuilderClient({
               <div>
                 <label className="block text-xs font-medium mb-1.5">Brand · note</label>
                 <textarea
+                  id="storefront-field-footer_brand_note"
                   value={theme.footer_brand_note}
                   onChange={(e) => patchTheme({ footer_brand_note: e.target.value })}
                   rows={2}
@@ -795,6 +808,7 @@ export default function StorefrontBuilderClient({
                 <div>
                   <label className="block text-xs font-medium mb-1.5">Trust · support</label>
                   <input
+                    id="storefront-field-trust_line_support"
                     value={theme.trust_line_support}
                     onChange={(e) => patchTheme({ trust_line_support: e.target.value })}
                     className={inputCls()}
@@ -958,6 +972,7 @@ export default function StorefrontBuilderClient({
               <div className="sm:col-span-2">
                 <label className="block text-xs font-medium mb-1.5">Subtitle</label>
                 <textarea
+                  id="storefront-field-homepage_cta_subtitle"
                   value={theme.homepage_cta_subtitle}
                   onChange={(e) => patchTheme({ homepage_cta_subtitle: e.target.value })}
                   rows={2}

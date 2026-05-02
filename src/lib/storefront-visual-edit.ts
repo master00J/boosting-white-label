@@ -73,6 +73,51 @@ export const STOREFRONT_VISUAL_EDIT_MAP: Record<string, { section: string; field
 
   homepage_cta_title: { section: "cta", fieldId: "storefront-field-homepage_cta_title" },
   homepage_cta_primary_label: { section: "cta", fieldId: "storefront-field-homepage_cta_primary_label" },
+  homepage_cta_subtitle: { section: "cta", fieldId: "storefront-field-homepage_cta_subtitle" },
+
+  homepage_reviews_section_label: {
+    section: "headings",
+    fieldId: "storefront-field-homepage_reviews_section_label",
+  },
+  homepage_reviews_section_title: {
+    section: "headings",
+    fieldId: "storefront-field-homepage_reviews_section_title",
+  },
+  homepage_team_section_label: {
+    section: "headings",
+    fieldId: "storefront-field-homepage_team_section_label",
+  },
+  homepage_team_section_title: {
+    section: "headings",
+    fieldId: "storefront-field-homepage_team_section_title",
+  },
+  homepage_team_section_subtitle: {
+    section: "headings",
+    fieldId: "storefront-field-homepage_team_section_subtitle",
+  },
+  homepage_process_section_label: {
+    section: "headings",
+    fieldId: "storefront-field-homepage_process_section_label",
+  },
+  homepage_process_section_title: {
+    section: "headings",
+    fieldId: "storefront-field-homepage_process_section_title",
+  },
+  homepage_process_section_subtitle: {
+    section: "headings",
+    fieldId: "storefront-field-homepage_process_section_subtitle",
+  },
+  homepage_faq_section_label: {
+    section: "headings",
+    fieldId: "storefront-field-homepage_faq_section_label",
+  },
+  homepage_faq_section_title: {
+    section: "headings",
+    fieldId: "storefront-field-homepage_faq_section_title",
+  },
+
+  trust_line_support: { section: "footer", fieldId: "storefront-field-trust_line_support" },
+  footer_brand_note: { section: "footer", fieldId: "storefront-field-footer_brand_note" },
 };
 
 export function resolveStorefrontVisualPick(pick: string): { section: string; fieldId: string } | null {

@@ -5,6 +5,7 @@ import { QueryProvider } from "./query-provider";
 import { AuthProvider } from "./auth-provider";
 import { ThemeProvider } from "./theme-provider";
 import ThemePreviewBanner from "./theme-preview-banner";
+import StorefrontBuilderPickCapture from "@/components/storefront/storefront-builder-pick-capture";
 import { CartProvider } from "./cart-provider";
 import { NotificationProvider } from "./notification-provider";
 import { Toaster } from "sonner";
@@ -16,6 +17,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <ThemeProvider>
           <Suspense fallback={null}>
             <ThemePreviewBanner />
+            <StorefrontBuilderPickCapture />
           </Suspense>
           <CartProvider>
             <NotificationProvider>

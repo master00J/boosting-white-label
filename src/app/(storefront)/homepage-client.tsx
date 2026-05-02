@@ -17,6 +17,8 @@ import {
   useHomepageServiceCategories,
   useHomepageFaq,
 } from "@/components/providers/theme-provider";
+import { useStorefrontBuilderPickMode } from "@/hooks/use-storefront-builder-pick-mode";
+import { storefrontPickProps } from "@/lib/storefront-pick-props";
 
 const FALLBACK_CTA_BULLETS = [
   "Booster assigned within 1 hour",
@@ -34,6 +36,7 @@ function HeroBackground({
   overlayOpacity?: number;
   primaryColor?: string;
 }) {
+  const pickOn = useStorefrontBuilderPickMode();
   return (
     <div className="absolute inset-0 z-0 overflow-hidden">
       {/* Background image */}
@@ -41,6 +44,7 @@ function HeroBackground({
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: `url(${imageUrl})` }}
+          {...storefrontPickProps("hero_bg_url", pickOn)}
         />
       ) : (
         /* Fallback: dark orange gradient */
@@ -50,6 +54,7 @@ function HeroBackground({
             background:
               "radial-gradient(ellipse at 60% 40%, #1E0E04 0%, #0C0906 70%)",
           }}
+          {...storefrontPickProps("hero_bg_url", pickOn)}
         />
       )}
 
@@ -74,6 +79,15 @@ function HeroBackground({
 
       {/* Onderste vervaging naar pagina-achtergrond */}
       <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-[var(--bg-primary)] to-transparent pointer-events-none" />
+
+      {/* Builder iframe: onderste deel van de hero = overlay-intensiteit (bovenkleur blijft hero_bg_url). */}
+      {pickOn ? (
+        <div
+          className="absolute inset-x-0 bottom-0 h-[32%] z-[2]"
+          aria-hidden
+          {...storefrontPickProps("hero_bg_overlay", pickOn)}
+        />
+      ) : null}
     </div>
   );
 }
@@ -309,7 +323,17 @@ function ReviewCard({ review, index }: { review: Review; index: number }) {
   );
 }
 
-function FaqItem({ question, answer, index }: { question: string; answer: string; index: number }) {
+function FaqItem({
+  question,
+  answer,
+  index,
+  pickEnabled,
+}: {
+  question: string;
+  answer: string;
+  index: number;
+  pickEnabled: boolean;
+}) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -321,6 +345,7 @@ function FaqItem({ question, answer, index }: { question: string; answer: string
             ? "border-[color-mix(in_srgb,var(--color-primary)_32%,transparent)] bg-[color-mix(in_srgb,var(--color-primary)_6%,transparent)]"
             : "border-[var(--border-default)] hover:border-[color-mix(in_srgb,var(--color-primary)_22%,transparent)]"
         )}
+        {...storefrontPickProps(`faq_item:${index}`, pickEnabled)}
       >
         <button
           type="button"
@@ -370,9 +395,20 @@ function FaqItem({ question, answer, index }: { question: string; answer: string
 }
 
 /* ─── Section Label ─── */
-function SectionLabel({ children }: { children: React.ReactNode }) {
+function SectionLabel({
+  children,
+  pick,
+  pickEnabled,
+}: {
+  children: React.ReactNode;
+  pick?: string;
+  pickEnabled: boolean;
+}) {
   return (
-    <div className="inline-flex items-center gap-2 mb-3">
+    <div
+      className="inline-flex items-center gap-2 mb-3"
+      {...storefrontPickProps(pick ?? "", pickEnabled && !!pick)}
+    >
       <span className="w-4 h-px bg-[var(--color-primary)]" />
       <p className="text-[10px] font-bold text-[var(--color-primary)] uppercase tracking-[0.22em]">{children}</p>
     </div>
@@ -406,6 +442,7 @@ export default function HomepageClient({
   heroMobileLogoOnly?: boolean;
 }) {
   const theme = useTheme();
+  const pickOn = useStorefrontBuilderPickMode();
   const trustFeatures = useHomepageTrustFeatures();
   const howItWorks = useHomepageHowItWorks();
   const serviceCategories = useHomepageServiceCategories();
@@ -485,6 +522,7 @@ export default function HomepageClient({
           {stats.completed_orders > 0 && (
             <div
               className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full backdrop-blur-sm mb-5 border"
+              {...storefrontPickProps("success_color", pickOn)}
               style={{
                 backgroundColor: `color-mix(in srgb, ${theme.primary_color} 15%, transparent)`,
                 borderColor: `color-mix(in srgb, ${theme.primary_color} 35%, transparent)`,
@@ -499,20 +537,26 @@ export default function HomepageClient({
 
           {/* Headline */}
           <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-bold text-white max-w-4xl leading-[1.1] tracking-tight">
-            {theme.hero_headline_before}{" "}
+            <span {...storefrontPickProps("hero_headline_before", pickOn)}>{theme.hero_headline_before}</span>{" "}
             <span
               className="text-transparent bg-clip-text"
               style={{
                 backgroundImage: `linear-gradient(135deg, ${theme.primary_color} 0%, ${theme.accent_color} 50%, ${theme.accent_color} 100%)`,
               }}
+              {...storefrontPickProps("hero_headline_highlight", pickOn)}
             >
               {theme.hero_headline_highlight}
             </span>{" "}
-            {theme.hero_headline_after}
+            <span {...storefrontPickProps("hero_headline_after", pickOn)}>{theme.hero_headline_after}</span>
           </h1>
 
           {/* Subtitle */}
-          <p className="mt-5 text-base sm:text-lg text-white/65 max-w-lg leading-relaxed">{theme.hero_subtitle}</p>
+          <p
+            className="mt-5 text-base sm:text-lg text-white/65 max-w-lg leading-relaxed"
+            {...storefrontPickProps("hero_subtitle", pickOn)}
+          >
+            {theme.hero_subtitle}
+          </p>
 
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row items-center gap-3 mt-8">
@@ -523,6 +567,7 @@ export default function HomepageClient({
                 background: `linear-gradient(135deg, ${theme.primary_color}, ${theme.secondary_color})`,
                 boxShadow: `0 12px 40px color-mix(in srgb, ${theme.primary_color} 28%, transparent)`,
               }}
+              {...storefrontPickProps("hero_primary_cta_label", pickOn)}
             >
               {theme.hero_primary_cta_label}
               <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
@@ -530,6 +575,7 @@ export default function HomepageClient({
             <Link
               href={theme.hero_secondary_cta_href}
               className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl font-semibold text-white/85 bg-white/[0.08] backdrop-blur border border-white/[0.15] hover:bg-white/[0.13] hover:text-white transition-all duration-300"
+              {...storefrontPickProps("hero_secondary_cta_label", pickOn)}
             >
               {theme.hero_secondary_cta_label}
             </Link>
@@ -539,13 +585,15 @@ export default function HomepageClient({
           <div className="flex flex-wrap justify-center items-center gap-4 mt-6 text-xs text-white/55">
             {stats.completed_orders > 0 && (
               <>
-                <span>{stats.completed_orders.toLocaleString()}+ orders</span>
+                <span {...storefrontPickProps("success_color", pickOn)}>
+                  {stats.completed_orders.toLocaleString()}+ orders
+                </span>
                 <span className="w-px h-3 bg-white/20" />
               </>
             )}
             {stats.review_count > 0 && (
               <>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1" {...storefrontPickProps("success_color", pickOn)}>
                   <Star className="h-3 w-3 fill-[var(--color-accent)] text-[var(--color-accent)]" />
                   <span>
                     {stats.avg_rating.toFixed(1)} from {stats.review_count.toLocaleString()} reviews
@@ -554,7 +602,7 @@ export default function HomepageClient({
                 <span className="w-px h-3 bg-white/20" />
               </>
             )}
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5" {...storefrontPickProps("hero_trust_guarantee_label", pickOn)}>
               <Check className="h-3 w-3 text-emerald-400" />
               <span>{theme.hero_trust_guarantee_label}</span>
             </div>
@@ -588,7 +636,12 @@ export default function HomepageClient({
                   >
                     {s.value}
                   </p>
-                  <p className="text-xs text-[var(--text-muted)] mt-1">{s.label}</p>
+                  <p
+                    className="text-xs text-[var(--text-muted)] mt-1"
+                    {...storefrontPickProps(s.label === "Avg. start time" ? "trust_line_start" : "", pickOn)}
+                  >
+                    {s.label}
+                  </p>
                 </div>
               ))}
             </div>
@@ -600,8 +653,13 @@ export default function HomepageClient({
       <section className="py-24 px-4">
         <div className="max-w-7xl mx-auto">
           <Reveal>
-            <SectionLabel>{theme.homepage_services_section_label}</SectionLabel>
-            <h2 className="font-heading text-3xl sm:text-4xl font-bold text-white mb-12">
+            <SectionLabel pickEnabled={pickOn} pick="homepage_services_section_label">
+              {theme.homepage_services_section_label}
+            </SectionLabel>
+            <h2
+              className="font-heading text-3xl sm:text-4xl font-bold text-white mb-12"
+              {...storefrontPickProps("homepage_services_section_title", pickOn)}
+            >
               {theme.homepage_services_section_title}
             </h2>
           </Reveal>
@@ -611,6 +669,7 @@ export default function HomepageClient({
                 <Link
                   href={cat.href}
                   className="group relative flex flex-col gap-5 p-7 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] hover:border-[color-mix(in_srgb,var(--color-primary)_40%,transparent)] hover:-translate-y-1 transition-all duration-300 overflow-hidden"
+                  {...storefrontPickProps(`service_tile:${i}`, pickOn)}
                 >
                   {/* Background hover glow */}
                   <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
@@ -673,8 +732,13 @@ export default function HomepageClient({
           <Reveal>
             <div className="flex items-end justify-between mb-12">
               <div>
-                <SectionLabel>{theme.homepage_catalog_section_label}</SectionLabel>
-                <h2 className="font-heading text-3xl sm:text-4xl font-bold text-white">
+                <SectionLabel pickEnabled={pickOn} pick="homepage_catalog_section_label">
+                  {theme.homepage_catalog_section_label}
+                </SectionLabel>
+                <h2
+                  className="font-heading text-3xl sm:text-4xl font-bold text-white"
+                  {...storefrontPickProps("homepage_catalog_section_title", pickOn)}
+                >
                   {theme.homepage_catalog_section_title}
                 </h2>
               </div>
@@ -716,15 +780,23 @@ export default function HomepageClient({
       <section className="py-24 px-4">
         <div className="max-w-7xl mx-auto">
           <Reveal>
-            <SectionLabel>{theme.homepage_why_section_label}</SectionLabel>
-            <h2 className="font-heading text-3xl sm:text-4xl font-bold text-white mb-12">
+            <SectionLabel pickEnabled={pickOn} pick="homepage_why_section_label">
+              {theme.homepage_why_section_label}
+            </SectionLabel>
+            <h2
+              className="font-heading text-3xl sm:text-4xl font-bold text-white mb-12"
+              {...storefrontPickProps("homepage_why_section_title", pickOn)}
+            >
               {theme.homepage_why_section_title}
             </h2>
           </Reveal>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             {trustFeatures.map((feature, i) => (
               <Reveal key={feature.title} delay={i * 80}>
-                <div className="group flex items-start gap-5 p-6 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] hover:border-[color-mix(in_srgb,var(--color-primary)_35%,transparent)] hover:-translate-y-0.5 transition-all duration-300">
+                <div
+                  className="group flex items-start gap-5 p-6 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] hover:border-[color-mix(in_srgb,var(--color-primary)_35%,transparent)] hover:-translate-y-0.5 transition-all duration-300"
+                  {...storefrontPickProps(`trust_feature:${i}`, pickOn)}
+                >
                   {/* OSRS icon with number badge */}
                   <div className="flex-shrink-0 relative">
                     <div
@@ -779,8 +851,13 @@ export default function HomepageClient({
             <Reveal>
               <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-12 gap-4">
                 <div>
-                  <SectionLabel>{theme.homepage_reviews_section_label}</SectionLabel>
-                  <h2 className="font-heading text-3xl sm:text-4xl font-bold text-white">
+                  <SectionLabel pickEnabled={pickOn} pick="homepage_reviews_section_label">
+                    {theme.homepage_reviews_section_label}
+                  </SectionLabel>
+                  <h2
+                    className="font-heading text-3xl sm:text-4xl font-bold text-white"
+                    {...storefrontPickProps("homepage_reviews_section_title", pickOn)}
+                  >
                     {theme.homepage_reviews_section_title}
                   </h2>
                 </div>
@@ -832,11 +909,19 @@ export default function HomepageClient({
                   style={{ background: `radial-gradient(circle, ${theme.primary_color}, transparent 70%)` }}
                 />
                 <div className="relative">
-                  <SectionLabel>{theme.homepage_team_section_label}</SectionLabel>
-                  <h2 className="font-heading text-2xl sm:text-3xl font-bold text-white mb-1">
+                  <SectionLabel pickEnabled={pickOn} pick="homepage_team_section_label">
+                    {theme.homepage_team_section_label}
+                  </SectionLabel>
+                  <h2
+                    className="font-heading text-2xl sm:text-3xl font-bold text-white mb-1"
+                    {...storefrontPickProps("homepage_team_section_title", pickOn)}
+                  >
                     {theme.homepage_team_section_title}
                   </h2>
-                  <p className="text-[var(--text-secondary)] text-sm sm:text-base max-w-xl mb-8">
+                  <p
+                    className="text-[var(--text-secondary)] text-sm sm:text-base max-w-xl mb-8"
+                    {...storefrontPickProps("homepage_team_section_subtitle", pickOn)}
+                  >
                     {theme.homepage_team_section_subtitle}
                   </p>
                   <div className="flex flex-wrap items-center gap-4">
@@ -900,11 +985,19 @@ export default function HomepageClient({
         <div className="relative max-w-5xl mx-auto">
           <Reveal>
             <div className="mb-16 text-center">
-              <SectionLabel>{theme.homepage_process_section_label}</SectionLabel>
-              <h2 className="font-heading text-3xl sm:text-4xl font-bold text-white">
+              <SectionLabel pickEnabled={pickOn} pick="homepage_process_section_label">
+                {theme.homepage_process_section_label}
+              </SectionLabel>
+              <h2
+                className="font-heading text-3xl sm:text-4xl font-bold text-white"
+                {...storefrontPickProps("homepage_process_section_title", pickOn)}
+              >
                 {theme.homepage_process_section_title}
               </h2>
-              <p className="mt-3 text-[var(--text-secondary)] text-sm max-w-lg mx-auto">
+              <p
+                className="mt-3 text-[var(--text-secondary)] text-sm max-w-lg mx-auto"
+                {...storefrontPickProps("homepage_process_section_subtitle", pickOn)}
+              >
                 {theme.homepage_process_section_subtitle}
               </p>
             </div>
@@ -921,7 +1014,7 @@ export default function HomepageClient({
 
             {howItWorks.map((item, i) => (
                 <Reveal key={item.step ?? item.title} delay={i * 120}>
-                  <div className="flex flex-col gap-4 relative">
+                  <div className="flex flex-col gap-4 relative" {...storefrontPickProps(`how_step:${i}`, pickOn)}>
                     {/* Step circle with OSRS icon */}
                     <div
                       className="relative z-10 w-11 h-11 rounded-full flex items-center justify-center"
@@ -963,15 +1056,26 @@ export default function HomepageClient({
         <div className="max-w-2xl mx-auto">
           <Reveal>
             <div className="mb-10">
-              <SectionLabel>{theme.homepage_faq_section_label}</SectionLabel>
-              <h2 className="font-heading text-3xl sm:text-4xl font-bold text-white">
+              <SectionLabel pickEnabled={pickOn} pick="homepage_faq_section_label">
+                {theme.homepage_faq_section_label}
+              </SectionLabel>
+              <h2
+                className="font-heading text-3xl sm:text-4xl font-bold text-white"
+                {...storefrontPickProps("homepage_faq_section_title", pickOn)}
+              >
                 {theme.homepage_faq_section_title}
               </h2>
             </div>
           </Reveal>
           <div className="space-y-2">
             {faqItems.map((item, i) => (
-              <FaqItem key={item.question} question={item.question} answer={item.answer} index={i} />
+              <FaqItem
+                key={item.question}
+                question={item.question}
+                answer={item.answer}
+                index={i}
+                pickEnabled={pickOn}
+              />
             ))}
           </div>
           <Reveal delay={300}>
@@ -1025,10 +1129,16 @@ export default function HomepageClient({
 
               <div className="relative p-10 sm:p-14 flex flex-col sm:flex-row items-center gap-10">
                 <div className="flex-1 text-center sm:text-left">
-                  <h2 className="font-heading text-3xl sm:text-4xl font-bold text-white mb-3">
+                  <h2
+                    className="font-heading text-3xl sm:text-4xl font-bold text-white mb-3"
+                    {...storefrontPickProps("homepage_cta_title", pickOn)}
+                  >
                     {theme.homepage_cta_title}
                   </h2>
-                  <p className="text-[var(--text-secondary)] mb-8 text-base leading-relaxed max-w-lg">
+                  <p
+                    className="text-[var(--text-secondary)] mb-8 text-base leading-relaxed max-w-lg"
+                    {...storefrontPickProps("homepage_cta_subtitle", pickOn)}
+                  >
                     {theme.homepage_cta_subtitle}
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 items-center sm:items-start">
@@ -1039,6 +1149,7 @@ export default function HomepageClient({
                         background: `linear-gradient(135deg, ${theme.primary_color}, ${theme.secondary_color})`,
                         boxShadow: `0 16px 48px color-mix(in srgb, ${theme.primary_color} 28%, transparent)`,
                       }}
+                      {...storefrontPickProps("homepage_cta_primary_label", pickOn)}
                     >
                       {theme.homepage_cta_primary_label}
                       <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
