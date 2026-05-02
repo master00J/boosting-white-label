@@ -207,11 +207,15 @@ export default function ServiceFormBuilder({ formConfig, priceMatrix, onChange, 
         )}
       </BuilderSection>
 
-      {pricingType !== "boss_tiered" && pricingType !== "per_item_stat_based" && pricingType !== "gold_tiered" && (
+      {pricingType !== "per_item_stat_based" && pricingType !== "gold_tiered" && (
         <BuilderSection
           step="3"
           title="Extra modifiers"
-          description="Add optional form fields that adjust pricing or capture extra customer choices."
+          description={
+            pricingType === "boss_tiered"
+              ? "Optional storefront fields that stack with boss matrix modifiers (Boss options). Use for extras that are not tied to a single boss row."
+              : "Add optional form fields that adjust pricing or capture extra customer choices."
+          }
         >
           <ModifiersConfig fields={fields} onChange={handleFieldsChange} />
         </BuilderSection>

@@ -106,6 +106,17 @@ export default function ServiceConfigurator({ service, game, categorySlug }: Ser
   const perItemStatMatrix = priceMatrix?.type === "per_item_stat_based" ? (priceMatrix as PerItemStatBasedPriceMatrix) : null;
   const bossTieredMatrix = priceMatrix?.type === "boss_tiered" ? (priceMatrix as BossTieredPriceMatrix) : null;
   const goldMatrix = priceMatrix?.type === "gold_tiered" ? (priceMatrix as GoldTieredPriceMatrix) : null;
+  /** Form fields shown on storefront (excludes inline-handled types). Boss tiered used to hide these entirely. */
+  const storefrontModifierFields = useMemo(() => {
+    const fields = formConfig?.fields;
+    if (!fields?.length) return [];
+    return fields.filter((f) => {
+      if (f.type === "skill_range" || f.id === "training_method") return false;
+      if (priceMatrix?.type === "xp_based") return false;
+      if (priceMatrix?.type === "per_item_stat_based") return false;
+      return true;
+    });
+  }, [formConfig, priceMatrix]);
   const skills = useMemo(() => xpMatrix?.skills ?? [], [xpMatrix]);
   const isXpBased = priceMatrix?.type === "xp_based";
 
@@ -520,7 +531,14 @@ export default function ServiceConfigurator({ service, game, categorySlug }: Ser
       const bm = priceMatrix as BossTieredPriceMatrix;
       const hasBoss = bm.bosses.length === 0 || (!!selections["boss"] && selections["boss"] !== "");
       const kills = Number(selections["kills"] ?? 0);
-      return hasBoss && kills >= (bm.minimum_kills ?? 1);
+      if (!hasBoss || kills < (bm.minimum_kills ?? 1)) return false;
+      return formConfig.fields
+        .filter((f) => f.required)
+        .every((f) => {
+          const val = selections[f.id];
+          if (f.type === "multi_select") return Array.isArray(val) && (val as unknown as string[]).length > 0;
+          return val !== undefined && val !== "" && val !== false;
+        });
     }
     if (priceMatrix?.type === "gold_tiered") {
       const gm = priceMatrix as GoldTieredPriceMatrix;
@@ -586,6 +604,10 @@ export default function ServiceConfigurator({ service, game, categorySlug }: Ser
       };
       for (const [k, v] of Object.entries(selections)) {
         if (k.startsWith("stat_") || k.startsWith("boss_mod_")) cfg[k] = v;
+      }
+      for (const field of formConfig?.fields ?? []) {
+        if (field.type === "skill_range" || field.id === "training_method") continue;
+        if (selections[field.id] !== undefined) cfg[field.id] = selections[field.id];
       }
       // Build human-readable labels for active upcharges (for cart/checkout display)
       if (bossTieredMatrix) {
@@ -3122,18 +3144,10 @@ export default function ServiceConfigurator({ service, game, categorySlug }: Ser
           );
         })()}
 
-        {/* ── Dynamic modifier fields ── */}
-        {formConfig?.fields
-          .filter((f) => {
-            if (f.type === "skill_range" || f.id === "training_method") return false;
-            // For xp_based: all fields are handled per-segment in the route planner
-            if (priceMatrix?.type === "xp_based") return false;
-            // For per_item_stat_based and boss_tiered: modifiers are handled inline
-            if (priceMatrix?.type === "per_item_stat_based") return false;
-            if (priceMatrix?.type === "boss_tiered") return false;
-            return true;
-          })
-          .map((field) => (
+        {/* ── Dynamic modifier fields (form_config; boss tiered includes Extra modifiers from admin step 3) ── */}
+        {(() => {
+          const bossExtraCard = priceMatrix?.type === "boss_tiered" && storefrontModifierFields.length > 0;
+          const fieldBlocks = storefrontModifierFields.map((field) => (
             <div key={field.id} id={`field-${field.id}`} className="space-y-1.5">
               {field.type !== "checkbox" && (
                 <label className="text-sm font-medium flex items-center gap-1">
@@ -3274,7 +3288,24 @@ export default function ServiceConfigurator({ service, game, categorySlug }: Ser
                 />
               )}
             </div>
-          ))}
+          ));
+
+          if (fieldBlocks.length === 0) return null;
+          if (bossExtraCard) {
+            return (
+              <div className="rounded-2xl border border-[var(--border-default)] bg-[var(--bg-card)] overflow-hidden">
+                <div className="px-4 py-3 border-b border-[var(--border-subtle)] bg-gradient-to-r from-primary/[0.06] to-transparent">
+                  <p className="text-sm font-semibold text-[var(--text-primary)]">Extra options</p>
+                  <p className="text-[11px] text-[var(--text-muted)] mt-0.5">
+                    From admin → Extra modifiers; prices combine with Boss options.
+                  </p>
+                </div>
+                <div className="p-3 space-y-4">{fieldBlocks}</div>
+              </div>
+            );
+          }
+          return <>{fieldBlocks}</>;
+        })()}
 
         {!isBossTiered && !multiMode && !perItemMultiMode && (
           <>
