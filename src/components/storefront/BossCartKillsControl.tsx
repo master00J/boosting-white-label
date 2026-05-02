@@ -27,11 +27,13 @@ async function fetchServicePricing(serviceId: string): Promise<ServicePricingSna
 
   if (error || !data) return null;
 
+  const row = data as { price_matrix: unknown; form_config: unknown };
+
   let priceMatrix: PriceMatrix;
   let formConfig: FormConfig;
   try {
-    priceMatrix = data.price_matrix as PriceMatrix;
-    const raw = data.form_config as Partial<FormConfig> | null | undefined;
+    priceMatrix = row.price_matrix as PriceMatrix;
+    const raw = row.form_config as Partial<FormConfig> | null | undefined;
     formConfig = {
       pricing_type: "boss_tiered",
       fields: raw?.fields ?? [],
