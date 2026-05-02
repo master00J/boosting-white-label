@@ -17,7 +17,7 @@ const AI_SETTING_KEYS = [
 
 /**
  * Keys injected by CodeCraft when deploying a boosting instance (Vercel env).
- * Falls back when the shop has not configured its own keys in Admin → Settings → API Keys.
+ * Falls back when the shop has not configured keys (e.g. Helpdesk → AI & Settings or hosted env).
  */
 function getHostedAIConfigFromEnv(): { provider: AIProvider; model?: string } | null {
   const apiKey = process.env.BOOST_PLATFORM_HOSTED_AI_API_KEY?.trim();

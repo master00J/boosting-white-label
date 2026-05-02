@@ -21,7 +21,9 @@ export const ADMIN_SETUP_KNOWLEDGE = `
 - **Storefront:** /admin/storefront/hero, /admin/storefront/theme
 - **Discord:** /admin/discord — channel IDs for bot notifications (new orders, worker channel, admin alerts, reviews), ticket category, roles (customer/worker/admin). Bot runs as separate Node service with SUPABASE_SERVICE_ROLE_KEY.
 - **Activity:** /admin/activity — audit-style log
-- **Settings:** /admin/settings (general), …/payments, …/currency, …/api-keys (**OpenAI + Anthropic keys + ai_provider + ai_model** for platform AI features), …/notifications, …/security, …/email, …/integrations, …/chat-agents
+- **Settings:** /admin/settings (general), …/payments, …/currency, …/notifications, …/security, …/email, …/integrations, …/chat-agents
+- **Settings → API Keys** (/admin/settings/api-keys): UI placeholder (“coming soon”) — do **not** send users there for working AI key fields.
+- **Helpdesk → AI & Settings** (/admin/helpdesk/settings): live form for **ai_api_key**, **ai_provider**, **ai_model** (ticket AI + falls back for platform AI when hosted keys are absent).
 - **Import:** /admin/import — **bulk order CSV only** (past orders into the system). **Not** for importing games, quests, or catalog data.
 - **Live chat:** /admin/chat
 - **Ranks:** /admin/ranks (super_admin only) — granular admin permissions
@@ -72,8 +74,8 @@ export const ADMIN_SETUP_KNOWLEDGE = `
 - Marketing → Lootboxes; deliveries queue for in-game item fulfilment — configure there.
 
 ## Helpdesk AI vs Setup coach
-- Helpdesk AI (/admin/helpdesk/settings) may use legacy **ai_api_key** for ticket auto-replies.
-- Setup coach prefers shop API keys when set; otherwise **hosted** env keys from the deploy.
+- **Helpdesk → AI & Settings** (/admin/helpdesk/settings) is the live UI for **ai_api_key**, **ai_provider**, **ai_model** (tickets + shared fallback for platform AI).
+- Setup coach resolves keys: shop-specific **openai_api_key** / **anthropic_api_key** in DB if present, else **legacy ai_api_key**, else **hosted** env from deploy.
 
 ## Workers / boosters
 - Applications reviewed under Workers → Applications.
@@ -92,8 +94,8 @@ export const ADMIN_SETUP_KNOWLEDGE = `
 
 ## AI configuration for THIS assistant
 - **Hosted:** Many deployments inject platform keys via server env (\`BOOST_PLATFORM_HOSTED_AI_*\`); shops do not need their own key for Setup Assistant.
-- **Optional override:** **Admin → Settings → API Keys** — openai_api_key / anthropic_api_key, ai_provider, ai_model (also used for other AI features).
-- Legacy **ai_api_key** (Helpdesk) can still act as fallback for some features.
+- **Optional override (UI):** **Helpdesk → AI & Settings** (\`/admin/helpdesk/settings\`) — **ai_api_key**, **ai_provider**, **ai_model** in \`site_settings\` (shared with ticket AI; also used as fallback for platform AI).
+- **Dedicated API Keys settings page** (\`/admin/settings/api-keys\`) is a placeholder only — tell users to use Helpdesk → AI & Settings instead until that page ships.
 - Never ask users to paste secrets into this chat.
 
 ## Security & honesty rules for answers

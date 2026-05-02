@@ -21,11 +21,11 @@ export default function AdminSetupAssistantPage() {
             <a href="/admin/guide" className="text-primary hover:underline">
               Admin Guide
             </a>
-            . Hosted shops use platform AI by default; optional own keys live under{" "}
-            <a href="/admin/settings/api-keys" className="text-primary hover:underline">
-              Settings → API Keys
-            </a>
-            .
+            . Hosted shops use platform AI by default. To bring your own provider key, use{" "}
+            <a href="/admin/helpdesk/settings" className="text-primary hover:underline">
+              Helpdesk → AI &amp; Settings
+            </a>{" "}
+            (the Settings → API Keys screen is not live yet).
           </p>
         </div>
       </div>

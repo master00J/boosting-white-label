@@ -45,7 +45,7 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           error:
-            "AI is not configured. Boosting sites deployed via CodeCraft should receive a hosted key automatically; otherwise set BOOST_PLATFORM_HOSTED_AI_* on the server or add keys under Admin → Settings → API Keys.",
+            "AI is not configured. Boosting sites deployed via CodeCraft should receive a hosted key automatically; otherwise set BOOST_PLATFORM_HOSTED_AI_* on the server or add provider + key under Helpdesk → AI & Settings.",
         },
         { status: 503 },
       );
