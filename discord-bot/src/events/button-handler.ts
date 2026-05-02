@@ -5,6 +5,8 @@ import { buildOrderEmbed, buildErrorEmbed, buildSuccessEmbed } from "../lib/embe
 import { buildProgressRow } from "../lib/buttons.js";
 import { logger } from "../lib/logger.js";
 import { resolveOrderUuidFromButtonKey } from "../lib/order-key.js";
+import { getResolvedSiteOrigin, refreshSiteOriginKeysFromDatabase } from "../services/config.js";
+import { notifyTicketWorkerClaimed } from "../services/ticket-service.js";
 
 type ClaimOrderRow = {
   id: string;
@@ -217,7 +219,6 @@ async function handleClaim(interaction: ButtonInteraction, orderKey: string): Pr
   // Calculate this booster's personalized payout based on their commission rate
   const commissionRate = workerData?.commission_rate ?? 0.70;
   const personalPayout = order.total * commissionRate;
-  const commissionPct = Math.round(commissionRate * 100);
 
   // worker_id references workers.id (not profiles.id)
   const { data: claimedOrders } = await supabase
@@ -264,9 +265,24 @@ async function handleClaim(interaction: ButtonInteraction, orderKey: string): Pr
     },
   });
 
+  let siteOrigin = getResolvedSiteOrigin();
+  if (!siteOrigin) {
+    await refreshSiteOriginKeysFromDatabase();
+    siteOrigin = getResolvedSiteOrigin();
+  }
+  if (siteOrigin) {
+    await notifyTicketWorkerClaimed(interaction.client, {
+      orderId: effectiveId,
+      orderNumber: order.order_number,
+      workerDiscordUserId: interaction.user.id,
+      workerDisplayName: worker.displayName,
+      siteOrigin,
+    });
+  }
+
   const embed = buildSuccessEmbed(
     `Order #${order.order_number} claimed!`,
-    `**Your payout:** $${personalPayout.toFixed(2)} (${commissionPct}% of $${order.total.toFixed(2)})\n\nUse \`/progress\` to update the progress.`,
+    `**Your payout:** $${personalPayout.toFixed(2)}\n\nUse \`/progress\` to update the progress.`,
   );
   const row = buildProgressRow(effectiveId);
   await interaction.editReply({ embeds: [embed], components: [row] });

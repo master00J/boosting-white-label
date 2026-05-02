@@ -4,11 +4,13 @@ import {
   PermissionFlagsBits,
   TextChannel,
   CategoryChannel,
+  EmbedBuilder,
 } from "discord.js";
 import { supabase } from "./supabase.js";
 import { getConfig } from "./config.js";
 import { logger } from "../lib/logger.js";
 import { buildOrderEmbed } from "../lib/embeds.js";
+import { COLORS } from "../lib/constants.js";
 
 type OrderData = {
   id: string;
@@ -205,6 +207,80 @@ export async function createOrderTicket(client: Client, order: OrderData): Promi
 /**
  * Sends an update message to the order's ticket channel.
  */
+/**
+ * After a worker claims an order: grant them access to the order ticket and post dashboard + tracking links.
+ */
+export async function notifyTicketWorkerClaimed(
+  client: Client,
+  params: {
+    orderId: string;
+    orderNumber: string;
+    workerDiscordUserId: string;
+    workerDisplayName: string;
+    siteOrigin: string;
+  },
+): Promise<void> {
+  const { orderId, orderNumber, workerDiscordUserId, siteOrigin } = params;
+
+  const { data: row } = await supabase
+    .from("orders")
+    .select("discord_ticket_channel_id, track_token")
+    .eq("id", orderId)
+    .maybeSingle();
+
+  const ticketId = row?.discord_ticket_channel_id as string | null | undefined;
+  if (!ticketId) {
+    logger.debug(`notifyTicketWorkerClaimed: no ticket channel for order #${orderNumber}`);
+    return;
+  }
+
+  const channel = await client.channels.fetch(ticketId).catch(() => null);
+  if (!channel?.isTextBased()) {
+    logger.warn(`notifyTicketWorkerClaimed: ticket channel ${ticketId} missing or not text`);
+    return;
+  }
+
+  const textCh = channel as TextChannel;
+
+  try {
+    await textCh.permissionOverwrites.edit(workerDiscordUserId, {
+      ViewChannel: true,
+      SendMessages: true,
+      ReadMessageHistory: true,
+      AttachFiles: true,
+    });
+  } catch (err) {
+    logger.warn(
+      `notifyTicketWorkerClaimed: could not grant ticket access to ${workerDiscordUserId} — is this user in the server?`,
+      err,
+    );
+  }
+
+  const base = siteOrigin.replace(/\/$/, "");
+  const workerUrl = `${base}/booster/orders/${orderId}`;
+  const trackTok = row?.track_token as string | null | undefined;
+  const customerUrl = trackTok
+    ? `${base}/track?token=${encodeURIComponent(trackTok)}`
+    : `${base}/orders/${orderId}`;
+
+  const embed = new EmbedBuilder()
+    .setColor(COLORS.success)
+    .setTitle(`🤝 Booster toegevoegd — #${orderNumber}`)
+    .setDescription(
+      `<@${workerDiscordUserId}> heeft deze order geclaimd en heeft nu toegang tot dit ticket.\n\n` +
+        `**🔗 Booster (dashboard)**\n${workerUrl}\n\n` +
+        `**🔗 Klant (order volgen)**\n${customerUrl}`,
+    )
+    .setFooter({ text: params.workerDisplayName })
+    .setTimestamp();
+
+  try {
+    await textCh.send({ embeds: [embed] });
+  } catch (err) {
+    logger.error(`notifyTicketWorkerClaimed: failed to send ticket message for #${orderNumber}`, err);
+  }
+}
+
 export async function sendTicketUpdate(
   client: Client,
   ticketChannelId: string,

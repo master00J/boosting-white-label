@@ -5,6 +5,8 @@ import { requireWorker } from "../lib/permissions.js";
 import { buildSuccessEmbed, buildErrorEmbed } from "../lib/embeds.js";
 import { buildProgressRow } from "../lib/buttons.js";
 import { normalizeOrderNumberKey } from "../lib/order-key.js";
+import { getResolvedSiteOrigin, refreshSiteOriginKeysFromDatabase } from "../services/config.js";
+import { notifyTicketWorkerClaimed } from "../services/ticket-service.js";
 
 /** Order row with items, service_id (tier check) and account_value (deposit check). */
 type OrderRow = {
@@ -182,9 +184,24 @@ export const claimCommand: BotCommand = {
       },
     });
 
+    let siteOrigin = getResolvedSiteOrigin();
+    if (!siteOrigin) {
+      await refreshSiteOriginKeysFromDatabase();
+      siteOrigin = getResolvedSiteOrigin();
+    }
+    if (siteOrigin) {
+      await notifyTicketWorkerClaimed(interaction.client, {
+        orderId: order.id,
+        orderNumber: order.order_number,
+        workerDiscordUserId: interaction.user.id,
+        workerDisplayName: worker.displayName,
+        siteOrigin,
+      });
+    }
+
     const embed = buildSuccessEmbed(
       `Order ${orderNumber} geclaimd!`,
-      `Je payout is $${workerPayout.toFixed(2)} (${Math.round(commissionRate * 100)}%). Gebruik \`/progress ${orderNumber} <percentage>\` om de voortgang bij te werken.`,
+      `Je payout is $${workerPayout.toFixed(2)}. Gebruik \`/progress ${orderNumber} <percentage>\` om de voortgang bij te werken.`,
     );
     const row = buildProgressRow(order.id);
     await interaction.editReply({ embeds: [embed], components: [row] });
