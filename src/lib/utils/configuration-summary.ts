@@ -21,14 +21,18 @@ export function formatConfigurationSummary(config: Record<string, unknown>): str
   // Boss tiered: boss + kills + any active upcharge labels
   const boss = config.boss as string | undefined;
   const kills = config.kills as number | undefined;
+  const bossLabelStored = config.boss_label as string | undefined;
+  const unitLabelStored = (config.unit_label as string | undefined) ?? "kills";
   const bossModLabels = config._mod_labels as Record<string, string> | undefined;
   const bossModSummary = bossModLabels ? Object.values(bossModLabels).join(", ") : "";
-  if (boss != null && kills != null) {
-    const bossLabel = String(boss).replace(/^([a-z])/, (_, c: string) => c.toUpperCase());
-    const base = `${bossLabel} · ${kills} kills`;
+  if (boss != null && boss !== "" && kills != null) {
+    const bossLabel =
+      bossLabelStored?.trim()
+      ?? String(boss).replace(/^([a-z])/, (_, c: string) => c.toUpperCase());
+    const base = `${bossLabel} · ${kills} ${unitLabelStored}`;
     return bossModSummary ? `${base} · ${bossModSummary}` : base;
   }
-  if (boss) return String(boss).replace(/^([a-z])/, (_, c: string) => c.toUpperCase());
+  if (boss && boss !== "") return String(boss).replace(/^([a-z])/, (_, c: string) => c.toUpperCase());
 
   // Per-unit quantity
   const quantity = config.quantity as number | undefined;

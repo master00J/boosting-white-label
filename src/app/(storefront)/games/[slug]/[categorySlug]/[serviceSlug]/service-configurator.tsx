@@ -553,8 +553,10 @@ export default function ServiceConfigurator({ service, game, categorySlug }: Ser
       }
       // Build human-readable labels for active upcharges (for cart/checkout display)
       if (bossTieredMatrix) {
+        cfg.unit_label = bossTieredMatrix.unit_label ?? "kills";
         const selectedBossId = selections["boss"] as string | undefined;
         const selectedBoss = bossTieredMatrix.bosses.find((b) => b.id === selectedBossId);
+        if (selectedBoss) cfg.boss_label = selectedBoss.label;
         const mods = (selectedBoss?.modifiers?.length ? selectedBoss.modifiers : bossTieredMatrix.modifiers) ?? [];
         const modLabels: Record<string, string> = {};
         for (const field of mods) {
@@ -660,6 +662,17 @@ export default function ServiceConfigurator({ service, game, categorySlug }: Ser
       ? perItemStatMatrix.packages.find((p) => p.id === packageId)?.label
       : null;
 
+    let bossLineSuffix = "";
+    if (priceMatrix?.type === "boss_tiered" && bossTieredMatrix) {
+      const bid = selections["boss"] as string | undefined;
+      const b = bid ? bossTieredMatrix.bosses.find((x) => x.id === bid) : undefined;
+      if (b) {
+        const k = Math.max(1, Number(selections["kills"] ?? bossTieredMatrix.minimum_kills ?? 1));
+        const ul = bossTieredMatrix.unit_label ?? "kills";
+        bossLineSuffix = ` — ${b.label} · ${k} ${ul}`;
+      }
+    }
+
     let lineImageUrl: string | null = null;
     const pm = priceMatrix;
     if (pm?.type === "per_item_stat_based" && perItemStatMatrix) {
@@ -701,6 +714,7 @@ export default function ServiceConfigurator({ service, game, categorySlug }: Ser
       ...(categorySlug && { categorySlug }),
       serviceName:
         service.name +
+        bossLineSuffix +
         (packageLabel ? ` — ${packageLabel}` : skillLabel && skills.length > 1 ? ` — ${skillLabel}` : "") +
         routeLabel,
       serviceSlug: service.slug,
@@ -742,6 +756,20 @@ export default function ServiceConfigurator({ service, game, categorySlug }: Ser
     // Reset quest selection so the customer can immediately pick another
     if (priceMatrix?.type === "per_item_stat_based") {
       setSelections((prev) => ({ ...prev, item: "" }));
+    }
+    // Bossing: each cart line is one boss × kills — clear boss so the customer can add another line
+    if (priceMatrix?.type === "boss_tiered" && bossTieredMatrix) {
+      setSelections((prev) => {
+        const next: Selections = {
+          ...prev,
+          boss: "",
+          kills: bossTieredMatrix.minimum_kills ?? 1,
+        };
+        for (const k of Object.keys(next)) {
+          if (k.startsWith("boss_mod_")) delete next[k];
+        }
+        return next;
+      });
     }
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
@@ -1199,6 +1227,11 @@ export default function ServiceConfigurator({ service, game, categorySlug }: Ser
 
       {/* Actions */}
       <div className="px-5 py-4 space-y-2.5">
+        {isBossTiered && !editItemId && (
+          <p className="text-[11px] text-[var(--text-muted)] leading-relaxed rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-elevated)]/40 px-3 py-2">
+            Add multiple bosses: each add creates a separate cart line. After adding, pick your next boss below.
+          </p>
+        )}
         <button
           onClick={handleBuyNow}
           className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-primary text-white font-bold hover:bg-primary/90 transition-all shadow-lg shadow-primary/25 hover:shadow-primary/40 hover:-translate-y-0.5 active:translate-y-0"
@@ -1220,6 +1253,8 @@ export default function ServiceConfigurator({ service, game, categorySlug }: Ser
             ? "Added to cart!"
             : editItemId
             ? "Update in cart"
+            : isBossTiered
+            ? "Add boss line to cart"
             : skills.length > 1
             ? `Add ${currentSkill?.label ?? "skill"} to cart`
             : "Add to cart"}
@@ -2621,6 +2656,63 @@ export default function ServiceConfigurator({ service, game, categorySlug }: Ser
                       {bossTieredMatrix.bosses.length} option{bossTieredMatrix.bosses.length !== 1 ? "s" : ""}
                     </span>
                   </div>
+
+                  {/* Quantity — directly under header so it stays visible above the scrollable boss list */}
+                  <div className="px-4 py-3 border-b border-[var(--border-subtle)] bg-[var(--bg-elevated)]/25 space-y-2">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
+                      <div className="space-y-1.5 min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <label className="text-sm font-medium">Number of {unitLabel}</label>
+                          {selectedBoss && activeTier && (
+                            <span className="text-xs text-[var(--text-muted)] shrink-0">
+                              {formatUSD(activeTier.price_per_kill)}/{unitLabel.replace(/s$/, "")}
+                              {killTiers.length > 1 && (
+                                <span className="ml-1 text-primary">
+                                  ({activeTier.min_kills}–{activeTier.max_kills === 999999 ? "∞" : activeTier.max_kills} {unitLabel})
+                                </span>
+                              )}
+                            </span>
+                          )}
+                        </div>
+                        <ClearableNumberInput
+                          value={kills}
+                          min={bossTieredMatrix.minimum_kills ?? 1}
+                          max={bossTieredMatrix.maximum_kills ?? 10000}
+                          onChange={(v) => set("kills", v)}
+                          className="w-full max-w-[200px] h-10 rounded-lg border border-[var(--border-default)] bg-[var(--bg-card)] px-3 text-sm focus:outline-none focus:border-primary transition-colors"
+                        />
+                      </div>
+                      {!selectedBoss ? (
+                        <p className="text-[11px] text-[var(--text-muted)] sm:max-w-[220px] sm:text-right sm:pb-0.5">
+                          Pick a boss below — pricing tiers apply per boss.
+                        </p>
+                      ) : (
+                        <p className="text-[11px] text-[var(--text-muted)] sm:max-w-[240px] sm:text-right sm:pb-0.5">
+                          <span className="font-medium text-[var(--text-secondary)]">{selectedBoss.label}</span>
+                          {" · "}adjust quantity anytime; tier rates update automatically.
+                        </p>
+                      )}
+                    </div>
+                    {killTiers.length > 1 && selectedBoss && (
+                      <div className="flex gap-2 flex-wrap pt-0.5">
+                        {killTiers.map((tier, i) => {
+                          const isActiveTier = kills >= tier.min_kills && kills <= tier.max_kills;
+                          return (
+                            <span key={i} className={cn(
+                              "text-[10px] px-2 py-0.5 rounded-full border transition-colors",
+                              isActiveTier
+                                ? "border-primary bg-primary/10 text-primary font-semibold"
+                                : "border-[var(--border-default)] text-[var(--text-muted)]"
+                            )}>
+                              {tier.min_kills}–{tier.max_kills === 999999 ? "∞" : tier.max_kills}: {formatUSD(tier.price_per_kill)}/{unitLabel.replace(/s$/, "")}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="max-h-[min(440px,52vh)] overflow-y-auto overscroll-y-contain [scrollbar-gutter:stable]">
                   <div className="grid grid-cols-2 gap-3 p-3">
                     {bossTieredMatrix.bosses.map((boss) => {
                       const isActive = selectedBossId === boss.id;
@@ -2633,12 +2725,18 @@ export default function ServiceConfigurator({ service, game, categorySlug }: Ser
                             for (const stat of newStats) {
                               statPrefills[`stat_${stat.id}`] = stat.max;
                             }
-                            setSelections((prev) => ({
-                              ...prev,
-                              boss: boss.id,
-                              kills: bossTieredMatrix.minimum_kills ?? 1,
-                              ...statPrefills,
-                            }));
+                            setSelections((prev) => {
+                              const next: Selections = { ...prev };
+                              for (const k of Object.keys(next)) {
+                                if (k.startsWith("boss_mod_")) delete next[k];
+                              }
+                              return {
+                                ...next,
+                                boss: boss.id,
+                                kills: bossTieredMatrix.minimum_kills ?? 1,
+                                ...statPrefills,
+                              };
+                            });
                           }}
                           className={cn(
                             "relative rounded-2xl border text-left transition-all duration-200 overflow-hidden group",
@@ -2715,50 +2813,9 @@ export default function ServiceConfigurator({ service, game, categorySlug }: Ser
                       );
                     })}
                   </div>
+                  </div>
                 </div>
               )}
-
-              {/* Kill count input */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium">Number of {unitLabel}</label>
-                  {activeTier && (
-                    <span className="text-xs text-[var(--text-muted)]">
-                      {formatUSD(activeTier.price_per_kill)}/{unitLabel.replace(/s$/, "")}
-                      {killTiers.length > 1 && (
-                        <span className="ml-1 text-primary">
-                          ({activeTier.min_kills}–{activeTier.max_kills === 999999 ? "∞" : activeTier.max_kills} {unitLabel})
-                        </span>
-                      )}
-                    </span>
-                  )}
-                </div>
-                <ClearableNumberInput
-                  value={kills}
-                  min={bossTieredMatrix.minimum_kills ?? 1}
-                  max={bossTieredMatrix.maximum_kills ?? 10000}
-                  onChange={(v) => set("kills", v)}
-                  className="w-full h-10 rounded-lg border border-[var(--border-default)] bg-[var(--bg-elevated)] px-3 text-sm focus:outline-none focus:border-primary transition-colors"
-                />
-                {/* Kill tier badges */}
-                {killTiers.length > 1 && (
-                  <div className="flex gap-2 flex-wrap mt-1">
-                    {killTiers.map((tier, i) => {
-                      const isActiveTier = kills >= tier.min_kills && kills <= tier.max_kills;
-                      return (
-                        <span key={i} className={cn(
-                          "text-[10px] px-2 py-0.5 rounded-full border transition-colors",
-                          isActiveTier
-                            ? "border-primary bg-primary/10 text-primary font-semibold"
-                            : "border-[var(--border-default)] text-[var(--text-muted)]"
-                        )}>
-                          {tier.min_kills}–{tier.max_kills === 999999 ? "∞" : tier.max_kills}: {formatUSD(tier.price_per_kill)}/{unitLabel.replace(/s$/, "")}
-                        </span>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
 
               {/* Stats (combat level etc.) */}
               {activeStats.length > 0 && !selectedLoadoutId && (
