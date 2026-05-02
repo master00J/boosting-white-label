@@ -1,5 +1,10 @@
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { FormConfig } from "@/types/service-config";
+import type {
+  BossTieredPriceMatrix,
+  FormConfig,
+  PerItemStatBasedPriceMatrix,
+  XpBasedPriceMatrix,
+} from "@/types/service-config";
 
 type CatalogAdmin = ReturnType<typeof createAdminClient>;
 
