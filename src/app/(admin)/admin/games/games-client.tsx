@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -123,6 +123,21 @@ export default function GamesClient({ initialGames }: { initialGames: Game[] }) 
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  /** RSC snapshot can be stale after DB changes outside the app; always reconcile with API. */
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/admin/games", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: unknown) => {
+        if (cancelled || !Array.isArray(data)) return;
+        setGames(data as Game[]);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleCreate = async (data: Partial<Game>) => {
     setError(null);

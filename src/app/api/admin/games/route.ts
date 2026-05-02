@@ -34,7 +34,9 @@ export async function GET() {
 
   const { data, error } = await admin.from("games").select("*").order("sort_order");
   if (error) return NextResponse.json({ error: "Database query failed" }, { status: 500 });
-  return NextResponse.json(data);
+  return NextResponse.json(data, {
+    headers: { "Cache-Control": "private, no-store, max-age=0, must-revalidate" },
+  });
 }
 
 export async function POST(request: Request) {
