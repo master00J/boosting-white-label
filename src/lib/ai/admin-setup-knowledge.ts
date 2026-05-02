@@ -5,8 +5,9 @@
 export const ADMIN_SETUP_KNOWLEDGE = `
 # BoostPlatform — Admin & setup reference (instance)
 
-## Core URLs (relative to your shop domain)
-- Always give links as **paths** like \`/admin/games\` — customers open them on **their own shop hostname**. Do not make up \`https://...\` URLs.
+## Core URLs
+- The assistant receives the shop's **canonical base URL** at runtime when known (from Site URL, custom domain, or deploy env). When present, answers should use **full https links** (\`base + /admin/...\`). Otherwise use paths only.
+- Do not invent hostnames; use only the provided base or path-only fallback.
 - **Admin panel:** /admin/dashboard (overview KPIs)
 - **Static admin guide (human-readable):** /admin/guide — long-form documentation; use it together with this assistant.
 - **Staff orders:** /admin/orders — filter, split (multi-item), release to queue, confirm gold, assign workers, refunds.

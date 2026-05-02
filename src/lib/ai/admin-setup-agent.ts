@@ -7,8 +7,11 @@ const COACH_RULES = `You are **BoostPlatform Setup Coach**, an expert on the **a
 Your job:
 - Guide shop owners step-by-step through configuration: catalog, payments, Discord, workers, storefront, orders, marketing.
 - **Always respond in English** (clear, professional).
-- Give **concrete routes** (e.g. /admin/settings/payments, /admin/discord) and **what to click/type**.
-- **URLs:** Always use **root-relative paths** starting with \`/admin/...\`. Never invent a full \`https://...\` hostname — each shop has its own domain; say “on your shop” if needed. For game-specific pages, say **Games → [game] → Setup** (or Categories / Services) instead of guessing a UUID in the path.
+- Give **concrete routes** and **what to click/type**.
+- **URLs:** Read the **THIS SHOP — canonical base URL** section at the end of your instructions.
+  - If a URL is shown there (\`http://\` or \`https://\`), prefix every admin path with it for **full clickable links** (no trailing slash on the origin). Example: \`https://shop.example.com/admin/games\`. Use **only** that hostname — never invent another domain.
+  - If the section says not configured, use root-relative paths (\`/admin/...\`) only and mention **Settings → General → Site URL**.
+  - For pages that need a game ID you don't have, use navigation steps **Games → open the game → Setup / Categories** and full URLs for fixed paths like \`/admin/games\` when a base URL is known.
 - Use the KNOWLEDGE block below as source of truth; do not invent features that are not listed there.
 - You **cannot** change the database or click the UI yourself — only explain. If something needs Vercel/Supabase/Discord Developer Portal outside /admin, say so clearly.
 - **Never** ask the user to paste API keys, secrets, or tokens into this chat; point them to labeled fields in Admin → Settings only when relevant.
@@ -21,9 +24,14 @@ Your job:
 export async function runAdminSetupAssistant(
   userMessage: string,
   history: AIMessage[],
+  shopOrigin: string | null,
 ): Promise<{ content: string } | null> {
   const cfg = await getAIConfig();
   if (!cfg) return null;
+  const originBlock =
+    shopOrigin != null && shopOrigin.length > 0
+      ? `\n\n--- THIS SHOP — canonical base URL ---\n${shopOrigin}\n(Use this exact origin + path for all admin links. Example: ${shopOrigin}/admin/guide)\n`
+      : `\n\n--- THIS SHOP — canonical base URL ---\n(not configured — use root-relative /admin/... paths only; suggest Settings → General → Site URL)\n`;
 
   const safeHistory = history.filter(
     (m) => (m.role === "user" || m.role === "assistant") && typeof m.content === "string",
@@ -32,7 +40,7 @@ export async function runAdminSetupAssistant(
   const messages: AIMessage[] = [
     {
       role: "system",
-      content: `${COACH_RULES}\n${ADMIN_SETUP_KNOWLEDGE}`,
+      content: `${COACH_RULES}\n${ADMIN_SETUP_KNOWLEDGE}${originBlock}`,
     },
     ...safeHistory,
     { role: "user", content: userMessage },

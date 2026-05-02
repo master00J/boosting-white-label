@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { assertAdmin } from "@/lib/auth/assert-admin";
 import { runAdminSetupAssistant } from "@/lib/ai/admin-setup-agent";
+import { resolveEffectiveShopOrigin } from "@/lib/ai/resolve-shop-origin";
 import type { AIMessage } from "@/lib/ai/providers/types";
 
 export const dynamic = "force-dynamic";
@@ -38,7 +39,8 @@ export async function POST(req: Request) {
   const { message, history } = parsed.data;
 
   try {
-    const result = await runAdminSetupAssistant(message, (history ?? []) as AIMessage[]);
+    const shopOrigin = await resolveEffectiveShopOrigin(req);
+    const result = await runAdminSetupAssistant(message, (history ?? []) as AIMessage[], shopOrigin);
     if (!result) {
       return NextResponse.json(
         {
