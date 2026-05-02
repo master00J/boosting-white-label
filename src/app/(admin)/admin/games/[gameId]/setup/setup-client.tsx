@@ -414,6 +414,19 @@ export default function SetupClient({
           </Button>
         </CardContent>
       </Card>
+
+      <p className="text-[10px] text-muted-foreground/50 font-mono">
+        {process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA ? (
+          <>
+            White-label build:{" "}
+            <code className="text-muted-foreground/70">{process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.slice(0, 7)}</code>
+            {" "}— moet overeenkomen met de laatste commit op <code className="text-[9px]">boosting-white-label</code>{" "}
+            <code className="text-[9px]">main</code>.
+          </>
+        ) : (
+          <>Local build (geen Vercel GIT SHA).</>
+        )}
+      </p>
     </div>
   );
 }

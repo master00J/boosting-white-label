@@ -20,6 +20,9 @@ const cspHeader = [
 
 const nextConfig: NextConfig = {
   outputFileTracingRoot: path.join(__dirname),
+  env: {
+    NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA: process.env.VERCEL_GIT_COMMIT_SHA ?? "",
+  },
   experimental: {
     staleTimes: {
       dynamic: 0,
