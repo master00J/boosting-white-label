@@ -238,7 +238,9 @@ export default function StorefrontMiniPreview({ theme, siteName, siteTagline }: 
                 backgroundColor: theme.bg_card,
               }}
             >
-              <p className="text-[10px] font-semibold text-white leading-tight">{cat.title}</p>
+              <p className="text-[10px] font-semibold leading-tight" style={{ color: theme.text_primary }}>
+                {cat.title}
+              </p>
               <p className="text-[9px] mt-1 line-clamp-2" style={{ color: theme.text_muted }}>
                 {cat.desc}
               </p>
