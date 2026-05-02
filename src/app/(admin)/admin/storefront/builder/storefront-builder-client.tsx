@@ -2,7 +2,11 @@
 
 import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
-import { Save, Loader2, Check, ExternalLink, Palette, Plus, Trash2, MonitorPlay } from "lucide-react";
+import { Save, Loader2, Check, ExternalLink, Palette, Plus, Trash2, MonitorPlay, MousePointerClick } from "lucide-react";
+import {
+  STOREFRONT_VISUAL_EDIT_MAP,
+  type StorefrontVisualEditTarget,
+} from "@/lib/storefront-visual-edit";
 import StorefrontMiniPreview from "@/components/admin/storefront/storefront-mini-preview";
 import {
   ColorHexRow,
@@ -79,6 +83,27 @@ export default function StorefrontBuilderClient({
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
+  const [visualClickEdit, setVisualClickEdit] = useState(false);
+
+  const focusBuilderField = useCallback((target: StorefrontVisualEditTarget) => {
+    const meta = STOREFRONT_VISUAL_EDIT_MAP[target];
+    const sectionEl = document.getElementById(`storefront-builder-section-${meta.section}`);
+    const fieldEl = document.getElementById(meta.fieldId);
+    const focusEl =
+      fieldEl ??
+      sectionEl?.querySelector<HTMLElement>("input:not([type='hidden']), textarea, select, button");
+    sectionEl?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    window.requestAnimationFrame(() => {
+      focusEl?.focus({ preventScroll: false });
+      focusEl?.scrollIntoView({ behavior: "smooth", block: "center" });
+      if (focusEl instanceof HTMLElement) {
+        focusEl.classList.add("ring-2", "ring-primary", "ring-offset-2", "ring-offset-[var(--bg-card)]");
+        window.setTimeout(() => {
+          focusEl.classList.remove("ring-2", "ring-primary", "ring-offset-2", "ring-offset-[var(--bg-card)]");
+        }, 2200);
+      }
+    });
+  }, []);
 
   const headingPresets = useMemo(() => Object.keys(HEADING_FONT_STACKS), []);
   const bodyPresets = useMemo(() => Object.keys(BODY_FONT_STACKS), []);
@@ -154,7 +179,7 @@ export default function StorefrontBuilderClient({
           </h1>
           <p className="text-sm text-[var(--text-muted)] mt-2 max-w-xl">
             Edit colors, surfaces, typography, navigation, footer, full hero, homepage section headings, service tiles, trust blocks, how-it-works steps, and FAQ.
-            Use color pickers where available; advanced values can still be typed. Open <strong className="text-[var(--text-secondary)]">Live theme preview</strong> in a new tab to walk the real storefront with your <em>unsaved</em> draft (session only).
+            Use color pickers where available; advanced values can still be typed. Turn on <strong className="text-[var(--text-secondary)]">Click-to-edit</strong> and tap areas in the preview to jump to the matching field—changes apply instantly in the preview. Open <strong className="text-[var(--text-secondary)]">Live preview</strong> in a new tab for the full storefront (unsaved draft, session only).
           </p>
           <div className="flex flex-wrap gap-2 mt-3">
             <Link
@@ -170,6 +195,18 @@ export default function StorefrontBuilderClient({
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <button
+            type="button"
+            onClick={() => setVisualClickEdit((v) => !v)}
+            className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-colors ${
+              visualClickEdit
+                ? "border-primary bg-primary/15 text-primary"
+                : "border-[var(--border-default)] hover:bg-white/5"
+            }`}
+          >
+            <MousePointerClick className="h-4 w-4" />
+            Click-to-edit {visualClickEdit ? "on" : "off"}
+          </button>
           <button
             type="button"
             onClick={openLiveThemePreview}
@@ -196,12 +233,16 @@ export default function StorefrontBuilderClient({
 
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(280px,380px)] xl:grid-cols-[minmax(0,1fr)_400px]">
         <div className="space-y-6 min-w-0">
-          <div className="p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] space-y-4">
+          <div
+            id="storefront-builder-section-brand"
+            className="p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] space-y-4 scroll-mt-24"
+          >
             <h2 className="font-heading font-semibold text-sm">Brand</h2>
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="sm:col-span-2">
                 <label className="block text-xs font-medium mb-1.5">Site name</label>
                 <input
+                  id="storefront-field-site_name"
                   value={siteName}
                   onChange={(e) => setSiteName(e.target.value)}
                   className={inputCls()}
@@ -210,6 +251,7 @@ export default function StorefrontBuilderClient({
               <div className="sm:col-span-2">
                 <label className="block text-xs font-medium mb-1.5">Tagline</label>
                 <input
+                  id="storefront-field-site_tagline"
                   value={siteTagline}
                   onChange={(e) => setSiteTagline(e.target.value)}
                   placeholder="Shown in meta / footer areas"
@@ -219,6 +261,7 @@ export default function StorefrontBuilderClient({
               <div>
                 <label className="block text-xs font-medium mb-1.5">Logo URL</label>
                 <input
+                  id="storefront-field-logo_url"
                   value={theme.logo_url}
                   onChange={(e) => patchTheme({ logo_url: e.target.value })}
                   placeholder="https://..."
@@ -237,6 +280,7 @@ export default function StorefrontBuilderClient({
               <div className="sm:col-span-2">
                 <label className="block text-xs font-medium mb-1.5">Logo text (when no logo image)</label>
                 <input
+                  id="storefront-field-brand_name"
                   value={theme.brand_name}
                   onChange={(e) => patchTheme({ brand_name: e.target.value })}
                   placeholder={siteName || "BoostPlatform"}
@@ -246,7 +290,10 @@ export default function StorefrontBuilderClient({
             </div>
           </div>
 
-          <div className="p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] space-y-4">
+          <div
+            id="storefront-builder-section-colors"
+            className="p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] space-y-4 scroll-mt-24"
+          >
             <h2 className="font-heading font-semibold text-sm">Colors</h2>
             <div className="flex gap-2 flex-wrap">
               {PRESET_SWATCHES.map((p) => (
@@ -280,6 +327,7 @@ export default function StorefrontBuilderClient({
                   value={theme[key]}
                   onChange={(v) => patchTheme({ [key]: v })}
                   inputClassName={`${inputCls()} font-mono text-xs flex-1 min-w-0`}
+                  inputId={`storefront-field-${key}`}
                 />
               ))}
             </div>
@@ -294,7 +342,10 @@ export default function StorefrontBuilderClient({
             </div>
           </div>
 
-          <div className="p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] space-y-4">
+          <div
+            id="storefront-builder-section-surfaces"
+            className="p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] space-y-4 scroll-mt-24"
+          >
             <h2 className="font-heading font-semibold text-sm">Surfaces</h2>
             <p className="text-xs text-[var(--text-muted)]">
               Background layers for the page shell, content areas, and footer. Pick a color or paste any valid CSS color.
@@ -316,12 +367,16 @@ export default function StorefrontBuilderClient({
                   value={theme[key]}
                   onChange={(v) => patchTheme({ [key]: v })}
                   inputClassName={`${inputCls()} font-mono text-xs flex-1 min-w-0`}
+                  inputId={`storefront-field-${key}`}
                 />
               ))}
             </div>
           </div>
 
-          <div className="p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] space-y-4">
+          <div
+            id="storefront-builder-section-text"
+            className="p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] space-y-4 scroll-mt-24"
+          >
             <h2 className="font-heading font-semibold text-sm">Text & borders</h2>
             <div className="grid sm:grid-cols-3 gap-3">
               {(
@@ -337,6 +392,7 @@ export default function StorefrontBuilderClient({
                   value={theme[key]}
                   onChange={(v) => patchTheme({ [key]: v })}
                   inputClassName={`${inputCls()} font-mono text-xs flex-1 min-w-0`}
+                  inputId={`storefront-field-${key}`}
                 />
               ))}
             </div>
@@ -347,6 +403,7 @@ export default function StorefrontBuilderClient({
                 onChange={(v) => patchTheme({ border_subtle: v })}
                 fallbackRgb={primaryTintRgb}
                 inputClassName={`${inputCls()} font-mono text-xs`}
+                inputId="storefront-field-border_subtle"
               />
               <BorderRgbaRow
                 label="Default border"
@@ -354,16 +411,21 @@ export default function StorefrontBuilderClient({
                 onChange={(v) => patchTheme({ border_default: v })}
                 fallbackRgb={primaryTintRgb}
                 inputClassName={`${inputCls()} font-mono text-xs`}
+                inputId="storefront-field-border_default"
               />
             </div>
           </div>
 
-          <div className="p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] space-y-4">
+          <div
+            id="storefront-builder-section-typography"
+            className="p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] space-y-4 scroll-mt-24"
+          >
             <h2 className="font-heading font-semibold text-sm">Typography</h2>
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-medium mb-1.5">Heading font</label>
                 <select
+                  id="storefront-field-font_heading"
                   value={theme.font_heading ?? ""}
                   onChange={(e) => patchTheme({ font_heading: e.target.value || undefined })}
                   className="w-full px-3 py-2.5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-default)] text-sm focus:outline-none focus:border-primary/50"
@@ -379,6 +441,7 @@ export default function StorefrontBuilderClient({
               <div>
                 <label className="block text-xs font-medium mb-1.5">Body font</label>
                 <select
+                  id="storefront-field-font_body"
                   value={theme.font_body ?? ""}
                   onChange={(e) => patchTheme({ font_body: e.target.value || undefined })}
                   className="w-full px-3 py-2.5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-default)] text-sm focus:outline-none focus:border-primary/50"
@@ -394,7 +457,10 @@ export default function StorefrontBuilderClient({
             </div>
           </div>
 
-          <div className="p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] space-y-4">
+          <div
+            id="storefront-builder-section-hero"
+            className="p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] space-y-4 scroll-mt-24"
+          >
             <h2 className="font-heading font-semibold text-sm">Hero (homepage)</h2>
             <p className="text-xs text-[var(--text-muted)]">
               Three-part headline, buttons, and overlay. Leave background URL empty to use the hero slideshow from Hero banners.
@@ -403,6 +469,7 @@ export default function StorefrontBuilderClient({
               <div className="sm:col-span-3">
                 <label className="block text-xs font-medium mb-1.5">Legacy single-line title (older previews)</label>
                 <input
+                  id="storefront-field-hero_title"
                   value={theme.hero_title}
                   onChange={(e) => patchTheme({ hero_title: e.target.value })}
                   className={inputCls()}
@@ -411,6 +478,7 @@ export default function StorefrontBuilderClient({
               <div>
                 <label className="block text-xs font-medium mb-1.5">Headline · before highlight</label>
                 <input
+                  id="storefront-field-hero_headline_before"
                   value={theme.hero_headline_before}
                   onChange={(e) => patchTheme({ hero_headline_before: e.target.value })}
                   className={inputCls()}
@@ -419,6 +487,7 @@ export default function StorefrontBuilderClient({
               <div>
                 <label className="block text-xs font-medium mb-1.5">Headline · highlighted word</label>
                 <input
+                  id="storefront-field-hero_headline_highlight"
                   value={theme.hero_headline_highlight}
                   onChange={(e) => patchTheme({ hero_headline_highlight: e.target.value })}
                   className={inputCls()}
@@ -427,6 +496,7 @@ export default function StorefrontBuilderClient({
               <div>
                 <label className="block text-xs font-medium mb-1.5">Headline · after highlight</label>
                 <input
+                  id="storefront-field-hero_headline_after"
                   value={theme.hero_headline_after}
                   onChange={(e) => patchTheme({ hero_headline_after: e.target.value })}
                   className={inputCls()}
@@ -435,6 +505,7 @@ export default function StorefrontBuilderClient({
               <div className="sm:col-span-3">
                 <label className="block text-xs font-medium mb-1.5">Subtitle</label>
                 <textarea
+                  id="storefront-field-hero_subtitle"
                   value={theme.hero_subtitle}
                   onChange={(e) => patchTheme({ hero_subtitle: e.target.value })}
                   rows={2}
@@ -444,6 +515,7 @@ export default function StorefrontBuilderClient({
               <div>
                 <label className="block text-xs font-medium mb-1.5">Primary CTA · label</label>
                 <input
+                  id="storefront-field-hero_primary_cta_label"
                   value={theme.hero_primary_cta_label}
                   onChange={(e) => patchTheme({ hero_primary_cta_label: e.target.value })}
                   className={inputCls()}
@@ -452,6 +524,7 @@ export default function StorefrontBuilderClient({
               <div>
                 <label className="block text-xs font-medium mb-1.5">Primary CTA · URL</label>
                 <input
+                  id="storefront-field-hero_primary_cta_href"
                   value={theme.hero_primary_cta_href}
                   onChange={(e) => patchTheme({ hero_primary_cta_href: e.target.value })}
                   className={inputCls()}
@@ -460,6 +533,7 @@ export default function StorefrontBuilderClient({
               <div>
                 <label className="block text-xs font-medium mb-1.5">Secondary CTA · label</label>
                 <input
+                  id="storefront-field-hero_secondary_cta_label"
                   value={theme.hero_secondary_cta_label}
                   onChange={(e) => patchTheme({ hero_secondary_cta_label: e.target.value })}
                   className={inputCls()}
@@ -468,6 +542,7 @@ export default function StorefrontBuilderClient({
               <div>
                 <label className="block text-xs font-medium mb-1.5">Secondary CTA · URL</label>
                 <input
+                  id="storefront-field-hero_secondary_cta_href"
                   value={theme.hero_secondary_cta_href}
                   onChange={(e) => patchTheme({ hero_secondary_cta_href: e.target.value })}
                   className={inputCls()}
@@ -476,6 +551,7 @@ export default function StorefrontBuilderClient({
               <div>
                 <label className="block text-xs font-medium mb-1.5">Trust line under hero</label>
                 <input
+                  id="storefront-field-hero_trust_guarantee_label"
                   value={theme.hero_trust_guarantee_label}
                   onChange={(e) => patchTheme({ hero_trust_guarantee_label: e.target.value })}
                   className={inputCls()}
@@ -484,6 +560,7 @@ export default function StorefrontBuilderClient({
               <div>
                 <label className="block text-xs font-medium mb-1.5">Legacy CTA label (fallback)</label>
                 <input
+                  id="storefront-field-hero_cta_text"
                   value={theme.hero_cta_text}
                   onChange={(e) => patchTheme({ hero_cta_text: e.target.value })}
                   className={inputCls()}
@@ -506,6 +583,7 @@ export default function StorefrontBuilderClient({
               <div className="sm:col-span-3">
                 <label className="block text-xs font-medium mb-1.5">Hero background image URL (optional)</label>
                 <input
+                  id="storefront-field-hero_bg_url"
                   value={theme.hero_bg_url}
                   onChange={(e) => patchTheme({ hero_bg_url: e.target.value })}
                   placeholder="https://..."
@@ -515,7 +593,10 @@ export default function StorefrontBuilderClient({
             </div>
           </div>
 
-          <div className="p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] space-y-4">
+          <div
+            id="storefront-builder-section-nav"
+            className="p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] space-y-4 scroll-mt-24"
+          >
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h2 className="font-heading font-semibold text-sm">Navigation · links</h2>
               <div className="flex gap-2">
@@ -544,6 +625,7 @@ export default function StorefrontBuilderClient({
               {theme.nav_links.map((link: NavLinkConfig, i: number) => (
                 <div key={i} className="flex flex-wrap gap-2 items-center">
                   <input
+                    id={i === 0 ? "storefront-field-nav_links" : undefined}
                     value={link.label}
                     onChange={(e) => {
                       const next = [...theme.nav_links];
@@ -578,7 +660,10 @@ export default function StorefrontBuilderClient({
             </div>
           </div>
 
-          <div className="p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] space-y-4">
+          <div
+            id="storefront-builder-section-footer"
+            className="p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] space-y-4 scroll-mt-24"
+          >
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h2 className="font-heading font-semibold text-sm">Footer</h2>
               <div className="flex gap-2">
@@ -739,7 +824,10 @@ export default function StorefrontBuilderClient({
             </div>
           </div>
 
-          <div className="p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] space-y-4">
+          <div
+            id="storefront-builder-section-headings"
+            className="p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] space-y-4 scroll-mt-24"
+          >
             <h2 className="font-heading font-semibold text-sm">Homepage · section headings</h2>
             <div className="grid sm:grid-cols-2 gap-3 text-xs">
               {(
@@ -763,6 +851,7 @@ export default function StorefrontBuilderClient({
                 <div key={key}>
                   <label className="block font-medium mb-1 text-[var(--text-muted)]">{label}</label>
                   <input
+                    id={`storefront-field-${key}`}
                     value={theme[key]}
                     onChange={(e) => patchTheme({ [key]: e.target.value })}
                     className={smallInputCls()}
@@ -772,6 +861,7 @@ export default function StorefrontBuilderClient({
               <div className="sm:col-span-2">
                 <label className="block font-medium mb-1 text-[var(--text-muted)]">Team · subtitle</label>
                 <textarea
+                  id="storefront-field-homepage_team_section_subtitle"
                   value={theme.homepage_team_section_subtitle}
                   onChange={(e) => patchTheme({ homepage_team_section_subtitle: e.target.value })}
                   rows={2}
@@ -781,6 +871,7 @@ export default function StorefrontBuilderClient({
               <div className="sm:col-span-2">
                 <label className="block font-medium mb-1 text-[var(--text-muted)]">Process · subtitle</label>
                 <textarea
+                  id="storefront-field-homepage_process_section_subtitle"
                   value={theme.homepage_process_section_subtitle}
                   onChange={(e) => patchTheme({ homepage_process_section_subtitle: e.target.value })}
                   rows={2}
@@ -790,7 +881,10 @@ export default function StorefrontBuilderClient({
             </div>
           </div>
 
-          <div className="p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] space-y-4">
+          <div
+            id="storefront-builder-section-cta"
+            className="p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] space-y-4 scroll-mt-24"
+          >
             <h2 className="font-heading font-semibold text-sm">Homepage · bottom CTA</h2>
             <div className="grid sm:grid-cols-2 gap-3">
               <div className="sm:col-span-2">
@@ -870,7 +964,10 @@ export default function StorefrontBuilderClient({
             </button>
           </div>
 
-          <div className="p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] space-y-4">
+          <div
+            id="storefront-builder-section-trust"
+            className="p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] space-y-4 scroll-mt-24"
+          >
             <div className="flex flex-wrap justify-between gap-2">
               <h2 className="font-heading font-semibold text-sm">Homepage · trust highlights</h2>
               <button
@@ -975,7 +1072,10 @@ export default function StorefrontBuilderClient({
             </button>
           </div>
 
-          <div className="p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] space-y-4">
+          <div
+            id="storefront-builder-section-how"
+            className="p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] space-y-4 scroll-mt-24"
+          >
             <div className="flex flex-wrap justify-between gap-2">
               <h2 className="font-heading font-semibold text-sm">Homepage · how it works</h2>
               <button
@@ -1078,7 +1178,10 @@ export default function StorefrontBuilderClient({
             </button>
           </div>
 
-          <div className="p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] space-y-4">
+          <div
+            id="storefront-builder-section-services"
+            className="p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] space-y-4 scroll-mt-24"
+          >
             <div className="flex flex-wrap justify-between gap-2">
               <h2 className="font-heading font-semibold text-sm">Homepage · service tiles</h2>
               <button
@@ -1229,7 +1332,10 @@ export default function StorefrontBuilderClient({
             </button>
           </div>
 
-          <div className="p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] space-y-4">
+          <div
+            id="storefront-builder-section-faq"
+            className="p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] space-y-4 scroll-mt-24"
+          >
             <div className="flex flex-wrap justify-between gap-2">
               <h2 className="font-heading font-semibold text-sm">Homepage · FAQ</h2>
               <button
@@ -1301,7 +1407,18 @@ export default function StorefrontBuilderClient({
 
         <div className="lg:sticky lg:top-24 space-y-3">
           <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Live preview</p>
-          <StorefrontMiniPreview theme={theme} siteName={siteName} siteTagline={siteTagline} />
+          {visualClickEdit ? (
+            <p className="text-[11px] text-primary/90 font-medium">
+              Click-to-edit on — tap outlined areas to jump to the field.
+            </p>
+          ) : null}
+          <StorefrontMiniPreview
+            theme={theme}
+            siteName={siteName}
+            siteTagline={siteTagline}
+            visualEditEnabled={visualClickEdit}
+            onVisualEditPick={focusBuilderField}
+          />
         </div>
       </div>
     </div>

@@ -46,11 +46,14 @@ export function ColorHexRow({
   value,
   onChange,
   inputClassName,
+  inputId,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   inputClassName: string;
+  /** For visual builder: scroll/focus this field */
+  inputId?: string;
 }) {
   const pickerVal = useMemo(() => hexForColorInput(value), [value]);
   return (
@@ -66,6 +69,7 @@ export function ColorHexRow({
           aria-label={`Pick color: ${label}`}
         />
         <input
+          id={inputId}
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
@@ -83,12 +87,14 @@ export function BorderRgbaRow({
   onChange,
   fallbackRgb,
   inputClassName,
+  inputId,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   fallbackRgb: { r: number; g: number; b: number };
   inputClassName: string;
+  inputId?: string;
 }) {
   const parsed = useMemo(() => parseRgba(value), [value]);
   const rgb = parsed ?? fallbackRgb;
@@ -131,6 +137,7 @@ export function BorderRgbaRow({
           </span>
         </div>
         <input
+          id={inputId}
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}

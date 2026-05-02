@@ -1,22 +1,76 @@
 "use client";
 
-import type { CSSProperties } from "react";
+import type { CSSProperties, KeyboardEvent, MouseEvent, ReactNode } from "react";
 import type { ThemeSettings } from "@/components/providers/theme-provider";
 import { HEADING_FONT_STACKS, BODY_FONT_STACKS } from "@/components/providers/theme-provider";
 import {
   STOREFRONT_DEFAULT_NAV_LINKS,
   HOMEPAGE_SERVICE_CATEGORIES_DEFAULT,
 } from "@/lib/storefront-defaults";
+import type { StorefrontVisualEditTarget } from "@/lib/storefront-visual-edit";
 import { ArrowRight, Check, ChevronDown, Search, ShoppingCart, User } from "lucide-react";
 
 type Props = {
   theme: ThemeSettings;
   siteName: string;
   siteTagline: string;
+  /** Click regions jump to the matching field in the builder (shared state = instant preview). */
+  visualEditEnabled?: boolean;
+  onVisualEditPick?: (target: StorefrontVisualEditTarget) => void;
 };
 
+function pickStop(e: MouseEvent | KeyboardEvent) {
+  e.preventDefault();
+  e.stopPropagation();
+}
+
+function EditHit({
+  enabled,
+  target,
+  onPick,
+  className,
+  style,
+  children,
+}: {
+  enabled: boolean;
+  target: StorefrontVisualEditTarget;
+  onPick?: (t: StorefrontVisualEditTarget) => void;
+  className?: string;
+  style?: CSSProperties;
+  children: ReactNode;
+}) {
+  if (!enabled || !onPick) return <>{children}</>;
+  const ring = "cursor-crosshair rounded-sm outline-offset-1 hover:outline hover:outline-2 hover:outline-primary/70";
+  return (
+    <span
+      role="button"
+      tabIndex={0}
+      style={style}
+      className={`${ring} ${className ?? ""}`}
+      onClick={(e) => {
+        pickStop(e);
+        onPick(target);
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          pickStop(e);
+          onPick(target);
+        }
+      }}
+    >
+      {children}
+    </span>
+  );
+}
+
 /** Compact approximation of the public homepage — uses the same theme tokens as the live site. */
-export default function StorefrontMiniPreview({ theme, siteName, siteTagline }: Props) {
+export default function StorefrontMiniPreview({
+  theme,
+  siteName,
+  siteTagline,
+  visualEditEnabled = false,
+  onVisualEditPick,
+}: Props) {
   const headingFont =
     (theme.font_heading && HEADING_FONT_STACKS[theme.font_heading]) ??
     HEADING_FONT_STACKS["Cal Sans"];
@@ -53,11 +107,24 @@ export default function StorefrontMiniPreview({ theme, siteName, siteTagline }: 
 
   const heroBgUrl = theme.hero_bg_url?.trim();
 
+  const edit = visualEditEnabled && onVisualEditPick;
+
   return (
     <div
       className="rounded-2xl border overflow-hidden shadow-lg text-[11px]"
       style={shellStyle}
     >
+      {visualEditEnabled && onVisualEditPick ? (
+        <button
+          type="button"
+          className="w-full py-1.5 text-[9px] font-medium text-center border-b transition-colors hover:bg-white/5"
+          style={{ borderColor: theme.border_subtle, color: theme.text_muted }}
+          onClick={() => onVisualEditPick("shell_bg")}
+        >
+          Page shell background →
+        </button>
+      ) : null}
+
       {/* Navbar — mirrors storefront navbar structure */}
       <div
         className="flex items-center justify-between gap-2 px-2.5 py-2 border-b"
@@ -68,21 +135,30 @@ export default function StorefrontMiniPreview({ theme, siteName, siteTagline }: 
       >
         <div className="flex items-center gap-2 min-w-0 flex-1">
           {logoSrc ? (
-            // eslint-disable-next-line @next/next/no-img-element -- preview URLs may be any host
-            <img src={logoSrc} alt="" className="h-6 w-auto object-contain max-w-[100px]" />
+            <EditHit enabled={!!edit} target="logo_url" onPick={onVisualEditPick}>
+              {/* eslint-disable-next-line @next/next/no-img-element -- preview URLs may be any host */}
+              <img src={logoSrc} alt="" className="h-6 w-auto object-contain max-w-[100px]" />
+            </EditHit>
           ) : (
-            <span className="font-semibold text-xs truncate" style={{ fontFamily: headingFont }}>
-              {brandLabel}
-            </span>
+            <EditHit enabled={!!edit} target="brand_name" onPick={onVisualEditPick}>
+              <span className="font-semibold text-xs truncate" style={{ fontFamily: headingFont }}>
+                {brandLabel}
+              </span>
+            </EditHit>
           )}
+          <EditHit enabled={!!edit} target="site_name" onPick={onVisualEditPick} className="inline-flex min-w-0">
+            <span className="text-[9px] opacity-50 truncate max-w-[72px]" title="Site name">
+              {siteName || "Site name"}
+            </span>
+          </EditHit>
           <span className="hidden sm:inline-flex items-center gap-0.5 text-[10px] opacity-80 truncate">
             Games
             <ChevronDown className="h-3 w-3 opacity-60 shrink-0" />
           </span>
           {navPreview.slice(0, 2).map((l) => (
-            <span key={l.href} className="hidden md:inline text-[10px] opacity-70 truncate max-[72px]">
-              {l.label}
-            </span>
+            <EditHit key={l.href} enabled={!!edit} target="nav_links" onPick={onVisualEditPick}>
+              <span className="hidden md:inline text-[10px] opacity-70 truncate max-[72px]">{l.label}</span>
+            </EditHit>
           ))}
         </div>
         <div className="flex items-center gap-1.5 shrink-0 text-[10px]" style={{ color: theme.text_muted }}>
@@ -91,19 +167,44 @@ export default function StorefrontMiniPreview({ theme, siteName, siteTagline }: 
             <Search className="h-3 w-3" />
             Search
           </span>
-          <ShoppingCart className="h-3.5 w-3.5" style={{ color: theme.accent_color }} />
+          <EditHit enabled={!!edit} target="primary_color" onPick={onVisualEditPick} className="inline-flex">
+            <ShoppingCart className="h-3.5 w-3.5" style={{ color: theme.accent_color }} />
+          </EditHit>
           <User className="h-3.5 w-3.5 opacity-70" />
         </div>
       </div>
 
       {siteTagline ? (
-        <p className="px-2.5 pt-1.5 truncate opacity-50" style={{ fontFamily: bodyFont }}>
-          {siteTagline}
-        </p>
+        <EditHit enabled={!!edit} target="site_tagline" onPick={onVisualEditPick} className="block px-2.5 pt-1.5">
+          <p className="truncate opacity-50" style={{ fontFamily: bodyFont }}>
+            {siteTagline}
+          </p>
+        </EditHit>
+      ) : edit ? (
+        <button
+          type="button"
+          className="w-full text-left px-2.5 pt-1.5 text-[10px] italic opacity-40 hover:opacity-70 hover:underline"
+          style={{ fontFamily: bodyFont }}
+          onClick={() => onVisualEditPick!("site_tagline")}
+        >
+          + Tagline
+        </button>
       ) : null}
 
       {/* Hero — aligned with homepage-client structure */}
       <section className="relative mx-2 mt-2 rounded-xl overflow-hidden min-h-[168px] flex flex-col justify-end">
+        {visualEditEnabled && onVisualEditPick ? (
+          <button
+            type="button"
+            className="absolute top-1.5 right-1.5 z-[3] rounded px-1.5 py-0.5 text-[8px] font-semibold uppercase tracking-wide text-white bg-black/55 hover:bg-black/75 border border-white/10"
+            onClick={(e) => {
+              e.stopPropagation();
+              onVisualEditPick("hero_bg_url");
+            }}
+          >
+            Hero image
+          </button>
+        ) : null}
         {heroBgUrl ? (
           <>
             <div
@@ -146,45 +247,65 @@ export default function StorefrontMiniPreview({ theme, siteName, siteTagline }: 
             className="text-[13px] sm:text-[15px] font-bold leading-tight text-white"
             style={{ fontFamily: headingFont }}
           >
-            {theme.hero_headline_before}{" "}
-            <span
-              className="text-transparent bg-clip-text"
-              style={{
-                backgroundImage: `linear-gradient(135deg, ${theme.primary_color} 0%, ${theme.accent_color} 55%, ${theme.accent_color} 100%)`,
-              }}
-            >
-              {theme.hero_headline_highlight}
-            </span>{" "}
-            {theme.hero_headline_after}
+            <EditHit enabled={!!edit} target="hero_headline_before" onPick={onVisualEditPick}>
+              <span>{theme.hero_headline_before}</span>
+            </EditHit>{" "}
+            <EditHit enabled={!!edit} target="hero_headline_highlight" onPick={onVisualEditPick}>
+              <span
+                className="text-transparent bg-clip-text"
+                style={{
+                  backgroundImage: `linear-gradient(135deg, ${theme.primary_color} 0%, ${theme.accent_color} 55%, ${theme.accent_color} 100%)`,
+                }}
+              >
+                {theme.hero_headline_highlight}
+              </span>
+            </EditHit>{" "}
+            <EditHit enabled={!!edit} target="hero_headline_after" onPick={onVisualEditPick}>
+              <span>{theme.hero_headline_after}</span>
+            </EditHit>
           </h2>
-          <p className="mt-1.5 text-[10px] leading-snug max-w-[280px] mx-auto" style={{ color: "rgba(255,255,255,0.65)" }}>
-            {theme.hero_subtitle}
-          </p>
+          <EditHit enabled={!!edit} target="hero_subtitle" onPick={onVisualEditPick} className="block mt-1.5">
+            <p className="text-[10px] leading-snug max-w-[280px] mx-auto" style={{ color: "rgba(255,255,255,0.65)" }}>
+              {theme.hero_subtitle}
+            </p>
+          </EditHit>
           <div className="flex flex-wrap items-center justify-center gap-1.5 mt-2.5">
-            <span
-              className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold text-white shadow-sm"
-              style={{
-                background: `linear-gradient(135deg, ${theme.primary_color}, ${theme.secondary_color})`,
-                borderRadius: "var(--preview-radius)",
-              }}
-            >
-              {theme.hero_primary_cta_label || theme.hero_cta_text}
-              <ArrowRight className="h-3 w-3" />
-            </span>
-            <span
-              className="inline-flex items-center px-2 py-1 rounded-lg text-[10px] font-semibold text-white/85 border backdrop-blur-sm"
-              style={{
-                backgroundColor: "rgba(255,255,255,0.08)",
-                borderColor: "rgba(255,255,255,0.15)",
-                borderRadius: "var(--preview-radius)",
-              }}
-            >
-              {theme.hero_secondary_cta_label}
-            </span>
+            <EditHit enabled={!!edit} target="hero_primary_cta_label" onPick={onVisualEditPick}>
+              <span
+                className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold text-white shadow-sm"
+                style={{
+                  background: `linear-gradient(135deg, ${theme.primary_color}, ${theme.secondary_color})`,
+                  borderRadius: "var(--preview-radius)",
+                }}
+              >
+                {theme.hero_primary_cta_label || theme.hero_cta_text}
+                <ArrowRight className="h-3 w-3" />
+              </span>
+            </EditHit>
+            <EditHit enabled={!!edit} target="hero_secondary_cta_label" onPick={onVisualEditPick}>
+              <span
+                className="inline-flex items-center px-2 py-1 rounded-lg text-[10px] font-semibold text-white/85 border backdrop-blur-sm"
+                style={{
+                  backgroundColor: "rgba(255,255,255,0.08)",
+                  borderColor: "rgba(255,255,255,0.15)",
+                  borderRadius: "var(--preview-radius)",
+                }}
+              >
+                {theme.hero_secondary_cta_label}
+              </span>
+            </EditHit>
           </div>
-          <div className="flex justify-center items-center gap-1 mt-2 text-[9px]" style={{ color: "rgba(255,255,255,0.55)" }}>
-            <Check className="h-2.5 w-2.5" style={{ color: theme.success_color }} />
-            <span>{theme.hero_trust_guarantee_label}</span>
+          <div className="flex justify-center mt-2">
+            <EditHit
+              enabled={!!edit}
+              target="hero_trust_guarantee_label"
+              onPick={onVisualEditPick}
+              className="inline-flex items-center gap-1 text-[9px]"
+              style={{ color: "rgba(255,255,255,0.55)" }}
+            >
+              <Check className="h-2.5 w-2.5 shrink-0" style={{ color: theme.success_color }} />
+              <span>{theme.hero_trust_guarantee_label}</span>
+            </EditHit>
           </div>
         </div>
       </section>
@@ -217,16 +338,20 @@ export default function StorefrontMiniPreview({ theme, siteName, siteTagline }: 
       <div className="p-2.5 pb-3 mt-1">
         <div className="inline-flex items-center gap-1.5 mb-1">
           <span className="w-3 h-px shrink-0" style={{ backgroundColor: theme.primary_color }} />
-          <p
-            className="text-[9px] font-bold uppercase tracking-[0.18em]"
-            style={{ color: theme.primary_color }}
-          >
-            {theme.homepage_services_section_label}
-          </p>
+          <EditHit enabled={!!edit} target="homepage_services_section_label" onPick={onVisualEditPick}>
+            <p
+              className="text-[9px] font-bold uppercase tracking-[0.18em]"
+              style={{ color: theme.primary_color }}
+            >
+              {theme.homepage_services_section_label}
+            </p>
+          </EditHit>
         </div>
-        <h3 className="text-xs font-bold mb-2" style={{ fontFamily: headingFont, color: theme.text_primary }}>
-          {theme.homepage_services_section_title}
-        </h3>
+        <EditHit enabled={!!edit} target="homepage_services_section_title" onPick={onVisualEditPick}>
+          <h3 className="text-xs font-bold mb-2" style={{ fontFamily: headingFont, color: theme.text_primary }}>
+            {theme.homepage_services_section_title}
+          </h3>
+        </EditHit>
         <div className="grid grid-cols-2 gap-2">
           {catPreview.map((cat) => (
             <div
