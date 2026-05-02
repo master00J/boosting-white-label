@@ -1,9 +1,19 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
-import { Save, Loader2, Check, ExternalLink, Palette, Plus, Trash2 } from "lucide-react";
+import { Save, Loader2, Check, ExternalLink, Palette, Plus, Trash2, MonitorPlay } from "lucide-react";
 import StorefrontMiniPreview from "@/components/admin/storefront/storefront-mini-preview";
+import {
+  ColorHexRow,
+  BorderRgbaRow,
+  hexToRgb,
+  hexForColorInput,
+} from "@/components/admin/storefront/builder-color-fields";
+import {
+  STOREFRONT_THEME_PREVIEW_QUERY,
+  STOREFRONT_THEME_PREVIEW_STORAGE_KEY,
+} from "@/lib/storefront-theme-preview";
 import {
   defaultTheme,
   type ThemeSettings,
@@ -73,8 +83,29 @@ export default function StorefrontBuilderClient({
   const headingPresets = useMemo(() => Object.keys(HEADING_FONT_STACKS), []);
   const bodyPresets = useMemo(() => Object.keys(BODY_FONT_STACKS), []);
 
+  const primaryTintRgb = useMemo(
+    () => hexToRgb(hexForColorInput(theme.primary_color)),
+    [theme.primary_color]
+  );
+
   const patchTheme = (partial: Partial<ThemeSettings>) =>
     setTheme((prev) => ({ ...prev, ...partial }));
+
+  const openLiveThemePreview = useCallback(() => {
+    try {
+      const payload = {
+        ...theme,
+        logo_url: theme.logo_url?.trim() ?? "",
+        favicon_url: theme.favicon_url?.trim() ?? "",
+        hero_bg_url: theme.hero_bg_url?.trim() ?? "",
+      };
+      sessionStorage.setItem(STOREFRONT_THEME_PREVIEW_STORAGE_KEY, JSON.stringify(payload));
+    } catch {
+      /* storage full or disabled */
+    }
+    const url = `/?${STOREFRONT_THEME_PREVIEW_QUERY}=1`;
+    window.open(url, "_blank", "noopener,noreferrer");
+  }, [theme]);
 
   const save = async () => {
     setSaving(true);
@@ -119,7 +150,7 @@ export default function StorefrontBuilderClient({
           </h1>
           <p className="text-sm text-[var(--text-muted)] mt-2 max-w-xl">
             Edit colors, surfaces, typography, navigation, footer, full hero, homepage section headings, service tiles, trust blocks, how-it-works steps, and FAQ.
-            Changes are saved to site settings as the live theme — click Save and refresh the public site to verify.
+            Use color pickers where available; advanced values can still be typed. Open <strong className="text-[var(--text-secondary)]">Live theme preview</strong> in a new tab to walk the real storefront with your <em>unsaved</em> draft (session only).
           </p>
           <div className="flex flex-wrap gap-2 mt-3">
             <Link
@@ -134,15 +165,25 @@ export default function StorefrontBuilderClient({
             </a>
           </div>
         </div>
-        <button
-          type="button"
-          onClick={save}
-          disabled={saving}
-          className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-medium hover:bg-primary/90 disabled:opacity-40 transition-colors shrink-0"
-        >
-          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : saved ? <Check className="h-4 w-4" /> : <Save className="h-4 w-4" />}
-          {saved ? "Saved!" : "Save theme"}
-        </button>
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <button
+            type="button"
+            onClick={openLiveThemePreview}
+            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-[var(--border-default)] text-sm font-medium hover:bg-white/5 transition-colors"
+          >
+            <MonitorPlay className="h-4 w-4" />
+            Live preview (new tab)
+          </button>
+          <button
+            type="button"
+            onClick={save}
+            disabled={saving}
+            className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-medium hover:bg-primary/90 disabled:opacity-40 transition-colors"
+          >
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : saved ? <Check className="h-4 w-4" /> : <Save className="h-4 w-4" />}
+            {saved ? "Saved!" : "Save theme"}
+          </button>
+        </div>
       </div>
 
       {error ? (
@@ -220,49 +261,23 @@ export default function StorefrontBuilderClient({
                 </button>
               ))}
             </div>
-            <div className="grid sm:grid-cols-3 gap-4">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {(
                 [
                   ["primary_color", "Primary"],
                   ["secondary_color", "Secondary"],
                   ["accent_color", "Accent"],
+                  ["success_color", "Success accent"],
                 ] as const
               ).map(([key, label]) => (
-                <div key={key}>
-                  <label className="block text-xs font-medium mb-1.5">{label}</label>
-                  <div className="flex gap-2">
-                    <input
-                      type="color"
-                      value={theme[key]}
-                      onChange={(e) => patchTheme({ [key]: e.target.value })}
-                      className="w-10 h-10 rounded-lg cursor-pointer border-0 bg-transparent"
-                    />
-                    <input
-                      type="text"
-                      value={theme[key]}
-                      onChange={(e) => patchTheme({ [key]: e.target.value })}
-                      className="flex-1 min-w-0 px-3 py-2 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-default)] text-xs font-mono focus:outline-none focus:border-primary/50"
-                    />
-                  </div>
-                </div>
+                <ColorHexRow
+                  key={key}
+                  label={label}
+                  value={theme[key]}
+                  onChange={(v) => patchTheme({ [key]: v })}
+                  inputClassName={`${inputCls()} font-mono text-xs flex-1 min-w-0`}
+                />
               ))}
-              <div>
-                <label className="block text-xs font-medium mb-1.5">Success accent</label>
-                <div className="flex gap-2">
-                  <input
-                    type="color"
-                    value={theme.success_color}
-                    onChange={(e) => patchTheme({ success_color: e.target.value })}
-                    className="w-10 h-10 rounded-lg cursor-pointer border-0 bg-transparent"
-                  />
-                  <input
-                    type="text"
-                    value={theme.success_color}
-                    onChange={(e) => patchTheme({ success_color: e.target.value })}
-                    className="flex-1 min-w-0 px-3 py-2 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-default)] text-xs font-mono focus:outline-none focus:border-primary/50"
-                  />
-                </div>
-              </div>
             </div>
             <div>
               <label className="block text-xs font-medium mb-1.5">Corner radius (CSS)</label>
@@ -278,7 +293,7 @@ export default function StorefrontBuilderClient({
           <div className="p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] space-y-4">
             <h2 className="font-heading font-semibold text-sm">Surfaces</h2>
             <p className="text-xs text-[var(--text-muted)]">
-              Background layers for the page shell, content areas, and footer. Use hex or full CSS color values.
+              Background layers for the page shell, content areas, and footer. Pick a color or paste any valid CSS color.
             </p>
             <div className="grid sm:grid-cols-2 gap-3">
               {(
@@ -291,14 +306,13 @@ export default function StorefrontBuilderClient({
                   ["footer_bg", "Footer"],
                 ] as const
               ).map(([key, label]) => (
-                <div key={key}>
-                  <label className="block text-xs font-medium mb-1.5">{label}</label>
-                  <input
-                    value={theme[key]}
-                    onChange={(e) => patchTheme({ [key]: e.target.value })}
-                    className={`${inputCls()} font-mono text-xs`}
-                  />
-                </div>
+                <ColorHexRow
+                  key={key}
+                  label={label}
+                  value={theme[key]}
+                  onChange={(v) => patchTheme({ [key]: v })}
+                  inputClassName={`${inputCls()} font-mono text-xs flex-1 min-w-0`}
+                />
               ))}
             </div>
           </div>
@@ -313,35 +327,30 @@ export default function StorefrontBuilderClient({
                   ["text_muted", "Muted text"],
                 ] as const
               ).map(([key, label]) => (
-                <div key={key}>
-                  <label className="block text-xs font-medium mb-1.5">{label}</label>
-                  <input
-                    value={theme[key]}
-                    onChange={(e) => patchTheme({ [key]: e.target.value })}
-                    className={`${inputCls()} font-mono text-xs`}
-                  />
-                </div>
+                <ColorHexRow
+                  key={key}
+                  label={label}
+                  value={theme[key]}
+                  onChange={(v) => patchTheme({ [key]: v })}
+                  inputClassName={`${inputCls()} font-mono text-xs flex-1 min-w-0`}
+                />
               ))}
             </div>
-            <div className="grid sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium mb-1.5">Subtle border</label>
-                <input
-                  value={theme.border_subtle}
-                  onChange={(e) => patchTheme({ border_subtle: e.target.value })}
-                  className={`${inputCls()} font-mono text-xs`}
-                  placeholder="rgba(...)"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium mb-1.5">Default border</label>
-                <input
-                  value={theme.border_default}
-                  onChange={(e) => patchTheme({ border_default: e.target.value })}
-                  className={`${inputCls()} font-mono text-xs`}
-                  placeholder="rgba(...)"
-                />
-              </div>
+            <div className="grid sm:grid-cols-1 lg:grid-cols-2 gap-4">
+              <BorderRgbaRow
+                label="Subtle border"
+                value={theme.border_subtle}
+                onChange={(v) => patchTheme({ border_subtle: v })}
+                fallbackRgb={primaryTintRgb}
+                inputClassName={`${inputCls()} font-mono text-xs`}
+              />
+              <BorderRgbaRow
+                label="Default border"
+                value={theme.border_default}
+                onChange={(v) => patchTheme({ border_default: v })}
+                fallbackRgb={primaryTintRgb}
+                inputClassName={`${inputCls()} font-mono text-xs`}
+              />
             </div>
           </div>
 

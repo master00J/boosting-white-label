@@ -17,6 +17,10 @@ import {
   HOMEPAGE_SERVICE_CATEGORIES_DEFAULT,
   HOMEPAGE_FAQ_DEFAULT,
 } from "@/lib/storefront-defaults";
+import {
+  STOREFRONT_THEME_PREVIEW_QUERY,
+  STOREFRONT_THEME_PREVIEW_STORAGE_KEY,
+} from "@/lib/storefront-theme-preview";
 
 export type {
   NavLinkConfig,
@@ -225,7 +229,25 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<ThemeSettings>(defaultTheme);
 
   useEffect(() => {
+    let cancelled = false;
+
     const loadTheme = async () => {
+      if (typeof window !== "undefined") {
+        const qs = new URLSearchParams(window.location.search);
+        if (qs.get(STOREFRONT_THEME_PREVIEW_QUERY) === "1") {
+          try {
+            const raw = sessionStorage.getItem(STOREFRONT_THEME_PREVIEW_STORAGE_KEY);
+            if (raw) {
+              const parsed = JSON.parse(raw) as Partial<ThemeSettings>;
+              if (!cancelled) setTheme({ ...defaultTheme, ...parsed });
+              return;
+            }
+          } catch {
+            /* fall through to saved theme */
+          }
+        }
+      }
+
       if (
         !process.env.NEXT_PUBLIC_SUPABASE_URL ||
         !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -241,6 +263,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         .select("value")
         .eq("key", "theme")
         .maybeSingle();
+
+      if (cancelled) return;
 
       if (!error && data) {
         let themeValue: Partial<ThemeSettings> | string | null = (
@@ -260,6 +284,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     };
 
     loadTheme();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
