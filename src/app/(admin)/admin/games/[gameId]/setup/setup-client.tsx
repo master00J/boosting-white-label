@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -171,6 +171,21 @@ export default function SetupClient({
   const [preloadingCatalog, setPreloadingCatalog] = useState(false);
   const isOsrs = isOsrsCatalogGameSlug(game.slug ?? "");
 
+  useEffect(() => {
+    setSkills(initialSkills);
+  }, [initialSkills]);
+
+  const reloadSkillsFromApi = async () => {
+    const res = await fetch("/api/admin/table/game_skills", { cache: "no-store" });
+    if (!res.ok) return;
+    const all = (await res.json()) as GameSkill[];
+    if (!Array.isArray(all)) return;
+    const mine = all
+      .filter((s) => s.game_id === game.id)
+      .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+    setSkills(mine);
+  };
+
   // ── Skills CRUD ──
 
   const createSkill = async (data: { name: string; icon: string; slug: string }) => {
@@ -243,9 +258,10 @@ export default function SetupClient({
         bossIconsSynced?: number;
         methodsInserted?: number;
       } | undefined;
+      await reloadSkillsFromApi();
       if (s) {
         alert(
-          `Catalog updated.\nSkills: ${s.skillsInserted ?? 0}\nTraining methods: ${s.methodsInserted ?? 0}\nQuests: ${s.questsInserted ?? 0}\nBoss profiles (global, new): ${s.bossProfilesInserted ?? 0}\nBoss icons synced (wiki): ${s.bossIconsSynced ?? 0}\nGP/XP rows copied: ${s.skillingRowsCopied ?? 0}`
+          `Catalog updated.\nSkills: ${s.skillsInserted ?? 0}\nTraining methods: ${s.methodsInserted ?? 0}\nQuests: ${s.questsInserted ?? 0}\nBoss profiles (global, new): ${s.bossProfilesInserted ?? 0}\nBoss icons synced (wiki): ${s.bossIconsSynced ?? 0}\nGP/XP rows copied: ${s.skillingRowsCopied ?? 0}\n\nNote: 0 boss rows/icons usually means the shared boss catalog was already populated. Bosses/minigames are not listed under Skills — configure boss services under Categories.`
         );
       }
       router.refresh();
@@ -313,7 +329,7 @@ export default function SetupClient({
         <CardContent className="py-3 px-4 text-xs leading-relaxed text-muted-foreground space-y-2">
           <p>
             <span className="font-medium text-foreground">OSRS catalog — </span>
-            Click <strong className="text-foreground">Load OSRS catalog</strong> next to <strong className="text-foreground">Add skill</strong> (top right) to import skills, quests, training methods, boss profiles, and GP/XP rows where applicable. Safe to run again.
+            Click <strong className="text-foreground">Load OSRS catalog</strong> next to <strong className="text-foreground">Add skill</strong> (top right) to import skills, quests, training methods, shared boss/minigame profiles (global table), and GP/XP rows where applicable. Safe to run again. Summary counts of <strong className="text-foreground">0</strong> for bosses/icons/GP often mean that data already existed.
           </p>
           <p>
             Game slug in database:{" "}
