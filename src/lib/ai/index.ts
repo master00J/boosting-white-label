@@ -15,6 +15,30 @@ const AI_SETTING_KEYS = [
   "anthropic_api_key",
 ] as const;
 
+/**
+ * Keys injected by CodeCraft when deploying a boosting instance (Vercel env).
+ * Falls back when the shop has not configured its own keys in Admin → Settings → API Keys.
+ */
+function getHostedAIConfigFromEnv(): { provider: AIProvider; model?: string } | null {
+  const apiKey = process.env.BOOST_PLATFORM_HOSTED_AI_API_KEY?.trim();
+  if (!apiKey) return null;
+
+  const providerName = (process.env.BOOST_PLATFORM_HOSTED_AI_PROVIDER ?? "anthropic").toLowerCase();
+  const model = process.env.BOOST_PLATFORM_HOSTED_AI_MODEL?.trim() || undefined;
+
+  if (providerName === "openai") {
+    return {
+      provider: new OpenAIProvider(apiKey),
+      model: model ?? "gpt-4o-mini",
+    };
+  }
+
+  return {
+    provider: new AnthropicProvider(apiKey),
+    model: model ?? "claude-sonnet-4-20250514",
+  };
+}
+
 async function getAISettings(): Promise<{ provider: string; apiKey: string; model?: string }> {
   const admin = createAdminClient();
   const { data } = await admin
@@ -41,17 +65,18 @@ async function getAISettings(): Promise<{ provider: string; apiKey: string; mode
   };
 }
 
-/** Provider + model for completions (e.g. Setup coach, helpdesk). */
+/** Provider + model for completions (e.g. Setup coach, helpdesk). Shop keys override hosted env. */
 export async function getAIConfig(): Promise<{ provider: AIProvider; model?: string } | null> {
   const settings = await getAISettings();
-  if (!settings.apiKey) return null;
+  if (settings.apiKey) {
+    const provider =
+      settings.provider === "anthropic"
+        ? new AnthropicProvider(settings.apiKey)
+        : new OpenAIProvider(settings.apiKey);
+    return { provider, model: settings.model };
+  }
 
-  const provider =
-    settings.provider === "anthropic"
-      ? new AnthropicProvider(settings.apiKey)
-      : new OpenAIProvider(settings.apiKey);
-
-  return { provider, model: settings.model };
+  return getHostedAIConfigFromEnv();
 }
 
 export async function getAIProvider(): Promise<AIProvider | null> {

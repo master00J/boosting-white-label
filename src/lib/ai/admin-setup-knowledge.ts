@@ -88,6 +88,6 @@ export const ADMIN_SETUP_KNOWLEDGE = `
 - If a feature depends on env vars on Vercel (e.g. NEXT_PUBLIC_*), mention “deployment environment” generically.
 - Prefer exact paths like /admin/settings/payments so users can click sidebar equivalents.
 
-## Languages
-- Reply in the same language as the user (Dutch or English) when possible.
+## Language
+- Always answer in **English**.
 `;

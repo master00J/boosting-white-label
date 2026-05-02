@@ -155,7 +155,7 @@ export const adminNav: AdminNavItem[] = [
   },
   { href: "/admin/import", label: "Import", icon: Key, sectionKey: "import" },
   { href: "/admin/guide", label: "Admin Guide", icon: BookOpen, sectionKey: "guide" },
-  { href: "/admin/setup-assistant", label: "Setup-assistent", icon: Sparkles, sectionKey: "guide" },
+  { href: "/admin/setup-assistant", label: "Setup Assistant", icon: Sparkles, sectionKey: "guide" },
   { href: "/admin/chat", label: "Live Chat", icon: MessageCircle, sectionKey: "chat" },
   { href: "/admin/ranks", label: "Ranks", icon: Shield, sectionKey: "ranks" },
 ];

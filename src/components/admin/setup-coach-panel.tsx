@@ -38,14 +38,14 @@ export function SetupCoachPanel({
       const data = await res.json() as { reply?: string; error?: string };
       if (!res.ok) {
         setMessages(prev);
-        setError(data.error ?? "Er ging iets mis.");
+        setError(typeof data.error === "string" ? data.error : "Something went wrong.");
         return;
       }
       setMessages([...next, { role: "assistant", content: data.reply ?? "" }]);
       setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
     } catch {
       setMessages(prev);
-      setError("Netwerkfout.");
+      setError("Network error.");
     } finally {
       setLoading(false);
     }
@@ -63,7 +63,7 @@ export function SetupCoachPanel({
       >
         {messages.length === 0 && (
           <p className="text-muted-foreground text-xs py-8 text-center px-2">
-            Stel een vraag over je shop — bijvoorbeeld: “Hoe zet ik Stripe aan?” of “In welke volgorde maak ik games en services?”
+            Ask anything about your shop — for example: “How do I enable Stripe?” or “What order should I create games and services?”
           </p>
         )}
         {messages.map((m, i) => (
@@ -84,7 +84,7 @@ export function SetupCoachPanel({
         {loading && (
           <div className="flex items-center gap-2 text-xs text-muted-foreground py-2">
             <Loader2 className="h-4 w-4 animate-spin shrink-0" />
-            Bezig…
+            Thinking…
           </div>
         )}
         <div ref={bottomRef} />
@@ -96,7 +96,7 @@ export function SetupCoachPanel({
         <Textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Typ je vraag…"
+          placeholder="Type your question…"
           rows={variant === "page" ? 4 : 3}
           className="resize-none sm:flex-1 bg-background"
           maxLength={12000}
@@ -109,7 +109,7 @@ export function SetupCoachPanel({
         />
         <Button type="button" onClick={() => void send()} disabled={loading || !input.trim()} className="gap-2 shrink-0">
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-          Verstuur
+          Send
         </Button>
       </div>
     </div>

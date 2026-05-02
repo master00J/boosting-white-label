@@ -33,7 +33,7 @@ export function AdminSetupCoach() {
           "bg-gradient-to-br from-primary to-violet-600 hover:opacity-95 border-0",
         )}
         onClick={() => setOpen(true)}
-        aria-label="Open setup-assistent"
+        aria-label="Open setup assistant"
       >
         <Sparkles className="h-6 w-6" />
       </Button>
@@ -43,7 +43,7 @@ export function AdminSetupCoach() {
           className="fixed inset-0 z-[110] flex items-end justify-end sm:items-center sm:justify-center sm:p-6 bg-black/50"
           role="dialog"
           aria-modal="true"
-          aria-label="Setup-assistent"
+          aria-label="Setup assistant"
           onClick={(e) => {
             if (e.target === e.currentTarget) setOpen(false);
           }}
@@ -56,11 +56,11 @@ export function AdminSetupCoach() {
               <div className="flex items-center gap-2">
                 <Sparkles className="h-5 w-5 text-primary" />
                 <div>
-                  <p className="font-semibold text-sm">Setup-assistent</p>
-                  <p className="text-[11px] text-muted-foreground">AI-hulp voor je admin — ook op /admin/setup-assistant</p>
+                  <p className="font-semibold text-sm">Setup assistant</p>
+                  <p className="text-[11px] text-muted-foreground">AI help for your admin — full page at /admin/setup-assistant</p>
                 </div>
               </div>
-              <Button type="button" variant="ghost" size="icon" className="shrink-0" onClick={() => setOpen(false)} aria-label="Sluiten">
+              <Button type="button" variant="ghost" size="icon" className="shrink-0" onClick={() => setOpen(false)} aria-label="Close">
                 <X className="h-4 w-4" />
               </Button>
             </div>

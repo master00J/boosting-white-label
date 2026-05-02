@@ -43,7 +43,7 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           error:
-            "AI niet geconfigureerd. Ga naar Admin → Settings → API Keys en vul OpenAI- of Anthropic-key in, kies provider en model.",
+            "AI is not configured. Boosting sites deployed via CodeCraft should receive a hosted key automatically; otherwise set BOOST_PLATFORM_HOSTED_AI_* on the server or add keys under Admin → Settings → API Keys.",
         },
         { status: 503 },
       );
@@ -51,6 +51,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ reply: result.content });
   } catch (e) {
     console.error("[setup-assistant]", e);
-    return NextResponse.json({ error: "AI-verzoek mislukt. Probeer later opnieuw." }, { status: 500 });
+    return NextResponse.json({ error: "AI request failed. Try again later." }, { status: 500 });
   }
 }

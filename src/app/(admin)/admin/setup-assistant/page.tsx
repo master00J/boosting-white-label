@@ -3,8 +3,8 @@ import { Sparkles } from "lucide-react";
 import { SetupCoachPanel } from "@/components/admin/setup-coach-panel";
 
 export const metadata: Metadata = {
-  title: "Setup-assistent",
-  description: "Interactieve AI-hulp bij het configureren van je boosting shop.",
+  title: "Setup Assistant",
+  description: "Interactive AI help for configuring your boosting storefront.",
 };
 
 export default function AdminSetupAssistantPage() {
@@ -15,14 +15,13 @@ export default function AdminSetupAssistantPage() {
           <Sparkles className="h-8 w-8 text-primary" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Setup-assistent (AI)</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Setup Assistant</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Stel vragen over betalingen, catalogus, Discord, workers en meer. De assistant gebruikt een uitgebreide interne handleiding;
-            voor statische uitleg zie ook{" "}
+            Ask about payments, catalog, Discord, workers, and more. Answers use an internal admin guide; for static docs see{" "}
             <a href="/admin/guide" className="text-primary hover:underline">
               Admin Guide
             </a>
-            . Configureer API-keys onder{" "}
+            . Hosted shops use platform AI by default; optional own keys live under{" "}
             <a href="/admin/settings/api-keys" className="text-primary hover:underline">
               Settings → API Keys
             </a>
