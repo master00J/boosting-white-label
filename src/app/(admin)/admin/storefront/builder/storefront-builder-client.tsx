@@ -118,8 +118,8 @@ export default function StorefrontBuilderClient({
             Visual builder
           </h1>
           <p className="text-sm text-[var(--text-muted)] mt-2 max-w-xl">
-            Kleuren, surfaces, typografie, navigatie, footer, volledige hero, alle homepage-secties en FAQ beheer je hier.
-            Wijzigingen gaan naar het live theme in site-instellingen — sla op en check de publieke site.
+            Edit colors, surfaces, typography, navigation, footer, full hero, homepage section headings, service tiles, trust blocks, how-it-works steps, and FAQ.
+            Changes are saved to site settings as the live theme — click Save and refresh the public site to verify.
           </p>
           <div className="flex flex-wrap gap-2 mt-3">
             <Link
@@ -176,7 +176,7 @@ export default function StorefrontBuilderClient({
                 <input
                   value={theme.logo_url}
                   onChange={(e) => patchTheme({ logo_url: e.target.value })}
-                  placeholder="https://…"
+                  placeholder="https://..."
                   className={inputCls()}
                 />
               </div>
@@ -190,7 +190,7 @@ export default function StorefrontBuilderClient({
                 />
               </div>
               <div className="sm:col-span-2">
-                <label className="block text-xs font-medium mb-1.5">Logo-tekst (zonder logo-afbeelding)</label>
+                <label className="block text-xs font-medium mb-1.5">Logo text (when no logo image)</label>
                 <input
                   value={theme.brand_name}
                   onChange={(e) => patchTheme({ brand_name: e.target.value })}
@@ -278,16 +278,16 @@ export default function StorefrontBuilderClient({
           <div className="p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] space-y-4">
             <h2 className="font-heading font-semibold text-sm">Surfaces</h2>
             <p className="text-xs text-[var(--text-muted)]">
-              Achtergrondlagen voor shell, content en footer. Hex of volledige CSS-kleurwaarden.
+              Background layers for the page shell, content areas, and footer. Use hex or full CSS color values.
             </p>
             <div className="grid sm:grid-cols-2 gap-3">
               {(
                 [
-                  ["shell_bg", "Shell (pagina)"],
-                  ["bg_primary", "Primair"],
-                  ["bg_secondary", "Secundair"],
-                  ["bg_card", "Kaarten"],
-                  ["bg_elevated", "Verhoogd"],
+                  ["shell_bg", "Shell (page)"],
+                  ["bg_primary", "Primary background"],
+                  ["bg_secondary", "Secondary background"],
+                  ["bg_card", "Cards"],
+                  ["bg_elevated", "Elevated"],
                   ["footer_bg", "Footer"],
                 ] as const
               ).map(([key, label]) => (
@@ -304,13 +304,13 @@ export default function StorefrontBuilderClient({
           </div>
 
           <div className="p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] space-y-4">
-            <h2 className="font-heading font-semibold text-sm">Tekst & randen</h2>
+            <h2 className="font-heading font-semibold text-sm">Text & borders</h2>
             <div className="grid sm:grid-cols-3 gap-3">
               {(
                 [
-                  ["text_primary", "Tekst primair"],
-                  ["text_secondary", "Tekst secundair"],
-                  ["text_muted", "Tekst gedimd"],
+                  ["text_primary", "Primary text"],
+                  ["text_secondary", "Secondary text"],
+                  ["text_muted", "Muted text"],
                 ] as const
               ).map(([key, label]) => (
                 <div key={key}>
@@ -325,21 +325,21 @@ export default function StorefrontBuilderClient({
             </div>
             <div className="grid sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium mb-1.5">Rand subtiel</label>
+                <label className="block text-xs font-medium mb-1.5">Subtle border</label>
                 <input
                   value={theme.border_subtle}
                   onChange={(e) => patchTheme({ border_subtle: e.target.value })}
                   className={`${inputCls()} font-mono text-xs`}
-                  placeholder="rgba(…"
+                  placeholder="rgba(...)"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium mb-1.5">Rand standaard</label>
+                <label className="block text-xs font-medium mb-1.5">Default border</label>
                 <input
                   value={theme.border_default}
                   onChange={(e) => patchTheme({ border_default: e.target.value })}
                   className={`${inputCls()} font-mono text-xs`}
-                  placeholder="rgba(…"
+                  placeholder="rgba(...)"
                 />
               </div>
             </div>
@@ -384,11 +384,11 @@ export default function StorefrontBuilderClient({
           <div className="p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] space-y-4">
             <h2 className="font-heading font-semibold text-sm">Hero (homepage)</h2>
             <p className="text-xs text-[var(--text-muted)]">
-              Kopregel in drie delen, knoppen en achtergrond. Lege achtergrond-URL valt terug op hero-slideshow uit Hero banners.
+              Three-part headline, buttons, and overlay. Leave background URL empty to use the hero slideshow from Hero banners.
             </p>
             <div className="grid gap-3 sm:grid-cols-3">
               <div className="sm:col-span-3">
-                <label className="block text-xs font-medium mb-1.5">Legacy éénregelige titel (o.a. preview)</label>
+                <label className="block text-xs font-medium mb-1.5">Legacy single-line title (older previews)</label>
                 <input
                   value={theme.hero_title}
                   onChange={(e) => patchTheme({ hero_title: e.target.value })}
@@ -396,7 +396,7 @@ export default function StorefrontBuilderClient({
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium mb-1.5">Kop · voor highlight</label>
+                <label className="block text-xs font-medium mb-1.5">Headline · before highlight</label>
                 <input
                   value={theme.hero_headline_before}
                   onChange={(e) => patchTheme({ hero_headline_before: e.target.value })}
@@ -404,7 +404,7 @@ export default function StorefrontBuilderClient({
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium mb-1.5">Kop · highlight</label>
+                <label className="block text-xs font-medium mb-1.5">Headline · highlighted word</label>
                 <input
                   value={theme.hero_headline_highlight}
                   onChange={(e) => patchTheme({ hero_headline_highlight: e.target.value })}
@@ -412,7 +412,7 @@ export default function StorefrontBuilderClient({
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium mb-1.5">Kop · na highlight</label>
+                <label className="block text-xs font-medium mb-1.5">Headline · after highlight</label>
                 <input
                   value={theme.hero_headline_after}
                   onChange={(e) => patchTheme({ hero_headline_after: e.target.value })}
@@ -420,7 +420,7 @@ export default function StorefrontBuilderClient({
                 />
               </div>
               <div className="sm:col-span-3">
-                <label className="block text-xs font-medium mb-1.5">Subtitel</label>
+                <label className="block text-xs font-medium mb-1.5">Subtitle</label>
                 <textarea
                   value={theme.hero_subtitle}
                   onChange={(e) => patchTheme({ hero_subtitle: e.target.value })}
@@ -429,7 +429,7 @@ export default function StorefrontBuilderClient({
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium mb-1.5">Primaire CTA · label</label>
+                <label className="block text-xs font-medium mb-1.5">Primary CTA · label</label>
                 <input
                   value={theme.hero_primary_cta_label}
                   onChange={(e) => patchTheme({ hero_primary_cta_label: e.target.value })}
@@ -437,7 +437,7 @@ export default function StorefrontBuilderClient({
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium mb-1.5">Primaire CTA · URL</label>
+                <label className="block text-xs font-medium mb-1.5">Primary CTA · URL</label>
                 <input
                   value={theme.hero_primary_cta_href}
                   onChange={(e) => patchTheme({ hero_primary_cta_href: e.target.value })}
@@ -445,7 +445,7 @@ export default function StorefrontBuilderClient({
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium mb-1.5">Secundaire CTA · label</label>
+                <label className="block text-xs font-medium mb-1.5">Secondary CTA · label</label>
                 <input
                   value={theme.hero_secondary_cta_label}
                   onChange={(e) => patchTheme({ hero_secondary_cta_label: e.target.value })}
@@ -453,7 +453,7 @@ export default function StorefrontBuilderClient({
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium mb-1.5">Secundaire CTA · URL</label>
+                <label className="block text-xs font-medium mb-1.5">Secondary CTA · URL</label>
                 <input
                   value={theme.hero_secondary_cta_href}
                   onChange={(e) => patchTheme({ hero_secondary_cta_href: e.target.value })}
@@ -461,7 +461,7 @@ export default function StorefrontBuilderClient({
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium mb-1.5">Trustregel onder hero</label>
+                <label className="block text-xs font-medium mb-1.5">Trust line under hero</label>
                 <input
                   value={theme.hero_trust_guarantee_label}
                   onChange={(e) => patchTheme({ hero_trust_guarantee_label: e.target.value })}
@@ -469,7 +469,7 @@ export default function StorefrontBuilderClient({
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium mb-1.5">Legacý CTA-label</label>
+                <label className="block text-xs font-medium mb-1.5">Legacy CTA label (fallback)</label>
                 <input
                   value={theme.hero_cta_text}
                   onChange={(e) => patchTheme({ hero_cta_text: e.target.value })}
@@ -478,7 +478,7 @@ export default function StorefrontBuilderClient({
               </div>
               <div>
                 <label className="block text-xs font-medium mb-1.5">
-                  Overlay donker ({theme.hero_bg_overlay})
+                  Overlay strength ({theme.hero_bg_overlay})
                 </label>
                 <input
                   type="range"
@@ -491,11 +491,11 @@ export default function StorefrontBuilderClient({
                 />
               </div>
               <div className="sm:col-span-3">
-                <label className="block text-xs font-medium mb-1.5">Hero-achtergrond URL (optioneel)</label>
+                <label className="block text-xs font-medium mb-1.5">Hero background image URL (optional)</label>
                 <input
                   value={theme.hero_bg_url}
                   onChange={(e) => patchTheme({ hero_bg_url: e.target.value })}
-                  placeholder="https://…"
+                  placeholder="https://..."
                   className={inputCls()}
                 />
               </div>
@@ -504,20 +504,20 @@ export default function StorefrontBuilderClient({
 
           <div className="p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <h2 className="font-heading font-semibold text-sm">Navigatie · links</h2>
+              <h2 className="font-heading font-semibold text-sm">Navigation · links</h2>
               <div className="flex gap-2">
                 <button
                   type="button"
                   className="text-xs px-2 py-1 rounded-lg border border-[var(--border-default)] hover:bg-white/5"
                   onClick={() => patchTheme({ nav_links: [...STOREFRONT_DEFAULT_NAV_LINKS] })}
                 >
-                  Standaard laden
+                  Load defaults
                 </button>
                 <button
                   type="button"
                   className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-lg bg-primary text-white"
                   onClick={() =>
-                    patchTheme({ nav_links: [...theme.nav_links, { href: "/", label: "Nieuwe link" }] })
+                    patchTheme({ nav_links: [...theme.nav_links, { href: "/", label: "New link" }] })
                   }
                 >
                   <Plus className="h-3 w-3" /> Link
@@ -525,7 +525,7 @@ export default function StorefrontBuilderClient({
               </div>
             </div>
             <p className="text-xs text-[var(--text-muted)]">
-              Laat leeg voor de ingebouwde standaardlijst. Met minstens één item overschrijf je die volledig.
+              Leave empty to use the built-in default nav. Adding at least one link replaces the default list entirely.
             </p>
             <div className="space-y-2">
               {theme.nav_links.map((link: NavLinkConfig, i: number) => (
@@ -547,12 +547,12 @@ export default function StorefrontBuilderClient({
                       next[i] = { ...next[i], href: e.target.value };
                       patchTheme({ nav_links: next });
                     }}
-                    placeholder="/pad"
+                    placeholder="/path"
                     className={`${smallInputCls()} flex-1 min-w-[120px] font-mono`}
                   />
                   <button
                     type="button"
-                    aria-label="Verwijder link"
+                    aria-label="Remove link"
                     className="p-1.5 rounded-lg border border-[var(--border-default)] text-[var(--text-muted)] hover:text-red-400"
                     onClick={() =>
                       patchTheme({ nav_links: theme.nav_links.filter((_: NavLinkConfig, j: number) => j !== i) })
@@ -574,7 +574,7 @@ export default function StorefrontBuilderClient({
                   className="text-xs px-2 py-1 rounded-lg border border-[var(--border-default)] hover:bg-white/5"
                   onClick={() => patchTheme({ footer_columns: structuredClone(STOREFRONT_DEFAULT_FOOTER_COLUMNS) })}
                 >
-                  Standaard kolommen
+                  Load default columns
                 </button>
                 <button
                   type="button"
@@ -583,18 +583,18 @@ export default function StorefrontBuilderClient({
                     patchTheme({
                       footer_columns: [
                         ...theme.footer_columns,
-                        { title: "Nieuwe kolom", links: [{ href: "/", label: "Link" }] },
+                        { title: "New column", links: [{ href: "/", label: "Link" }] },
                       ],
                     })
                   }
                 >
-                  <Plus className="h-3 w-3" /> Kolom
+                  <Plus className="h-3 w-3" /> Column
                 </button>
               </div>
             </div>
             <div className="grid gap-3">
               <div>
-                <label className="block text-xs font-medium mb-1.5">Merk · korte tekst</label>
+                <label className="block text-xs font-medium mb-1.5">Brand · short blurb</label>
                 <textarea
                   value={theme.footer_brand_blurb}
                   onChange={(e) => patchTheme({ footer_brand_blurb: e.target.value })}
@@ -603,7 +603,7 @@ export default function StorefrontBuilderClient({
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium mb-1.5">Merk · noot</label>
+                <label className="block text-xs font-medium mb-1.5">Brand · note</label>
                 <textarea
                   value={theme.footer_brand_note}
                   onChange={(e) => patchTheme({ footer_brand_note: e.target.value })}
@@ -613,7 +613,7 @@ export default function StorefrontBuilderClient({
               </div>
               <div className="grid sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium mb-1.5">Copyright-naam</label>
+                  <label className="block text-xs font-medium mb-1.5">Copyright name</label>
                   <input
                     value={theme.copyright_name}
                     onChange={(e) => patchTheme({ copyright_name: e.target.value })}
@@ -621,7 +621,7 @@ export default function StorefrontBuilderClient({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium mb-1.5">Trust · betalingen</label>
+                  <label className="block text-xs font-medium mb-1.5">Trust · payments</label>
                   <input
                     value={theme.trust_line_payments}
                     onChange={(e) => patchTheme({ trust_line_payments: e.target.value })}
@@ -646,7 +646,7 @@ export default function StorefrontBuilderClient({
                 </div>
               </div>
             </div>
-            <p className="text-xs text-[var(--text-muted)]">Kolom-links: leeg = standaard footer.</p>
+            <p className="text-xs text-[var(--text-muted)]">Column links: leave columns empty to use the default footer.</p>
             <div className="space-y-4">
               {theme.footer_columns.map((col: FooterColumnConfig, ci: number) => (
                 <div
@@ -661,7 +661,7 @@ export default function StorefrontBuilderClient({
                         next[ci] = { ...next[ci], title: e.target.value };
                         patchTheme({ footer_columns: next });
                       }}
-                      placeholder="Kolomtitel"
+                      placeholder="Column title"
                       className={`${smallInputCls()} flex-1`}
                     />
                     <button
@@ -677,7 +677,7 @@ export default function StorefrontBuilderClient({
                     </button>
                     <button
                       type="button"
-                      aria-label="Verwijder kolom"
+                      aria-label="Remove column"
                       className="p-1.5 rounded-lg border border-[var(--border-default)] text-[var(--text-muted)] hover:text-red-400"
                       onClick={() =>
                         patchTheme({
@@ -727,24 +727,24 @@ export default function StorefrontBuilderClient({
           </div>
 
           <div className="p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] space-y-4">
-            <h2 className="font-heading font-semibold text-sm">Homepage · sectiekoppen</h2>
+            <h2 className="font-heading font-semibold text-sm">Homepage · section headings</h2>
             <div className="grid sm:grid-cols-2 gap-3 text-xs">
               {(
                 [
                   ["homepage_services_section_label", "Services · label"],
-                  ["homepage_services_section_title", "Services · titel"],
-                  ["homepage_catalog_section_label", "Catalogus · label"],
-                  ["homepage_catalog_section_title", "Catalogus · titel"],
+                  ["homepage_services_section_title", "Services · title"],
+                  ["homepage_catalog_section_label", "Catalog · label"],
+                  ["homepage_catalog_section_title", "Catalog · title"],
                   ["homepage_why_section_label", "Why us · label"],
-                  ["homepage_why_section_title", "Why us · titel"],
+                  ["homepage_why_section_title", "Why us · title"],
                   ["homepage_reviews_section_label", "Reviews · label"],
-                  ["homepage_reviews_section_title", "Reviews · titel"],
+                  ["homepage_reviews_section_title", "Reviews · title"],
                   ["homepage_team_section_label", "Team · label"],
-                  ["homepage_team_section_title", "Team · titel"],
-                  ["homepage_process_section_label", "Proces · label"],
-                  ["homepage_process_section_title", "Proces · titel"],
+                  ["homepage_team_section_title", "Team · title"],
+                  ["homepage_process_section_label", "Process · label"],
+                  ["homepage_process_section_title", "Process · title"],
                   ["homepage_faq_section_label", "FAQ · label"],
-                  ["homepage_faq_section_title", "FAQ · titel"],
+                  ["homepage_faq_section_title", "FAQ · title"],
                 ] as const
               ).map(([key, label]) => (
                 <div key={key}>
@@ -757,7 +757,7 @@ export default function StorefrontBuilderClient({
                 </div>
               ))}
               <div className="sm:col-span-2">
-                <label className="block font-medium mb-1 text-[var(--text-muted)]">Team · subtitel</label>
+                <label className="block font-medium mb-1 text-[var(--text-muted)]">Team · subtitle</label>
                 <textarea
                   value={theme.homepage_team_section_subtitle}
                   onChange={(e) => patchTheme({ homepage_team_section_subtitle: e.target.value })}
@@ -766,7 +766,7 @@ export default function StorefrontBuilderClient({
                 />
               </div>
               <div className="sm:col-span-2">
-                <label className="block font-medium mb-1 text-[var(--text-muted)]">Proces · subtitel</label>
+                <label className="block font-medium mb-1 text-[var(--text-muted)]">Process · subtitle</label>
                 <textarea
                   value={theme.homepage_process_section_subtitle}
                   onChange={(e) => patchTheme({ homepage_process_section_subtitle: e.target.value })}
@@ -778,10 +778,10 @@ export default function StorefrontBuilderClient({
           </div>
 
           <div className="p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] space-y-4">
-            <h2 className="font-heading font-semibold text-sm">Homepage · onderaan (CTA)</h2>
+            <h2 className="font-heading font-semibold text-sm">Homepage · bottom CTA</h2>
             <div className="grid sm:grid-cols-2 gap-3">
               <div className="sm:col-span-2">
-                <label className="block text-xs font-medium mb-1.5">Titel</label>
+                <label className="block text-xs font-medium mb-1.5">Title</label>
                 <input
                   value={theme.homepage_cta_title}
                   onChange={(e) => patchTheme({ homepage_cta_title: e.target.value })}
@@ -789,7 +789,7 @@ export default function StorefrontBuilderClient({
                 />
               </div>
               <div className="sm:col-span-2">
-                <label className="block text-xs font-medium mb-1.5">Subtitel</label>
+                <label className="block text-xs font-medium mb-1.5">Subtitle</label>
                 <textarea
                   value={theme.homepage_cta_subtitle}
                   onChange={(e) => patchTheme({ homepage_cta_subtitle: e.target.value })}
@@ -798,7 +798,7 @@ export default function StorefrontBuilderClient({
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium mb-1.5">Knop · label</label>
+                <label className="block text-xs font-medium mb-1.5">Button · label</label>
                 <input
                   value={theme.homepage_cta_primary_label}
                   onChange={(e) => patchTheme({ homepage_cta_primary_label: e.target.value })}
@@ -806,7 +806,7 @@ export default function StorefrontBuilderClient({
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium mb-1.5">Knop · URL</label>
+                <label className="block text-xs font-medium mb-1.5">Button · URL</label>
                 <input
                   value={theme.homepage_cta_primary_href}
                   onChange={(e) => patchTheme({ homepage_cta_primary_href: e.target.value })}
@@ -815,13 +815,13 @@ export default function StorefrontBuilderClient({
               </div>
             </div>
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-xs text-[var(--text-muted)]">Bullets naast de knop</p>
+              <p className="text-xs text-[var(--text-muted)]">Bullets next to the button</p>
               <button
                 type="button"
                 className="text-xs px-2 py-1 rounded-lg border border-[var(--border-default)]"
                 onClick={() => patchTheme({ homepage_cta_bullets: [...defaultTheme.homepage_cta_bullets] })}
               >
-                Standaard bullets
+                Reset bullets
               </button>
             </div>
             {theme.homepage_cta_bullets.map((line: string, i: number) => (
@@ -851,7 +851,7 @@ export default function StorefrontBuilderClient({
             <button
               type="button"
               className="text-xs inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-primary text-white"
-              onClick={() => patchTheme({ homepage_cta_bullets: [...theme.homepage_cta_bullets, "Nieuwe regel"] })}
+              onClick={() => patchTheme({ homepage_cta_bullets: [...theme.homepage_cta_bullets, "New line"] })}
             >
               <Plus className="h-3 w-3" /> Bullet
             </button>
@@ -859,7 +859,7 @@ export default function StorefrontBuilderClient({
 
           <div className="p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] space-y-4">
             <div className="flex flex-wrap justify-between gap-2">
-              <h2 className="font-heading font-semibold text-sm">Homepage · trust-blokken</h2>
+              <h2 className="font-heading font-semibold text-sm">Homepage · trust highlights</h2>
               <button
                 type="button"
                 className="text-xs px-2 py-1 rounded-lg border border-[var(--border-default)]"
@@ -867,10 +867,10 @@ export default function StorefrontBuilderClient({
                   patchTheme({ homepage_trust_features: structuredClone(HOMEPAGE_TRUST_FEATURES_DEFAULT) })
                 }
               >
-                Standaard
+                Reset to defaults
               </button>
             </div>
-            <p className="text-xs text-[var(--text-muted)]">Leeg = ingebouwde standaard copy en iconen.</p>
+            <p className="text-xs text-[var(--text-muted)]">Empty list uses built-in default copy and icons.</p>
             {(theme.homepage_trust_features.length
               ? theme.homepage_trust_features
               : HOMEPAGE_TRUST_FEATURES_DEFAULT
@@ -888,12 +888,12 @@ export default function StorefrontBuilderClient({
                       patchTheme({ homepage_trust_features: src.filter((_: HomepageTrustFeature, j: number) => j !== i) });
                     }}
                   >
-                    Verwijder
+                    Remove
                   </button>
                 </div>
                 <div className="grid sm:grid-cols-4 gap-2">
                   <input
-                    placeholder="Nr."
+                    placeholder="No."
                     value={row.number ?? ""}
                     onChange={(e) => {
                       const src = [...(theme.homepage_trust_features.length ? theme.homepage_trust_features : HOMEPAGE_TRUST_FEATURES_DEFAULT)];
@@ -903,7 +903,7 @@ export default function StorefrontBuilderClient({
                     className={smallInputCls()}
                   />
                   <input
-                    placeholder="Titel"
+                    placeholder="Title"
                     value={row.title}
                     onChange={(e) => {
                       const src = [...(theme.homepage_trust_features.length ? theme.homepage_trust_features : HOMEPAGE_TRUST_FEATURES_DEFAULT)];
@@ -924,7 +924,7 @@ export default function StorefrontBuilderClient({
                     className={`${smallInputCls()} sm:col-span-4`}
                   />
                   <input
-                    placeholder="Icoon-URL"
+                    placeholder="Icon URL"
                     value={row.osrs_icon_url ?? ""}
                     onChange={(e) => {
                       const src = [...(theme.homepage_trust_features.length ? theme.homepage_trust_features : HOMEPAGE_TRUST_FEATURES_DEFAULT)];
@@ -953,18 +953,18 @@ export default function StorefrontBuilderClient({
                 patchTheme({
                   homepage_trust_features: [
                     ...(theme.homepage_trust_features.length ? theme.homepage_trust_features : HOMEPAGE_TRUST_FEATURES_DEFAULT),
-                    { title: "Nieuw voordeel", description: "", number: "00", osrs_icon_url: "", icon_alt: "" },
+                    { title: "New highlight", description: "", number: "00", osrs_icon_url: "", icon_alt: "" },
                   ],
                 })
               }
             >
-              <Plus className="h-3 w-3" /> Trust-item
+              <Plus className="h-3 w-3" /> Trust row
             </button>
           </div>
 
           <div className="p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] space-y-4">
             <div className="flex flex-wrap justify-between gap-2">
-              <h2 className="font-heading font-semibold text-sm">Homepage · hoe het werkt</h2>
+              <h2 className="font-heading font-semibold text-sm">Homepage · how it works</h2>
               <button
                 type="button"
                 className="text-xs px-2 py-1 rounded-lg border border-[var(--border-default)]"
@@ -972,14 +972,14 @@ export default function StorefrontBuilderClient({
                   patchTheme({ homepage_how_it_works: structuredClone(HOMEPAGE_HOW_IT_WORKS_DEFAULT) })
                 }
               >
-                Standaard
+                Reset to defaults
               </button>
             </div>
             {(theme.homepage_how_it_works.length ? theme.homepage_how_it_works : HOMEPAGE_HOW_IT_WORKS_DEFAULT).map(
               (row: HomepageHowStep, i: number) => (
                 <div key={i} className="rounded-xl border border-[var(--border-default)] p-3 space-y-2 bg-[var(--bg-elevated)]/30">
                   <div className="flex justify-between">
-                    <span className="text-[10px] font-semibold text-[var(--text-muted)]">Stap {i + 1}</span>
+                    <span className="text-[10px] font-semibold text-[var(--text-muted)]">Step {i + 1}</span>
                     <button
                       type="button"
                       className="text-[10px] text-red-400"
@@ -990,12 +990,12 @@ export default function StorefrontBuilderClient({
                         patchTheme({ homepage_how_it_works: src.filter((_: HomepageHowStep, j: number) => j !== i) });
                       }}
                     >
-                      Verwijder
+                      Remove
                     </button>
                   </div>
                   <div className="grid sm:grid-cols-4 gap-2">
                     <input
-                      placeholder="Stapnr."
+                      placeholder="Step #"
                       value={row.step ?? ""}
                       onChange={(e) => {
                         const src = [...(theme.homepage_how_it_works.length ? theme.homepage_how_it_works : HOMEPAGE_HOW_IT_WORKS_DEFAULT)];
@@ -1005,7 +1005,7 @@ export default function StorefrontBuilderClient({
                       className={smallInputCls()}
                     />
                     <input
-                      placeholder="Titel"
+                      placeholder="Title"
                       value={row.title}
                       onChange={(e) => {
                         const src = [...(theme.homepage_how_it_works.length ? theme.homepage_how_it_works : HOMEPAGE_HOW_IT_WORKS_DEFAULT)];
@@ -1026,7 +1026,7 @@ export default function StorefrontBuilderClient({
                       className={`${smallInputCls()} sm:col-span-4`}
                     />
                     <input
-                      placeholder="Icoon-URL"
+                      placeholder="Icon URL"
                       value={row.osrs_icon_url ?? ""}
                       onChange={(e) => {
                         const src = [...(theme.homepage_how_it_works.length ? theme.homepage_how_it_works : HOMEPAGE_HOW_IT_WORKS_DEFAULT)];
@@ -1056,18 +1056,18 @@ export default function StorefrontBuilderClient({
                 patchTheme({
                   homepage_how_it_works: [
                     ...(theme.homepage_how_it_works.length ? theme.homepage_how_it_works : HOMEPAGE_HOW_IT_WORKS_DEFAULT),
-                    { title: "Nieuwe stap", description: "", step: "00", osrs_icon_url: "", icon_alt: "" },
+                    { title: "New step", description: "", step: "00", osrs_icon_url: "", icon_alt: "" },
                   ],
                 })
               }
             >
-              <Plus className="h-3 w-3" /> Stap
+              <Plus className="h-3 w-3" /> Step
             </button>
           </div>
 
           <div className="p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-default)] space-y-4">
             <div className="flex flex-wrap justify-between gap-2">
-              <h2 className="font-heading font-semibold text-sm">Homepage · service-tegels</h2>
+              <h2 className="font-heading font-semibold text-sm">Homepage · service tiles</h2>
               <button
                 type="button"
                 className="text-xs px-2 py-1 rounded-lg border border-[var(--border-default)]"
@@ -1077,7 +1077,7 @@ export default function StorefrontBuilderClient({
                   })
                 }
               >
-                Standaard
+                Reset to defaults
               </button>
             </div>
             {(theme.homepage_service_categories.length
@@ -1086,7 +1086,7 @@ export default function StorefrontBuilderClient({
             ).map((row: HomepageServiceCategory, i: number) => (
               <div key={i} className="rounded-xl border border-[var(--border-default)] p-3 space-y-2 bg-[var(--bg-elevated)]/30">
                 <div className="flex justify-between">
-                  <span className="text-[10px] font-semibold text-[var(--text-muted)]">Tegel {i + 1}</span>
+                  <span className="text-[10px] font-semibold text-[var(--text-muted)]">Tile {i + 1}</span>
                   <button
                     type="button"
                     className="text-[10px] text-red-400"
@@ -1099,12 +1099,12 @@ export default function StorefrontBuilderClient({
                       });
                     }}
                   >
-                    Verwijder
+                    Remove
                   </button>
                 </div>
                 <div className="grid sm:grid-cols-2 gap-2">
                   <input
-                    placeholder="Titel"
+                    placeholder="Title"
                     value={row.title}
                     onChange={(e) => {
                       const src = [
@@ -1161,7 +1161,7 @@ export default function StorefrontBuilderClient({
                     className={`${smallInputCls()} sm:col-span-2`}
                   />
                   <input
-                    placeholder="Icoon-URL"
+                    placeholder="Icon URL"
                     value={row.osrs_icon_url ?? ""}
                     onChange={(e) => {
                       const src = [
@@ -1201,9 +1201,9 @@ export default function StorefrontBuilderClient({
                       ? theme.homepage_service_categories
                       : HOMEPAGE_SERVICE_CATEGORIES_DEFAULT),
                     {
-                      title: "Nieuwe tegel",
+                      title: "New tile",
                       desc: "",
-                      cta: "Meer",
+                      cta: "Learn more",
                       href: "/games",
                       osrs_icon_url: "",
                       icon_alt: "",
@@ -1212,7 +1212,7 @@ export default function StorefrontBuilderClient({
                 })
               }
             >
-              <Plus className="h-3 w-3" /> Tegel
+              <Plus className="h-3 w-3" /> Tile
             </button>
           </div>
 
@@ -1224,17 +1224,17 @@ export default function StorefrontBuilderClient({
                 className="text-xs px-2 py-1 rounded-lg border border-[var(--border-default)]"
                 onClick={() => patchTheme({ homepage_faq: structuredClone(HOMEPAGE_FAQ_DEFAULT) })}
               >
-                Standaard
+                Reset to defaults
               </button>
             </div>
             <p className="text-xs text-[var(--text-muted)]">
-              Gebruik <code className="font-mono text-[var(--text-primary)]">PLACEHOLDER_ORDER_STATS</code> in een
-              antwoord om live het bestel-aantal te tonen (alleen als het in de tekst staat).
+              Include <code className="font-mono text-[var(--text-primary)]">PLACEHOLDER_ORDER_STATS</code> in an answer
+              to inject live order-count text (only replaced when that token appears).
             </p>
             {(theme.homepage_faq.length ? theme.homepage_faq : HOMEPAGE_FAQ_DEFAULT).map((row: HomepageFaqItem, i: number) => (
               <div key={i} className="rounded-xl border border-[var(--border-default)] p-3 space-y-2 bg-[var(--bg-elevated)]/30">
                 <div className="flex justify-between">
-                  <span className="text-[10px] font-semibold text-[var(--text-muted)]">Vraag {i + 1}</span>
+                  <span className="text-[10px] font-semibold text-[var(--text-muted)]">Question {i + 1}</span>
                   <button
                     type="button"
                     className="text-[10px] text-red-400"
@@ -1243,11 +1243,11 @@ export default function StorefrontBuilderClient({
                       patchTheme({ homepage_faq: src.filter((_: HomepageFaqItem, j: number) => j !== i) });
                     }}
                   >
-                    Verwijder
+                    Remove
                   </button>
                 </div>
                 <input
-                  placeholder="Vraag"
+                  placeholder="Question"
                   value={row.question}
                   onChange={(e) => {
                     const src = [...(theme.homepage_faq.length ? theme.homepage_faq : HOMEPAGE_FAQ_DEFAULT)];
@@ -1257,7 +1257,7 @@ export default function StorefrontBuilderClient({
                   className={smallInputCls()}
                 />
                 <textarea
-                  placeholder="Antwoord"
+                  placeholder="Answer"
                   value={row.answer}
                   onChange={(e) => {
                     const src = [...(theme.homepage_faq.length ? theme.homepage_faq : HOMEPAGE_FAQ_DEFAULT)];
@@ -1276,12 +1276,12 @@ export default function StorefrontBuilderClient({
                 patchTheme({
                   homepage_faq: [
                     ...(theme.homepage_faq.length ? theme.homepage_faq : HOMEPAGE_FAQ_DEFAULT),
-                    { question: "Nieuwe vraag", answer: "" },
+                    { question: "New question", answer: "" },
                   ],
                 })
               }
             >
-              <Plus className="h-3 w-3" /> FAQ-item
+              <Plus className="h-3 w-3" /> FAQ entry
             </button>
           </div>
         </div>
