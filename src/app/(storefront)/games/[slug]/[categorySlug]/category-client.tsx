@@ -322,49 +322,51 @@ export default function CategoryClient({ game, category, services, initialServic
           </div>
         )}
 
-        {/* ── Right: configurator ── */}
+        {/* ── Main + cart: cart rechts vanaf lg ── */}
         <div className={cn("min-w-0 w-full", !hasSingleService && "flex-1")}>
           {selected ? (
-            <div className={cn(!hasSingleService && "sticky top-24")}>
-              {/* Service title above configurator */}
-              <div className="mb-4 flex items-start justify-between gap-3">
-                <div>
-                  <h2 className="font-heading text-2xl font-semibold text-white">{selected.name}</h2>
-                  {selected.description && (
-                    <p className="text-sm text-[var(--text-muted)] mt-1 leading-relaxed max-w-xl">
-                      {selected.description}
-                    </p>
+            <div className="grid gap-6 lg:gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(280px,340px)] xl:grid-cols-[minmax(0,1fr)_minmax(300px,360px)] lg:items-start">
+              <div className="min-w-0 space-y-5">
+                {/* Service title above configurator */}
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h2 className="font-heading text-2xl font-semibold text-white">{selected.name}</h2>
+                    {selected.description && (
+                      <p className="text-sm text-[var(--text-muted)] mt-1 leading-relaxed max-w-xl">
+                        {selected.description}
+                      </p>
+                    )}
+                  </div>
+                  {!hasSingleService && (
+                    <Link
+                      href={`/games/${game.slug}/${category.slug}/${selected.slug}`}
+                      className="text-xs text-[var(--text-muted)] hover:text-primary transition-colors flex-shrink-0 mt-1"
+                    >
+                      Full page →
+                    </Link>
                   )}
                 </div>
-                {!hasSingleService && (
-                  <Link
-                    href={`/games/${game.slug}/${category.slug}/${selected.slug}`}
-                    className="text-xs text-[var(--text-muted)] hover:text-primary transition-colors flex-shrink-0 mt-1"
-                  >
-                    Full page →
-                  </Link>
-                )}
+
+                {/* Trust badges */}
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { label: "Safe & Discreet", icon: "🔒" },
+                    { label: "Fast Start", icon: "⚡" },
+                    { label: "24/7 Support", icon: "💬" },
+                  ].map((f) => (
+                    <div key={f.label} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[var(--bg-card)] border border-[var(--border-subtle)] text-xs font-medium">
+                      <span>{f.icon}</span>
+                      <span className="text-[var(--text-secondary)]">{f.label}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <ServiceConfigurator key={selected.id} service={selected} game={game} categorySlug={category.slug} />
               </div>
 
-              {/* Trust badges */}
-              <div className="flex flex-wrap gap-2 mb-5">
-                {[
-                  { label: "Safe & Discreet", icon: "🔒" },
-                  { label: "Fast Start", icon: "⚡" },
-                  { label: "24/7 Support", icon: "💬" },
-                ].map((f) => (
-                  <div key={f.label} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[var(--bg-card)] border border-[var(--border-subtle)] text-xs font-medium">
-                    <span>{f.icon}</span>
-                    <span className="text-[var(--text-secondary)]">{f.label}</span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mb-5">
+              <aside className="min-w-0 lg:sticky lg:top-24 lg:self-start">
                 <CartPreview />
-              </div>
-
-              <ServiceConfigurator key={selected.id} service={selected} game={game} categorySlug={category.slug} />
+              </aside>
             </div>
           ) : (
             <div className="flex items-center justify-center h-64 rounded-2xl border border-dashed border-[var(--border-default)] text-[var(--text-muted)]">
