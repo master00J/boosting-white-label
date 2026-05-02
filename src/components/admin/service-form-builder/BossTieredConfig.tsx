@@ -562,11 +562,24 @@ function BossPickerModal({ existingIds, onAdd, onClose }: {
   );
 }
 
+function cloneConfigJson<T>(x: T): T {
+  return JSON.parse(JSON.stringify(x)) as T;
+}
+
 // ─── Boss row ─────────────────────────────────────────────────────────────────
 
-function BossRow({ boss, globalStats, onUpdate, onRemove }: {
+function BossRow({
+  boss,
+  globalStats,
+  globalModifiers,
+  globalLoadoutMods,
+  onUpdate,
+  onRemove,
+}: {
   boss: BossConfig;
   globalStats: StatConfig[];
+  globalModifiers: QuestModifierField[];
+  globalLoadoutMods: LoadoutModifier[];
   onUpdate: (b: BossConfig) => void;
   onRemove: () => void;
 }) {
@@ -675,9 +688,9 @@ function BossRow({ boss, globalStats, onUpdate, onRemove }: {
                 className={cn("px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors",
                   tab === t ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground")}>
                 {t === "tiers" ? `Kill tiers (${killTiers.length})` :
-                 t === "stats" ? `Stats (${bossStats.length > 0 ? `${bossStats.length} custom` : "global"})` :
-                 t === "modifiers" ? `Upcharges (${bossModifiers.length > 0 ? `${bossModifiers.length} custom` : "global"})` :
-                 `Gear (${bossLoadoutMods.length > 0 ? `${bossLoadoutMods.length} custom` : "global"})`}
+                 t === "stats" ? `Combat stats (${bossStats.length > 0 ? `${bossStats.length} this boss` : "service default"})` :
+                 t === "modifiers" ? `Upcharges (${bossModifiers.length > 0 ? `${bossModifiers.length} this boss` : "service default"})` :
+                 `Gear (${bossLoadoutMods.length > 0 ? `${bossLoadoutMods.length} this boss` : "service default"})`}
               </button>
             ))}
           </div>
@@ -718,16 +731,26 @@ function BossRow({ boss, globalStats, onUpdate, onRemove }: {
             {/* Stats tab */}
             {tab === "stats" && (
               <>
-                <p className="text-[10px] text-muted-foreground">
-                  {bossStats.length > 0
-                    ? "Custom stats for this boss — overrides global stats."
-                    : "No custom stats — global stats will be used."}
-                </p>
+                {bossStats.length === 0 && (
+                  <div className="rounded-lg border border-primary/20 bg-primary/[0.06] px-3 py-2 text-[11px] text-muted-foreground leading-snug space-y-1.5">
+                    <p>
+                      <span className="font-medium text-foreground">Per-boss combat stats: </span>
+                      Open <strong className="text-foreground">Add stat</strong> below to set level bands (Combat, Prayer, …) for{" "}
+                      <strong className="text-foreground">this boss only</strong>. Until then, the storefront uses the{" "}
+                      <strong className="text-foreground">service-wide</strong> stats from the &quot;Global stats&quot; section above.
+                    </p>
+                  </div>
+                )}
+                {bossStats.length > 0 && (
+                  <p className="text-[10px] text-muted-foreground">
+                    These stats replace the service-wide list while this boss is selected.
+                  </p>
+                )}
                 {bossStats.length > 0 && (
                   <button type="button"
                     onClick={() => onUpdate({ ...boss, stats: [] })}
                     className="text-[9px] text-amber-400 hover:text-amber-300 transition-colors px-1.5 py-0.5 rounded border border-amber-400/30">
-                    Remove custom stats (use global)
+                    Clear boss stats (use service-wide again)
                   </button>
                 )}
                 {bossStats.map((s, i) => (
@@ -735,16 +758,16 @@ function BossRow({ boss, globalStats, onUpdate, onRemove }: {
                     onChange={(updated) => updateBossStat(i, updated)}
                     onRemove={() => removeBossStat(i)} />
                 ))}
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <button type="button" onClick={addBossStat}
                     className="flex items-center gap-1 text-[10px] text-primary hover:text-primary/80 transition-colors px-2 py-1 rounded border border-dashed border-primary/30 hover:bg-primary/5">
-                    <Plus className="h-2.5 w-2.5" /> Add stat
+                    <Plus className="h-2.5 w-2.5" /> Add stat for this boss
                   </button>
                   {globalStats.length > 0 && bossStats.length === 0 && (
                     <button type="button"
-                      onClick={() => onUpdate({ ...boss, stats: globalStats.map((s) => ({ ...s })) })}
+                      onClick={() => onUpdate({ ...boss, stats: cloneConfigJson(globalStats) })}
                       className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded border border-dashed border-border hover:bg-muted/30">
-                      Copy global stats
+                      Copy service-wide stats as template
                     </button>
                   )}
                 </div>
@@ -754,16 +777,25 @@ function BossRow({ boss, globalStats, onUpdate, onRemove }: {
             {/* Modifiers tab */}
             {tab === "modifiers" && (
               <>
-                <p className="text-[10px] text-muted-foreground">
-                  {bossModifiers.length > 0
-                    ? "Custom upcharges for this boss — overrides global upcharges."
-                    : "No custom upcharges — global upcharges will be used."}
-                </p>
+                {bossModifiers.length === 0 && (
+                  <div className="rounded-lg border border-primary/20 bg-primary/[0.06] px-3 py-2 text-[11px] text-muted-foreground leading-snug">
+                    <p>
+                      <span className="font-medium text-foreground">Per-boss upcharges: </span>
+                      Use <strong className="text-foreground">Add upcharge</strong> for modifiers that only apply to this boss (loot split, defence mode, …).
+                      Until then, customers see the <strong className="text-foreground">service-wide</strong> upcharges from &quot;Global upcharges&quot; above.
+                    </p>
+                  </div>
+                )}
+                {bossModifiers.length > 0 && (
+                  <p className="text-[10px] text-muted-foreground">
+                    These options replace the service-wide upcharge list for this boss.
+                  </p>
+                )}
                 {bossModifiers.length > 0 && (
                   <button type="button"
                     onClick={() => onUpdate({ ...boss, modifiers: [] })}
                     className="text-[9px] text-amber-400 hover:text-amber-300 transition-colors px-1.5 py-0.5 rounded border border-amber-400/30">
-                    Remove custom upcharges (use global)
+                    Clear boss upcharges (use service-wide again)
                   </button>
                 )}
                 {bossModifiers.map((m, i) => (
@@ -771,28 +803,55 @@ function BossRow({ boss, globalStats, onUpdate, onRemove }: {
                     onChange={(updated) => updateBossMod(i, updated)}
                     onRemove={() => removeBossMod(i)} />
                 ))}
-                <button type="button" onClick={addBossMod}
-                  className="flex items-center gap-1 text-[10px] text-primary hover:text-primary/80 transition-colors px-2 py-1 rounded border border-dashed border-primary/30 hover:bg-primary/5">
-                  <Plus className="h-2.5 w-2.5" /> Add upcharge
-                </button>
+                <div className="flex flex-wrap gap-2">
+                  <button type="button" onClick={addBossMod}
+                    className="flex items-center gap-1 text-[10px] text-primary hover:text-primary/80 transition-colors px-2 py-1 rounded border border-dashed border-primary/30 hover:bg-primary/5">
+                    <Plus className="h-2.5 w-2.5" /> Add upcharge for this boss
+                  </button>
+                  {globalModifiers.length > 0 && bossModifiers.length === 0 && (
+                    <button type="button"
+                      onClick={() => onUpdate({ ...boss, modifiers: cloneConfigJson(globalModifiers) })}
+                      className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded border border-dashed border-border hover:bg-muted/30">
+                      Copy service-wide upcharges as template
+                    </button>
+                  )}
+                </div>
               </>
             )}
 
             {/* Gear tab */}
             {tab === "gear" && (
               <>
-                <p className="text-[10px] text-muted-foreground mb-2">
-                  {bossLoadoutMods.length > 0
-                    ? "Custom gear adjustments for this boss — overrides global gear adjustments."
-                    : "No custom gear adjustments — global gear adjustments will be used."}
-                </p>
+                {bossLoadoutMods.length === 0 && (
+                  <div className="rounded-lg border border-primary/20 bg-primary/[0.06] px-3 py-2 text-[11px] text-muted-foreground leading-snug mb-2">
+                    <p>
+                      <span className="font-medium text-foreground">Per-boss gear rules: </span>
+                      Use <strong className="text-foreground">Add item</strong> below (Twisted bow, fire cape, …) with a price multiplier when the customer has that item equipped.
+                      Until you add rules here, the storefront uses <strong className="text-foreground">service-wide</strong> gear rules from &quot;Global gear&quot; above.
+                    </p>
+                  </div>
+                )}
+                {bossLoadoutMods.length > 0 && (
+                  <p className="text-[10px] text-muted-foreground mb-2">
+                    These loadout rules replace the service-wide gear list for this boss.
+                  </p>
+                )}
                 {bossLoadoutMods.length > 0 && (
                   <button
                     type="button"
                     onClick={() => onUpdate({ ...boss, loadout_modifiers: [] })}
                     className="text-[9px] text-amber-400 hover:text-amber-300 transition-colors px-1.5 py-0.5 rounded border border-amber-400/30 mb-2"
                   >
-                    Remove custom gear adjustments (use global)
+                    Clear boss gear rules (use service-wide again)
+                  </button>
+                )}
+                {globalLoadoutMods.length > 0 && bossLoadoutMods.length === 0 && (
+                  <button
+                    type="button"
+                    onClick={() => onUpdate({ ...boss, loadout_modifiers: cloneConfigJson(globalLoadoutMods) })}
+                    className="mb-2 flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded border border-dashed border-border hover:bg-muted/30"
+                  >
+                    Copy service-wide gear rules as template
                   </button>
                 )}
                 <LoadoutModifiersConfig
@@ -920,7 +979,9 @@ export default function BossTieredConfig({ matrix, onChange }: Props) {
           <div>
             <p className="text-sm font-semibold">Bosses & tiers</p>
             <p className="text-xs text-muted-foreground mt-1">
-              Configure the selectable bosses first. Each boss can keep the global defaults or override them with custom rules.
+              Expand a boss row: <strong className="text-foreground">Kill tiers</strong> are always per boss. Use{" "}
+              <strong className="text-foreground">Combat stats</strong>, <strong className="text-foreground">Upcharges</strong>, and{" "}
+              <strong className="text-foreground">Gear</strong> to override the service-wide defaults for that boss only (via &quot;Add …&quot;).
             </p>
           </div>
           <div className="flex gap-2">
@@ -939,14 +1000,22 @@ export default function BossTieredConfig({ matrix, onChange }: Props) {
             <div className="rounded-lg border border-dashed border-border bg-muted/10 px-4 py-6 text-center">
               <p className="text-sm font-medium">No bosses yet</p>
               <p className="text-xs text-muted-foreground mt-1">
-                Pick bosses from the OSRS list or add one manually to start defining kill tiers.
+                Pick bosses from the OSRS list or add one manually. Expand a boss to set kill tiers — use the{" "}
+                <strong className="text-foreground">Combat stats</strong>, <strong className="text-foreground">Upcharges</strong>, and{" "}
+                <strong className="text-foreground">Gear</strong> tabs for rules that apply to that boss only.
               </p>
             </div>
           )}
           {matrix.bosses.map((boss, i) => (
-            <BossRow key={i} boss={boss} globalStats={globalStats}
+            <BossRow
+              key={i}
+              boss={boss}
+              globalStats={globalStats}
+              globalModifiers={globalModifiers}
+              globalLoadoutMods={globalLoadoutMods}
               onUpdate={(updated) => updateBoss(i, updated)}
-              onRemove={() => removeBoss(i)} />
+              onRemove={() => removeBoss(i)}
+            />
           ))}
         </div>
       </section>
