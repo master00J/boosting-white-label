@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import PageHeader from "@/components/shared/page-header";
 import { slugify } from "@/lib/utils/slugify";
 import { OSRS_SKILLS } from "@/lib/osrs-skills";
-import { OSRS_CATALOG_SLUGS } from "@/lib/osrs-catalog-slugs";
+import { isOsrsCatalogGameSlug } from "@/lib/osrs-catalog-slugs";
 import { cn } from "@/lib/utils/cn";
 
 interface Game { id: string; name: string; slug: string }
@@ -169,7 +169,7 @@ export default function SetupClient({
   const [error, setError] = useState<string | null>(null);
   const [fetchingQuestItems, setFetchingQuestItems] = useState(false);
   const [preloadingCatalog, setPreloadingCatalog] = useState(false);
-  const isOsrs = OSRS_CATALOG_SLUGS.has((game.slug ?? "").trim().toLowerCase());
+  const isOsrs = isOsrsCatalogGameSlug(game.slug ?? "");
 
   // ── Skills CRUD ──
 
