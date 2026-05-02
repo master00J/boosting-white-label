@@ -22,22 +22,7 @@ function ac(admin: AdminCatalogClient): any {
   return admin;
 }
 
-const SYNTHETIC_CATALOG_QUESTS = [
-  {
-    slug: "fire_cape",
-    name: "TzHaar Fight Cave (Fire Cape)",
-    icon_url: "https://oldschool.runescape.wiki/images/Fire_cape.png",
-    is_members: false,
-    quest_points: 0,
-  },
-  {
-    slug: "infernal_cape",
-    name: "Inferno (Infernal Cape)",
-    icon_url: "https://oldschool.runescape.wiki/images/Infernal_cape.png",
-    is_members: true,
-    quest_points: 0,
-  },
-] as const;
+/** Fire cape / Inferno live under boss profiles (`fight_caves`, `inferno`) — not `game_quests`. */
 
 function bossProfileToRow(b: BossProfile) {
   return {
@@ -57,18 +42,22 @@ function bossProfileToRow(b: BossProfile) {
   };
 }
 
-async function seedGlobalBossProfilesIfEmpty(admin: AdminCatalogClient): Promise<number> {
-  const { count, error: countErr } = await ac(admin)
-    .from("osrs_boss_profiles")
-    .select("*", { count: "exact", head: true });
-  if (countErr) throw new Error(countErr.message);
-  if ((count ?? 0) > 0) return 0;
-
+/**
+ * Inserts any boss/minigame profiles from code that are missing in DB.
+ * (Older logic only ran when the table was completely empty — one stray row blocked all inserts.)
+ */
+async function syncMissingBossProfiles(admin: AdminCatalogClient): Promise<number> {
   const rows = BOSS_PROFILES.map(bossProfileToRow);
+  const { data: existing, error: exErr } = await ac(admin).from("osrs_boss_profiles").select("id");
+  if (exErr) throw new Error(exErr.message);
+  const have = new Set((existing ?? []).map((r: { id: string }) => r.id));
+  const missing = rows.filter((r) => !have.has(r.id));
+  if (!missing.length) return 0;
+
   const chunk = 40;
   let inserted = 0;
-  for (let i = 0; i < rows.length; i += chunk) {
-    const part = rows.slice(i, i + chunk);
+  for (let i = 0; i < missing.length; i += chunk) {
+    const part = missing.slice(i, i + chunk);
     const { error } = await ac(admin).from("osrs_boss_profiles").insert(part as never[]);
     if (error) throw new Error(error.message);
     inserted += part.length;
@@ -151,6 +140,9 @@ async function syncBossProfileWikiIcons(admin: AdminCatalogClient): Promise<numb
   return updated;
 }
 
+/** PvM/minigame offerings — sold via Bossing / Minigames (`fight_caves`, `inferno`), not quest catalog. */
+const GAME_QUEST_EXCLUDED_SLUGS = new Set(["fire_cape", "infernal_cape"]);
+
 function buildOsrsQuestRowsForGame(gameId: string) {
   const reqSlugByTitle = buildRequirementSlugByTitleMap();
   const qpBySlug = buildQuestPointsBySlugMap();
@@ -188,24 +180,8 @@ function buildOsrsQuestRowsForGame(gameId: string) {
     });
   }
 
-  for (const syn of SYNTHETIC_CATALOG_QUESTS) {
-    if (!bySlug.has(syn.slug)) {
-      bySlug.set(syn.slug, {
-        game_id: gameId,
-        name: syn.name,
-        slug: syn.slug,
-        quest_points: syn.quest_points,
-        series: null,
-        is_members: syn.is_members,
-        difficulty: "See wiki",
-        length: "Various",
-        sort_order: sort++,
-        icon_url: syn.icon_url,
-      });
-    }
-  }
-
   for (const q of OSRS_QUEST_REQUIREMENTS) {
+    if (GAME_QUEST_EXCLUDED_SLUGS.has(q.questSlug)) continue;
     const existing = bySlug.get(q.questSlug);
     const qp = q.questPoints ?? 0;
     if (existing) {
@@ -359,7 +335,7 @@ export async function seedOsrsCatalogForGame(
     starterServicesInserted: 0,
   };
 
-  result.bossProfilesInserted = await seedGlobalBossProfilesIfEmpty(admin);
+  result.bossProfilesInserted = await syncMissingBossProfiles(admin);
   result.bossIconsSynced = await syncBossProfileWikiIcons(admin);
 
   if (!isOsrsCatalogGameSlug(gameSlug)) {
@@ -390,6 +366,12 @@ export async function seedOsrsCatalogForGame(
     .upsert(questRows as never[], { onConflict: "game_id,slug" });
   if (qErr) throw new Error(qErr.message);
   result.questsInserted = questRows.length;
+
+  await ac(admin)
+    .from("game_quests")
+    .delete()
+    .eq("game_id", gameId)
+    .in("slug", ["fire_cape", "infernal_cape"]);
 
   result.starterServicesInserted = await ensureOsrsStarterServices(admin, gameId);
 

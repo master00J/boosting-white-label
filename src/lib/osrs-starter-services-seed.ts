@@ -94,6 +94,43 @@ function buildQuestsMatrix(
   };
 }
 
+function buildQuestsMatrixPreservingPrices(
+  quests: { slug: string; name: string; icon_url: string | null }[],
+  previous: PerItemStatBasedPriceMatrix | null | undefined,
+): PerItemStatBasedPriceMatrix {
+  const priceBySlug = new Map<string, number>();
+  for (const it of previous?.items ?? []) {
+    priceBySlug.set(it.id, it.price);
+  }
+  return {
+    type: "per_item_stat_based",
+    items: quests.map((q) => ({
+      id: q.slug,
+      label: q.name,
+      price: priceBySlug.get(q.slug) ?? 1,
+      icon_url: q.icon_url ?? undefined,
+    })),
+    stats: previous?.stats ?? [],
+    ...(previous?.modifiers?.length ? { modifiers: previous.modifiers } : {}),
+    ...(previous?.packages?.length ? { packages: previous.packages } : {}),
+  };
+}
+
+function mergeBossSeedMatrix(
+  previous: BossTieredPriceMatrix | null | undefined,
+  fresh: BossTieredPriceMatrix,
+  extras?: Partial<BossTieredPriceMatrix>,
+): BossTieredPriceMatrix {
+  const mergedBosses = fresh.bosses.map((b) => {
+    const old = previous?.bosses?.find((x) => x.id === b.id);
+    if (old?.kill_tiers?.length) {
+      return { ...b, kill_tiers: old.kill_tiers };
+    }
+    return b;
+  });
+  return { ...fresh, ...extras, bosses: mergedBosses };
+}
+
 function buildBossMatrix(
   rows: { id: string; name: string; icon_url: string | null }[],
 ): BossTieredPriceMatrix {
@@ -236,5 +273,58 @@ export async function ensureOsrsStarterServices(admin: CatalogAdmin, gameId: str
     });
   }
 
+  await refreshOsrsSeedServicesAfterCatalog(admin, gameId, bossingRows, minigameRows);
+
   return inserted;
+}
+
+/** Sync seed service matrices when catalog changed (e.g. bosses inserted, capes removed from quests). */
+async function refreshOsrsSeedServicesAfterCatalog(
+  admin: CatalogAdmin,
+  gameId: string,
+  bossingRows: { id: string; name: string; icon_url: string | null }[],
+  minigameRows: { id: string; name: string; icon_url: string | null }[],
+) {
+  const { data: questRows } = await ac(admin)
+    .from("game_quests")
+    .select("slug, name, icon_url, sort_order")
+    .eq("game_id", gameId)
+    .order("sort_order");
+  const { data: qSvc } = await ac(admin)
+    .from("services")
+    .select("id, price_matrix")
+    .eq("game_id", gameId)
+    .eq("slug", SEED_SERVICE_SLUGS.quests)
+    .maybeSingle();
+  if (qSvc?.id && questRows?.length) {
+    const prev = qSvc.price_matrix as PerItemStatBasedPriceMatrix | undefined;
+    const pm = buildQuestsMatrixPreservingPrices(questRows, prev ?? null);
+    await ac(admin).from("services").update({ price_matrix: pm as never }).eq("id", qSvc.id);
+  }
+
+  const patchBossSeed = async (
+    slug: string,
+    rows: { id: string; name: string; icon_url: string | null }[],
+    extras?: Partial<BossTieredPriceMatrix>,
+  ) => {
+    if (!rows.length) return;
+    const { data: svc } = await ac(admin)
+      .from("services")
+      .select("id, price_matrix")
+      .eq("game_id", gameId)
+      .eq("slug", slug)
+      .maybeSingle();
+    if (!svc?.id) return;
+    const prev = svc.price_matrix as BossTieredPriceMatrix | undefined;
+    const fresh = buildBossMatrix(rows);
+    const next = mergeBossSeedMatrix(prev, fresh, extras);
+    const desc =
+      slug === SEED_SERVICE_SLUGS.bossing
+        ? `Boss picker with placeholder $1/kill (${rows.length} bosses). Adjust kill tiers and activate when ready.`
+        : `Minigame activities with placeholder $1/unit (${rows.length} entries). Adjust pricing and activate when ready.`;
+    await ac(admin).from("services").update({ price_matrix: next as never, description: desc }).eq("id", svc.id);
+  };
+
+  await patchBossSeed(SEED_SERVICE_SLUGS.bossing, bossingRows);
+  await patchBossSeed(SEED_SERVICE_SLUGS.minigames, minigameRows, { unit_label: "units" });
 }
