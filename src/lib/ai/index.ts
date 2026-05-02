@@ -7,28 +7,54 @@ export type { AIProvider, AIMessage, AICompletionOptions, AICompletionResult } f
 
 type SettingRow = { key: string; value: string };
 
+const AI_SETTING_KEYS = [
+  "ai_provider",
+  "ai_model",
+  "ai_api_key",
+  "openai_api_key",
+  "anthropic_api_key",
+] as const;
+
 async function getAISettings(): Promise<{ provider: string; apiKey: string; model?: string }> {
   const admin = createAdminClient();
   const { data } = await admin
     .from("site_settings")
     .select("key, value")
-    .in("key", ["ai_provider", "ai_api_key", "ai_model"]) as unknown as { data: SettingRow[] | null };
+    .in("key", [...AI_SETTING_KEYS]) as unknown as { data: SettingRow[] | null };
 
   const map = Object.fromEntries((data ?? []).map((s) => [s.key, s.value]));
 
+  const provider = (map["ai_provider"] ?? "openai").toLowerCase();
+  const legacy = map["ai_api_key"] ?? "";
+  const openaiKey = map["openai_api_key"] ?? "";
+  const anthropicKey = map["anthropic_api_key"] ?? "";
+
+  const apiKey =
+    provider === "anthropic"
+      ? (anthropicKey || legacy)
+      : (openaiKey || legacy);
+
   return {
-    provider: map["ai_provider"] ?? "openai",
-    apiKey: map["ai_api_key"] ?? "",
-    model: map["ai_model"],
+    provider,
+    apiKey,
+    model: map["ai_model"] || undefined,
   };
 }
 
-export async function getAIProvider(): Promise<AIProvider | null> {
+/** Provider + model for completions (e.g. Setup coach, helpdesk). */
+export async function getAIConfig(): Promise<{ provider: AIProvider; model?: string } | null> {
   const settings = await getAISettings();
   if (!settings.apiKey) return null;
 
-  if (settings.provider === "anthropic") {
-    return new AnthropicProvider(settings.apiKey);
-  }
-  return new OpenAIProvider(settings.apiKey);
+  const provider =
+    settings.provider === "anthropic"
+      ? new AnthropicProvider(settings.apiKey)
+      : new OpenAIProvider(settings.apiKey);
+
+  return { provider, model: settings.model };
+}
+
+export async function getAIProvider(): Promise<AIProvider | null> {
+  const cfg = await getAIConfig();
+  return cfg?.provider ?? null;
 }

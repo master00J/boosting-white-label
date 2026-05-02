@@ -11,8 +11,9 @@ export class AnthropicProvider implements AIProvider {
   async complete(options: AICompletionOptions): Promise<AICompletionResult> {
     const model = options.model ?? "claude-3-haiku-20240307";
 
-    // Anthropic uses a separate system field
-    const systemMsg = options.messages.find((m) => m.role === "system");
+    // Anthropic uses a single system string — merge all system messages
+    const systemParts = options.messages.filter((m) => m.role === "system").map((m) => m.content.trim()).filter(Boolean);
+    const systemMsg = systemParts.length > 0 ? systemParts.join("\n\n") : undefined;
     const userMessages = options.messages.filter((m) => m.role !== "system");
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
@@ -24,7 +25,7 @@ export class AnthropicProvider implements AIProvider {
       },
       body: JSON.stringify({
         model,
-        system: systemMsg?.content,
+        system: systemMsg,
         messages: userMessages.map((m) => ({ role: m.role, content: m.content })),
         max_tokens: options.maxTokens ?? 1024,
       }),

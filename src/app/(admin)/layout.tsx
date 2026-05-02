@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import AdminSidebar from "@/components/layouts/admin-sidebar";
 import AdminHeader from "@/components/layouts/admin-header";
 import AdminRouteGuard from "@/components/admin/admin-route-guard";
+import { AdminSetupCoach } from "@/components/admin/admin-setup-coach";
 
 export const metadata: Metadata = {
   title: {
@@ -24,6 +25,7 @@ export default function AdminLayout({
           <main className="flex-1 overflow-y-auto p-4 md:p-6">{children}</main>
         </div>
       </div>
+      <AdminSetupCoach />
     </AdminRouteGuard>
   );
 }

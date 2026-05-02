@@ -154,7 +154,7 @@ function SidebarContent({
       <nav className="flex-1 overflow-y-auto p-3 space-y-0.5">
         {filteredNav.map((item, i) => (
           <NavGroup
-            key={item.sectionKey ?? item.href ?? i}
+            key={item.href ?? item.sectionKey ?? String(i)}
             item={item}
             collapsed={collapsed}
             onNavigate={onNavigate}

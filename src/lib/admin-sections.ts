@@ -61,6 +61,7 @@ const PATH_TO_SECTION: { prefix: string; section: AdminSectionKey }[] = [
   { prefix: "/admin/activity", section: "activity" },
   { prefix: "/admin/settings", section: "settings" },
   { prefix: "/admin/import", section: "import" },
+  { prefix: "/admin/setup-assistant", section: "guide" },
   { prefix: "/admin/guide", section: "guide" },
   { prefix: "/admin/chat", section: "chat" },
   { prefix: "/admin/ranks", section: "ranks" },
