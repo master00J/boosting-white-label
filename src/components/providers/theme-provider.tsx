@@ -20,6 +20,8 @@ import {
 import {
   STOREFRONT_THEME_PREVIEW_QUERY,
   STOREFRONT_THEME_PREVIEW_STORAGE_KEY,
+  STOREFRONT_BUILDER_SYNC_QUERY,
+  STOREFRONT_BUILDER_BROADCAST,
   parseThemePreviewSession,
 } from "@/lib/storefront-theme-preview";
 
@@ -313,6 +315,35 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     loadTheme();
     return () => {
       cancelled = true;
+    };
+  }, []);
+
+  /** Live theme from Visual builder iframe (`?theme_preview=1&builder_sync=1`). */
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const qs = new URLSearchParams(window.location.search);
+    if (qs.get(STOREFRONT_THEME_PREVIEW_QUERY) !== "1") return;
+    if (qs.get(STOREFRONT_BUILDER_SYNC_QUERY) !== "1") return;
+
+    const bc = new BroadcastChannel(STOREFRONT_BUILDER_BROADCAST);
+    const onMsg = (ev: MessageEvent) => {
+      const d = ev.data as {
+        type?: string;
+        theme?: Partial<ThemeSettings>;
+        site_name?: string;
+        site_tagline?: string;
+      };
+      if (d?.type !== "storefront_builder_theme" || !d.theme || typeof d.theme !== "object") return;
+      setTheme({ ...defaultTheme, ...d.theme });
+      setSiteBranding({
+        siteName: typeof d.site_name === "string" ? d.site_name : "",
+        siteTagline: typeof d.site_tagline === "string" ? d.site_tagline : "",
+      });
+    };
+    bc.addEventListener("message", onMsg);
+    return () => {
+      bc.removeEventListener("message", onMsg);
+      bc.close();
     };
   }, []);
 

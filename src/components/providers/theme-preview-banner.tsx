@@ -2,11 +2,15 @@
 
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { STOREFRONT_THEME_PREVIEW_QUERY } from "@/lib/storefront-theme-preview";
+import {
+  STOREFRONT_THEME_PREVIEW_QUERY,
+  STOREFRONT_BUILDER_SYNC_QUERY,
+} from "@/lib/storefront-theme-preview";
 
 export default function ThemePreviewBanner() {
   const searchParams = useSearchParams();
   if (searchParams.get(STOREFRONT_THEME_PREVIEW_QUERY) !== "1") return null;
+  if (searchParams.get(STOREFRONT_BUILDER_SYNC_QUERY) === "1") return null;
 
   return (
     <div

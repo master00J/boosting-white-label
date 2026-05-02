@@ -1,6 +1,15 @@
 /** Query flag: full-site draft theme from Visual builder (sessionStorage). */
 export const STOREFRONT_THEME_PREVIEW_QUERY = "theme_preview";
 
+/**
+ * When set with theme_preview=1, homepage listens on BroadcastChannel for live updates from /admin/storefront/builder.
+ * Banner is hidden in this mode (embedded iframe).
+ */
+export const STOREFRONT_BUILDER_SYNC_QUERY = "builder_sync";
+
+/** Same-tab/same-origin sync between builder and storefront iframe. */
+export const STOREFRONT_BUILDER_BROADCAST = "storefront_builder_theme_v1";
+
 /** sessionStorage JSON: `{ theme, site_name?, site_tagline? }` or legacy flat partial theme */
 export const STOREFRONT_THEME_PREVIEW_STORAGE_KEY = "storefront_theme_preview";
 

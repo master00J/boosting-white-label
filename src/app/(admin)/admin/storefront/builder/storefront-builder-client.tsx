@@ -1,8 +1,23 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { Save, Loader2, Check, ExternalLink, Palette, Plus, Trash2, MonitorPlay, MousePointerClick } from "lucide-react";
+import {
+  Save,
+  Loader2,
+  Check,
+  ExternalLink,
+  Palette,
+  Plus,
+  Trash2,
+  MonitorPlay,
+  MousePointerClick,
+  Laptop,
+  Smartphone,
+  Tablet,
+  PanelBottom,
+  RefreshCw,
+} from "lucide-react";
 import { resolveStorefrontVisualPick } from "@/lib/storefront-visual-edit";
 import StorefrontMiniPreview from "@/components/admin/storefront/storefront-mini-preview";
 import {
@@ -13,8 +28,12 @@ import {
 } from "@/components/admin/storefront/builder-color-fields";
 import {
   STOREFRONT_THEME_PREVIEW_QUERY,
-  STOREFRONT_THEME_PREVIEW_STORAGE_KEY,
+  STOREFRONT_BUILDER_SYNC_QUERY,
 } from "@/lib/storefront-theme-preview";
+import {
+  broadcastStorefrontBuilderTheme,
+  openStorefrontBuilderBroadcastChannel,
+} from "@/lib/storefront-builder-preview-sync";
 import {
   defaultTheme,
   type ThemeSettings,
@@ -81,6 +100,55 @@ export default function StorefrontBuilderClient({
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
   const [visualClickEdit, setVisualClickEdit] = useState(false);
+  const [fullSitePreview, setFullSitePreview] = useState(true);
+  const [fullPreviewFrameReady, setFullPreviewFrameReady] = useState(false);
+  const [previewViewport, setPreviewViewport] = useState<"desktop" | "tablet" | "mobile">("desktop");
+  const [showMiniPreview, setShowMiniPreview] = useState(true);
+  const [iframeNonce, setIframeNonce] = useState(0);
+
+  const bcRef = useRef<BroadcastChannel | null>(null);
+  const themeRef = useRef(theme);
+  themeRef.current = theme;
+  const siteNameRef = useRef(siteName);
+  siteNameRef.current = siteName;
+  const siteTaglineRef = useRef(siteTagline);
+  siteTaglineRef.current = siteTagline;
+
+  useEffect(() => {
+    bcRef.current = openStorefrontBuilderBroadcastChannel();
+    return () => {
+      bcRef.current?.close();
+      bcRef.current = null;
+    };
+  }, []);
+
+  const pushLivePreviewPayload = useCallback(() => {
+    broadcastStorefrontBuilderTheme(bcRef.current, {
+      theme: themeRef.current,
+      site_name: siteNameRef.current,
+      site_tagline: siteTaglineRef.current,
+    });
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!fullSitePreview) {
+      setFullPreviewFrameReady(false);
+      return;
+    }
+    pushLivePreviewPayload();
+    setFullPreviewFrameReady(true);
+  }, [fullSitePreview, pushLivePreviewPayload]);
+
+  useEffect(() => {
+    if (!fullSitePreview || !fullPreviewFrameReady) return;
+    const id = window.setTimeout(pushLivePreviewPayload, 120);
+    return () => window.clearTimeout(id);
+  }, [theme, siteName, siteTagline, fullSitePreview, fullPreviewFrameReady, pushLivePreviewPayload]);
+
+  const iframeSrc = useMemo(
+    () => `/?${STOREFRONT_THEME_PREVIEW_QUERY}=1&${STOREFRONT_BUILDER_SYNC_QUERY}=1`,
+    []
+  );
 
   const focusBuilderField = useCallback((pick: string) => {
     const meta = resolveStorefrontVisualPick(pick);
@@ -115,24 +183,10 @@ export default function StorefrontBuilderClient({
     setTheme((prev) => ({ ...prev, ...partial }));
 
   const openLiveThemePreview = useCallback(() => {
-    try {
-      const payload = {
-        theme: {
-          ...theme,
-          logo_url: theme.logo_url?.trim() ?? "",
-          favicon_url: theme.favicon_url?.trim() ?? "",
-          hero_bg_url: theme.hero_bg_url?.trim() ?? "",
-        },
-        site_name: siteName.trim(),
-        site_tagline: siteTagline.trim(),
-      };
-      sessionStorage.setItem(STOREFRONT_THEME_PREVIEW_STORAGE_KEY, JSON.stringify(payload));
-    } catch {
-      /* storage full or disabled */
-    }
+    pushLivePreviewPayload();
     const url = `/?${STOREFRONT_THEME_PREVIEW_QUERY}=1`;
     window.open(url, "_blank", "noopener,noreferrer");
-  }, [theme, siteName, siteTagline]);
+  }, [pushLivePreviewPayload]);
 
   const save = async () => {
     setSaving(true);
@@ -177,7 +231,7 @@ export default function StorefrontBuilderClient({
           </h1>
           <p className="text-sm text-[var(--text-muted)] mt-2 max-w-xl">
             Edit colors, surfaces, typography, navigation, footer, full hero, homepage section headings, service tiles, trust blocks, how-it-works steps, and FAQ.
-            Use color pickers where available; advanced values can still be typed. Turn on <strong className="text-[var(--text-secondary)]">Click-to-edit</strong> for quick chips (colors, fonts, surfaces) and tap hero, stats, tiles, catalog, why, process, CTA, FAQ or footer in the preview to open that field—including indexed service tiles and trust rows. Changes apply instantly. Open <strong className="text-[var(--text-secondary)]">Live preview</strong> in a new tab for the full storefront (unsaved draft, session only).
+            Use color pickers where available; advanced values can still be typed. Turn on <strong className="text-[var(--text-secondary)]">Click-to-edit</strong> for chips and the compact map. The <strong className="text-[var(--text-secondary)]">full storefront</strong> section below is the real homepage in an iframe with live sync while you edit. <strong className="text-[var(--text-secondary)]">Live preview</strong> opens the draft in a new tab (with banner).
           </p>
           <div className="flex flex-wrap gap-2 mt-3">
             <Link
@@ -1417,21 +1471,150 @@ export default function StorefrontBuilderClient({
         </div>
 
         <div className="lg:sticky lg:top-24 space-y-3">
-          <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Live preview</p>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Compact map</p>
+            <button
+              type="button"
+              onClick={() => setShowMiniPreview((v) => !v)}
+              className="text-[10px] font-medium px-2 py-1 rounded-lg border border-[var(--border-default)] hover:bg-white/5"
+            >
+              {showMiniPreview ? "Hide" : "Show"}
+            </button>
+          </div>
           {visualClickEdit ? (
             <p className="text-[11px] text-primary/90 font-medium">
-              Click-to-edit on — chips + outlined regions jump to fields (including indexed tiles, FAQ, footer).
+              Click-to-edit on — chips + outlined regions jump to fields.
             </p>
           ) : null}
-          <StorefrontMiniPreview
-            theme={theme}
-            siteName={siteName}
-            siteTagline={siteTagline}
-            visualEditEnabled={visualClickEdit}
-            onVisualEditPick={focusBuilderField}
-          />
+          {showMiniPreview ? (
+            <StorefrontMiniPreview
+              theme={theme}
+              siteName={siteName}
+              siteTagline={siteTagline}
+              visualEditEnabled={visualClickEdit}
+              onVisualEditPick={focusBuilderField}
+            />
+          ) : (
+            <p className="text-[11px] text-[var(--text-muted)]">Mini preview hidden — use the full frame below.</p>
+          )}
         </div>
       </div>
+
+      {fullSitePreview ? (
+        <section className="space-y-4 pt-6 border-t border-[var(--border-default)]">
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 rounded-lg bg-primary/15 p-2 text-primary">
+                <Laptop className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Full storefront</p>
+                <h2 className="font-heading font-semibold text-lg mt-1">Live homepage</h2>
+                <p className="text-sm text-[var(--text-muted)] mt-1 max-w-xl">
+                  Real <code className="text-[11px] px-1 rounded bg-[var(--bg-elevated)]">/</code> route in an iframe with your unsaved draft. Edits sync about every 120ms while this section is visible.
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-[10px] font-medium text-[var(--text-muted)] uppercase mr-1">Width</span>
+              <button
+                type="button"
+                onClick={() => setPreviewViewport("desktop")}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-medium transition-colors ${
+                  previewViewport === "desktop"
+                    ? "border-primary bg-primary/15 text-primary"
+                    : "border-[var(--border-default)] hover:bg-white/5"
+                }`}
+              >
+                <Laptop className="h-3.5 w-3.5" />
+                Desktop
+              </button>
+              <button
+                type="button"
+                onClick={() => setPreviewViewport("tablet")}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-medium transition-colors ${
+                  previewViewport === "tablet"
+                    ? "border-primary bg-primary/15 text-primary"
+                    : "border-[var(--border-default)] hover:bg-white/5"
+                }`}
+              >
+                <Tablet className="h-3.5 w-3.5" />
+                Tablet
+              </button>
+              <button
+                type="button"
+                onClick={() => setPreviewViewport("mobile")}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-medium transition-colors ${
+                  previewViewport === "mobile"
+                    ? "border-primary bg-primary/15 text-primary"
+                    : "border-[var(--border-default)] hover:bg-white/5"
+                }`}
+              >
+                <Smartphone className="h-3.5 w-3.5" />
+                Mobile
+              </button>
+              <button
+                type="button"
+                onClick={() => setIframeNonce((n) => n + 1)}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[var(--border-default)] text-xs font-medium hover:bg-white/5"
+                title="Reload iframe only"
+              >
+                <RefreshCw className="h-3.5 w-3.5" />
+                Reload
+              </button>
+              <button
+                type="button"
+                onClick={() => setFullSitePreview(false)}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[var(--border-default)] text-xs font-medium hover:bg-white/5"
+              >
+                <PanelBottom className="h-3.5 w-3.5" />
+                Collapse frame
+              </button>
+            </div>
+          </div>
+
+          <div
+            className={`rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)]/40 overflow-hidden ${
+              previewViewport === "desktop" ? "" : "flex justify-center py-4 px-2 sm:px-4"
+            }`}
+          >
+            <div
+              className={
+                previewViewport === "desktop"
+                  ? "w-full"
+                  : previewViewport === "tablet"
+                    ? "w-full max-w-[834px] shadow-2xl"
+                    : "w-full max-w-[390px] shadow-2xl"
+              }
+              style={{ height: "min(78vh, 920px)" }}
+            >
+              {fullPreviewFrameReady ? (
+                <iframe
+                  key={iframeNonce}
+                  title="Storefront live preview"
+                  src={iframeSrc}
+                  className="h-full w-full rounded-xl border-0 bg-[var(--shell-bg)]"
+                />
+              ) : (
+                <div className="flex h-full min-h-[320px] items-center justify-center rounded-xl border border-dashed border-[var(--border-default)] bg-[var(--bg-card)]">
+                  <Loader2 className="h-8 w-8 animate-spin text-[var(--text-muted)]" />
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      ) : (
+        <div className="pt-6 border-t border-[var(--border-default)]">
+          <button
+            type="button"
+            onClick={() => setFullSitePreview(true)}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[var(--border-default)] text-sm font-medium hover:bg-white/5"
+          >
+            <Laptop className="h-4 w-4" />
+            Show full storefront preview
+          </button>
+        </div>
+      )}
     </div>
   );
 }
