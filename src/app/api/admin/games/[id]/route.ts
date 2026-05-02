@@ -70,7 +70,7 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
       return NextResponse.json(
         {
           error:
-            "Deleting this game is blocked by a foreign key. Apply migration 00079_orders_reviews_game_delete_set_null.sql on Supabase, or archive the game (set inactive) instead of deleting.",
+            "Deleting this game is blocked by a foreign key. Apply migrations 00079 and 00080 (orders/reviews game_id and service_id ON DELETE SET NULL) on Supabase, or archive the game (set inactive) instead of deleting.",
         },
         { status: 409 }
       );
