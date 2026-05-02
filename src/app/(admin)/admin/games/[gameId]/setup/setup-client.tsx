@@ -275,9 +275,21 @@ export default function SetupClient({
         description="Manage skills available for this game's services"
         action={
           !showSkillForm && (
-            <Button size="sm" onClick={() => setShowSkillForm(true)}>
-              <Plus className="h-4 w-4 mr-1.5" /> Add skill
-            </Button>
+            <div className="flex flex-wrap items-center gap-2 justify-end">
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={preloadOsrsCatalog}
+                disabled={preloadingCatalog}
+                title="Imports OSRS skills, quests, methods & more when your game slug matches OSRS (see note below)."
+              >
+                <Library className="h-4 w-4 mr-1.5" />
+                {preloadingCatalog ? "Loading…" : "Load OSRS catalog"}
+              </Button>
+              <Button size="sm" onClick={() => setShowSkillForm(true)}>
+                <Plus className="h-4 w-4 mr-1.5" /> Add skill
+              </Button>
+            </div>
           )
         }
       />
@@ -297,26 +309,25 @@ export default function SetupClient({
         </Card>
       )}
 
-      {isOsrs && (
-        <Card className="border-primary/25 bg-primary/[0.04]">
-          <CardContent className="pt-4 space-y-3">
-            <div>
-              <p className="text-sm font-medium mb-1">Pre-load OSRS catalog</p>
-              <p className="text-xs text-muted-foreground mb-3">
-                Skills (all OSRS skills), quests, global boss/minigame profiles, standard training methods, and GP/XP rows when applicable. Safe to run again (upserts).
-              </p>
-              <Button
-                size="sm"
-                onClick={preloadOsrsCatalog}
-                disabled={preloadingCatalog}
-              >
-                <Library className="h-4 w-4 mr-1.5" />
-                {preloadingCatalog ? "Loading…" : "Load / refresh OSRS catalog"}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      <Card className="border-primary/20 bg-primary/[0.03]">
+        <CardContent className="py-3 px-4 text-xs leading-relaxed text-muted-foreground space-y-2">
+          <p>
+            <span className="font-medium text-foreground">OSRS catalog — </span>
+            Click <strong className="text-foreground">Load OSRS catalog</strong> next to <strong className="text-foreground">Add skill</strong> (top right) to import skills, quests, training methods, boss profiles, and GP/XP rows where applicable. Safe to run again.
+          </p>
+          <p>
+            Game slug in database:{" "}
+            <code className="text-[11px] bg-muted px-1.5 py-0.5 rounded border border-border">{game.slug}</code>
+          </p>
+          {!isOsrs && (
+            <p className="text-amber-700 dark:text-amber-400">
+              This slug is not recognised as OSRS for full imports. Edit the game under Catalog → Games and use a slug containing{" "}
+              <code className="text-[11px]">osrs</code> or <code className="text-[11px]">oldschool</code> (e.g.{" "}
+              <code className="text-[11px]">oldschool-runescape</code>).
+            </p>
+          )}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardContent className="p-0">
@@ -325,7 +336,7 @@ export default function SetupClient({
               <p>No skills in the database for this game yet.</p>
               {isOsrs ? (
                 <p>
-                  Use <strong className="text-foreground">Load / refresh OSRS catalog</strong> above to import all skills at once, or add skills manually with <strong className="text-foreground">Add skill</strong>.
+                  Use <strong className="text-foreground">Load OSRS catalog</strong> (top right) to import all skills at once, or add skills manually with <strong className="text-foreground">Add skill</strong>.
                 </p>
               ) : (
                 <p>
@@ -386,25 +397,23 @@ export default function SetupClient({
         </CardContent>
       </Card>
 
-      {isOsrs && (
-        <Card>
-          <CardContent className="pt-4">
-            <p className="text-sm font-medium mb-1">Quest required items</p>
-            <p className="text-xs text-muted-foreground mb-3">
-              Fetch item requirements for all OSRS quests from the wiki. Used for the Bank tab on loadouts to show which quest items you have.
-            </p>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={fetchQuestItems}
-              disabled={fetchingQuestItems}
-            >
-              <Download className="h-4 w-4 mr-1.5" />
-              {fetchingQuestItems ? "Fetching..." : "Fetch quest items from Wiki"}
-            </Button>
-          </CardContent>
-        </Card>
-      )}
+      <Card>
+        <CardContent className="pt-4">
+          <p className="text-sm font-medium mb-1">Quest required items</p>
+          <p className="text-xs text-muted-foreground mb-3">
+            Fetch item requirements for all OSRS quests from the wiki. Used for the Bank tab on loadouts to show which quest items you have.
+          </p>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={fetchQuestItems}
+            disabled={fetchingQuestItems}
+          >
+            <Download className="h-4 w-4 mr-1.5" />
+            {fetchingQuestItems ? "Fetching..." : "Fetch quest items from Wiki"}
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
 }
